@@ -1,0 +1,25 @@
+{
+	"name": "6x09-assembly-client",
+	"description": "VSCode part of the 6x09 assembly language server",
+	"author": "Blair Leduc",
+	"license": "MIT",
+	"version": "0.0.1",
+	"publisher": "vscode",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/BlairLeduc/vscode-6x09-assembly"
+	},
+	"engines": {
+		"vscode": "^1.35.0"
+	},
+	"scripts": {
+		"update-vscode": "vscode-install",
+		"postinstall": "vscode-install"
+	},
+	"dependencies": {
+		"vscode-languageclient": "^4.4.2"
+	},
+	"devDependencies": {
+		"vscode": "^1.1.34"
+	}
+}

@@ -1,0 +1,81 @@
+{
+	"name": "6x09-assembly",
+	"displayName": "6x09 Assembly",
+	"description": "Language support for 6x09 Assembly language.",
+	"author": "Blair Leduc",
+	"license": "MIT",
+	"version": "0.0.1",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/BlairLeduc/vscode-6x09-assembly"
+	},
+	"publisher": "blairleduc",
+	"categories": [],
+	"keywords": [
+		"6809 6309 6x09 assembly language"
+	],
+	"engines": {
+		"vscode": "^1.35.0"
+	},
+	"activationEvents": [
+		"onLanguage:asm6x09"
+	],
+	"main": "./client/out/extension",
+	"contributes": {
+		"languages": [
+			{
+				"id": "asm6x09",
+				"aliases": [
+					"6x09 Assembly",
+					"asm6x09"
+				],
+				"extensions": [
+					".asm",
+					".a"
+				]
+			}
+		],
+		"configuration": {
+			"type": "object",
+			"title": "6x09 Assembly Configuration",
+			"properties": {
+				"asm6x09.programStart": {
+					"scope": "resource",
+					"type": "number",
+					"default": 1024,
+					"description": "Default start location when assembling, overridden with org pseudo-op."
+				},
+				"asm6x09.memorySize": {
+					"scope": "resource",
+					"type": "number",
+					"default": 32768,
+					"description": "Size of memory space used to initialise registers."
+				},
+				"asm6x09.trace.server": {
+					"scope": "window",
+					"type": "string",
+					"enum": [
+						"off",
+						"messages",
+						"verbose"
+					],
+					"default": "off",
+					"description": "Traces the communication between VS Code and the language server."
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "cd client && npm run update-vscode && cd .. && npm run compile",
+		"compile": "tsc -b",
+		"watch": "tsc -b -w",
+		"postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
+		"test": "sh ./scripts/e2e.sh"
+	},
+	"devDependencies": {
+		"@types/mocha": "^5.2.7",
+		"@types/node": "^8.10.49",
+		"tslint": "^5.17.0",
+		"typescript": "^3.5.2"
+	}
+}
