@@ -2,9 +2,9 @@
 
 This is a Visual Studio extenstion for 6x09 Assembly language.
 
-It supports `.asm` and `.a` files.
+The support files extensions are `.asm` and `.a`.
 
-*This release is a minimum viable product (MVP) of this extension.*
+*This extensin is in a minimum viable product (MVP) state.*
 
 ## Structure
 
