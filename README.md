@@ -2,34 +2,34 @@
 
 This is a Visual Studio extenstion for 6x09 Assembly language.
 
-The support files extensions are `.asm` and `.a`.
+This extension supports files extensions `.asm` and `.a`.
 
-*This extensin is in a minimum viable product (MVP) state.*
+*This is a minimum viable product (MVP) at the moment. Please see the roadmap below.*
 
 ## Structure
 
 ```
 .
-├── client // Language Client
+├── client // 6x09 Assembily Language Client
 │   ├── src
-│   │   ├── test // End to End tests for Language Client / Server
-│   │   └── extension.ts // Language Client entry point
+│   │   ├── test // End to End tests for 6x09 Assembly Language Client / Server
+│   │   └── extension.ts // 6x09 Assembly Language Client entry point
 ├── package.json // The extension manifest.
-└── server // Language Server
+└── server // 6x09 Assembly Language Server
     └── src
-        └── server.ts // Language Server entry point
+        └── server.ts // 6x09 Assembly Language Server entry point
 ```
 
 ## Current Functionality
 
 - Syntax highlighting for 6809 assembly language.
-- Completions
-- Diagnostics regenerated on each file change or configuration change
+- Completions.
+- Diagnostics regenerated on each file change or configuration change.
 
 ## Roadmap
 
-- Syntax highlighter for 6309 assembply language.
-Deeping completions and diagnotics through continuous assembly of source
+- Syntax highlighter for 6309 assembly language.
+- Deeping completions and diagnotics through continuous assembly of source.
 
 ## How to run this extension for development
 
