@@ -9,6 +9,9 @@
 		"type": "git",
 		"url": "https://github.com/BlairLeduc/vscode-6x09-assembly"
 	},
+	"bugs": {
+		"url": "https://github.com/BlairLeduc/vscode-6x09-assembly/issues"
+	},
 	"publisher": "blairleduc",
 	"categories": [],
 	"keywords": [
@@ -20,7 +23,7 @@
 	"activationEvents": [
 		"onLanguage:asm6x09"
 	],
-	"main": "./client/out/extension",
+	"main": "./out/extension",
 	"contributes": {
 		"languages": [
 			{
@@ -33,6 +36,13 @@
 					".asm",
 					".a"
 				]
+			}
+		],
+		"grammars": [
+			{
+				"language": "asm6x09",
+				"scopeName": "source.asm.6x09",
+				"path": "./syntaxes/6x09.tmLanguage.json"
 			}
 		],
 		"configuration": {
@@ -66,16 +76,20 @@
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "cd client && npm run update-vscode && cd .. && npm run compile",
-		"compile": "tsc -b",
-		"watch": "tsc -b -w",
-		"postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
-		"test": "sh ./scripts/e2e.sh"
+		"vscode:prepublish": "npm run update-vscode && npm run compile",
+		"compile": "tsc -p ./",
+		"lint": "tslint -p ./",
+		"watch": "tsc -watch -p ./",
+		"update-vscode": "vscode-install",
+		"postinstall": "vscode-install",
+		"convert": "npx js-yaml syntaxes/6x09.tmLanguage.yaml > syntaxes/6x09.tmLanguage.json"
 	},
 	"devDependencies": {
 		"@types/mocha": "^5.2.7",
 		"@types/node": "^12.0.8",
+		"js-yaml": "^3.13.1",
 		"tslint": "^5.17.0",
-		"typescript": "^3.5.2"
+		"typescript": "^3.5.2",
+		"vscode": "^1.1.34"
 	}
 }

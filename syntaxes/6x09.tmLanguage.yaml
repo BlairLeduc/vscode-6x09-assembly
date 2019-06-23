@@ -1,0 +1,118 @@
+# texmate language for 6x09 assembly
+scopeName: source.asm.6x09
+filetypes: [a, asm]
+
+patterns:
+  
+  - name: comment.line.asterisk.asm6x09
+    match: "\\*[^\n]*\n"
+
+  - name: meta.line
+    match: ^([^ \t]*)(?:[ \t]+([^ \t*]+))?(?:[ \t]+((?![*])(?:"[^"]*"|/[^/]*/|[^ \t]*)))?(?:[ \t]+[*]?(.*))?
+    captures:
+      '1': # label column
+        name: meta.label
+        patterns:
+          - name: variable.name.asm6x09
+            match: '[a-zA-Z][a-zA-Z0-9_.$@]*'
+
+          - name: invalid.illegal
+            match: '.*'
+
+      '2': # mnemonic column
+        name: meta.mnemonic
+        patterns:
+          - name: keyword.control.pragma.asm6x09
+            match: (?i)(?<=[ \t])([*]?pragma|[*]pragma(push|pop))\b
+
+          - name: entity.name.type.data.asm6x09
+            match: (?i)\b(f[cdq]b|fc[cns]|[zr]m[dbq]|includebin|fill)\b
+
+          - name: storage.type.dotdata.asm6x09
+            match: (?i)(?<=[ \t])([.](d[bws]|rs|blkb|byte|word|quad|4byte|asci[izs]|str[sz]?))\b
+
+          - name: storage.modifier.asm6x09
+            match: (?i)\b(org|equ|set(dp)?|align)\b
+          
+          - name: invalid.deprecated.asm6x09
+            match: (?i)\b(reorg)\b
+
+          - name: keyword.control.conditional.asm6x09
+            match: (?i)\b(if(eq|ne|g[te]|l[te]|n?def|pragma|p1)|else|end[cmr]|macro|rept)\b
+
+          - name: support.function.os9.asm6x09
+            match: (?i)\b(os9|e?mod)\b
+
+          - name: keyword.other.misc.asm6x09
+            match: (?i)\b(include|use|end|error|warning|fail|opt|nam|ttl|pag|spc)\b
+
+          - name: keyword.other.dotmisc.asm6x09
+            match: (?i)(?<=[ \t])([.]module)\b
+
+          - name: keyword.mnemonic.logical.asm6x09
+            match: (?i)\b(and(a|b|cc)|clr[ab]?|eor[ab]|or(a|b|cc))\b
+
+          - name: keyword.mnemonic.arithmetic.asm6x09
+            match: (?i)\b(abx|adc[ab]|add[abd]|com[ab]?|dec[ab]?|daa|inc[ab]?|mul|neg[ab]?|sbc[ab]|sex|sub[abd])\b
+
+          - name: keyword.mnemonic.branch.asm6x09
+            match: (?i)\b(l?b(c[cs]|eq|g[et]|h[is]|l[eost]|mi|ne|pl|ra|sr|v[cs])|rts)\b
+
+          - name: keyword.mnemonic.comparison.asm6x09
+            match: (?i)\b(bit[ab]|cmp[abdsuxy]|tst[ab]?)\b
+
+          - name: keyword.mnemonic.jump.asm6x09
+            match: (?i)\b(j(mp|sr))\b
+
+          - name: keyword.mnemonic.interrupt.asm6x09
+            match: (?i)\b(cwai|rti|swi[23]?|sync)\b
+
+          - name: keyword.mnemonic.shiftrotate.asm6x09
+            match: (?i)\b(as[lr][ab]?|ls[lr][ab]?|ro[lr][ab]?)\b
+
+          - name: keyword.mnemonic.transfer.asm6x09
+            match: (?i)\b(exg|ld[abdsuxy]|lea[suxy]|psh[su]|pul[su]|st[abdsuxy]|tfr)\b
+
+          - name: keyword.mnemonic.nop.asm6x09
+            match: (?i)\b(nop|l?brn)\b
+
+          - name: invalid.illegal
+            match: '.*'
+
+      '3': # operand column
+        name: meta.operand
+        patterns:
+          - name: string.quoted.double.asm6x09
+            match: '"[^"]*"'
+  
+          - name: string.quoted.other.asm6x09
+            match: "/[^/]*/"
+
+          - name: constant.character.asm6x09
+            match: "'."
+
+          - name: constant.numeric.hex.asm6x09
+            match: (?<![a-zA-Z_.])((\$|(0[xX]))[0-9A-Fa-f]*\b)|([0-9][0-9A-Fa-f]*H\b)
+
+          - name: constant.numeric.octal.asm6x09
+            match: (?<![a-zA-Z_.])(@[0-7]+)|([0-7]+[qQoO])\b
+
+          - name: constant.numeric.binary.asm6x09
+            match: (?<![a-zA-Z_.])(%[01]+)|([01]+[bB])\b
+
+          - name: constant.numeric.integer.asm6x09
+            match: \b(?<![a-zA-Z_.])[+-]?[0-9]+&?\b
+
+          - name: support.function.os9.asm6x09
+            match: '[CFIE][$][a-zA-Z0-9_.$]*'
+
+          - name: support.constant.defs.asm6x09
+            match: (SS[.][a-zA-Z0-9_.$]*)
+
+          - name: variable.name.asm6x09
+            match: '[a-zA-Z][a-zA-Z0-9_.$@]*'
+
+      '4': # comment column
+        name: comment
+
+
