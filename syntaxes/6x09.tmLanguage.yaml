@@ -3,7 +3,6 @@ scopeName: source.asm.6x09
 filetypes: [a, asm]
 
 patterns:
-  
   - name: comment.line.asterisk.asm6x09
     match: "\\*[^\n]*\n"
 
