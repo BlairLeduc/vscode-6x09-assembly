@@ -7,7 +7,7 @@ patterns:
     match: "\\*[^\n]*\n"
 
   - name: meta.line
-    match: ^([^ \t]*)(?:[ \t]+([^ \t*]+))?(?:[ \t]+((?![*])(?:"[^"]*"|/[^/]*/|[^ \t]*)))?(?:[ \t]+[*]?(.*))?
+    match: ^([^ \t]*)(?:[ \t]+([^ \t*]+))?(?:[ \t]+((?![*])(?:"[^"]*"|/[^/]*/|[^ \t]*)))?(?:[ \t]+((?:.*)|(?:[*].*)))?
     captures:
       '1': # label column
         name: meta.label
@@ -18,8 +18,8 @@ patterns:
           - name: invalid.illegal
             match: '.*'
 
-      '2': # mnemonic column
-        name: meta.mnemonic
+      '2': # opcode column
+        name: meta.opcode
         patterns:
           - name: keyword.control.pragma.asm6x09
             match: (?i)(?<=[ \t])([*]?pragma|[*]pragma(push|pop))\b
@@ -48,32 +48,41 @@ patterns:
           - name: keyword.other.dotmisc.asm6x09
             match: (?i)(?<=[ \t])([.]module)\b
 
-          - name: keyword.mnemonic.logical.asm6x09
+          - name: keyword.opcode.logical.asm6x09
             match: (?i)\b(and(a|b|cc)|clr[ab]?|eor[ab]|or(a|b|cc))\b
 
-          - name: keyword.mnemonic.arithmetic.asm6x09
+          - name: keyword.opcode.arithmetic.asm6x09
             match: (?i)\b(abx|adc[ab]|add[abd]|com[ab]?|dec[ab]?|daa|inc[ab]?|mul|neg[ab]?|sbc[ab]|sex|sub[abd])\b
 
-          - name: keyword.mnemonic.branch.asm6x09
+          - name: keyword.opcode.branch.asm6x09
             match: (?i)\b(l?b(c[cs]|eq|g[et]|h[is]|l[eost]|mi|ne|pl|ra|sr|v[cs])|rts)\b
 
-          - name: keyword.mnemonic.comparison.asm6x09
+          - name: keyword.opcode.comparison.asm6x09
             match: (?i)\b(bit[ab]|cmp[abdsuxy]|tst[ab]?)\b
 
-          - name: keyword.mnemonic.jump.asm6x09
+          - name: keyword.opcode.jump.asm6x09
             match: (?i)\b(j(mp|sr))\b
 
-          - name: keyword.mnemonic.interrupt.asm6x09
+          - name: keyword.opcode.interrupt.asm6x09
             match: (?i)\b(cwai|rti|swi[23]?|sync)\b
 
-          - name: keyword.mnemonic.shiftrotate.asm6x09
+          - name: keyword.opcode.shiftrotate.asm6x09
             match: (?i)\b(as[lr][ab]?|ls[lr][ab]?|ro[lr][ab]?)\b
 
-          - name: keyword.mnemonic.transfer.asm6x09
+          - name: keyword.opcode.transfer.asm6x09
             match: (?i)\b(exg|ld[abdsuxy]|lea[suxy]|psh[su]|pul[su]|st[abdsuxy]|tfr)\b
 
-          - name: keyword.mnemonic.nop.asm6x09
+          - name: keyword.opcode.nop.asm6x09
             match: (?i)\b(nop|l?brn)\b
+
+          - name: keyword.opcode.6309.asm6x09
+            match: (?i)\b(adc[defr]|add[rw]|[aeo]im|and[dr]|as[lr]d|bi?and|bi?eor|bi?or|bit(d|md)|clr[defw]|cmp[efrw])\b
+
+          - name: keyword.opcode.6309.asm6x09
+            match: (?i)\b(com[defw]|dec[defw]|div[dq]|eor[dr]|inc[defw]|ld([efqw]|bt|md)|lsld|lsr[dw]|muld|negd|or[dr])\b
+
+          - name: keyword.opcode.6309.asm6x09
+            match: (?i)\b(psh[su]w|pul[su]w|ro[lr][dw]|sbc[dr]|sexw|st([efqw]|bt)|sub[rw]|tfm|tim|tst[defw])\b
 
           - name: invalid.illegal
             match: '.*'
