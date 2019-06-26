@@ -4,7 +4,7 @@
 	"description": "Language support for 6x09 Assembly language.",
 	"author": "Blair Leduc",
 	"license": "MIT",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/BlairLeduc/vscode-6x09-assembly"
@@ -13,10 +13,15 @@
 		"url": "https://github.com/BlairLeduc/vscode-6x09-assembly/issues"
 	},
 	"publisher": "blairleduc",
-	"categories": [],
+	"categories": ["Programming Languages"],
 	"keywords": [
 		"6809 6309 6x09 assembly language"
 	],
+	"icon": "media/6x09-Assembly.png",
+	"galleryBanner": {
+		"color": "#00FF00",
+		"theme": "dark"
+	},
 	"engines": {
 		"vscode": "^1.35.0"
 	},

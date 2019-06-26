@@ -1,6 +1,6 @@
-import { Position, Range, TextLine, TextDocument, CancellationToken } from 'vscode';
+import { CancellationToken, Position, Range, TextDocument, TextLine } from 'vscode';
 
-export class AsmLine {
+export class AssemblyLine {
   public label: string = '';
   public labelRange: Range;
 
@@ -20,11 +20,16 @@ export class AsmLine {
   public errorRange: Range;
 
   private lineNumber: number = 0;
+  private lineLength: number = 0;
+  private index: number = 0;
+  private ch: string = '';
 
   constructor(private rawLine: string, private textLine?: TextLine) {
     if (textLine) {
       this.lineNumber = this.textLine.lineNumber;
     }
+
+    this.lineLength = this.rawLine.length;
 
     this.startOfLine = this.getPositon(0);
     this.endOfLine = this.getPositon(this.rawLine.length);
@@ -39,11 +44,12 @@ export class AsmLine {
   private parse(): void {
     if (this.isCommentLine()) {
       this.comment = this.rawLine;
-      this.commentRange = this.getRange(0, this.rawLine.length);
+      this.commentRange = this.getRange(0, this.lineLength);
     } else {
       let index = 0;
 
-      if (this.isStartOfLabel(index)) {
+      const ch = this.rawLine.charAt(index);
+      if (this.isStartOfLabel(ch)) {
         const len = this.getLabelLength(index);
         if (!this.isWhitespace(this.rawLine.charAt(index + len))) {
           this.error = 'Invalid Label';
@@ -54,7 +60,30 @@ export class AsmLine {
         this.labelRange = this.getRange(index, index + len - 1);
         index += len;
       }
+      // index = consumeSpace(index);
     }
+  }
+
+  private consumeLabel(index: number): [number, string] {
+    const start = index;
+    let end = start;
+    let ch = '';
+
+    do {
+      end++;
+      ch = this.rawLine.charAt(end);
+    } while (end < this.lineLength && this.isPartOfLabel(ch));
+
+    return [end, this.rawLine.substr(start, end - start)];
+  }
+
+  private consumeSpace(index: number): number {
+    do {
+      index++;
+    }
+    while (index < this.lineLength && this.rawLine.charAt(index) === ' ');
+
+    return index;
   }
 
   private getPositon(index: number): Position {
@@ -66,11 +95,10 @@ export class AsmLine {
   }
 
   private isCommentLine() {
-    return this.rawLine.charAt(0) === '*';
+    return this.rawLine.trimLeft().charAt(0) === '*';
   }
 
-  private isStartOfLabel(index: number): boolean {
-    const ch = this.rawLine.charAt(index);
+  private isStartOfLabel(ch: string): boolean {
     return this.isLetter(ch) || ch === '.' || ch === '_';
   }
 
@@ -99,8 +127,8 @@ export class AsmLine {
   }
 }
 
-export class AsmDocument {
-  public lines = new Array<AsmLine>();
+export class AssemblyDocument {
+  public lines = new Array<AssemblyLine>();
   public symbols = new Array<string>();
   private parse(document: TextDocument, range?: Range, cancelationToken?: CancellationToken) {
     if (document.lineCount <= 0) {
@@ -117,7 +145,7 @@ export class AsmDocument {
       }
 
       const line = document.lineAt(i);
-      const asmLine = new AsmLine(line.text, line);
+      const asmLine = new AssemblyLine(line.text, line);
       this.lines.push(asmLine);
       if (asmLine.label) {
         this.symbols.push(asmLine.label);

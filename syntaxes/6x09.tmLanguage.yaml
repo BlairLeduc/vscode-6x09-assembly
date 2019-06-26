@@ -4,22 +4,22 @@ filetypes: [a, asm]
 
 patterns:
   - name: comment.line.asterisk.asm6x09
-    match: "\\*[^\n]*\n"
+    match: "[*;][^\n]*\n"
 
-  - name: meta.line
+  - name: meta.line.asm6x09
     match: ^([^ \t]*)(?:[ \t]+([^ \t*]+))?(?:[ \t]+((?![*])(?:"[^"]*"|/[^/]*/|[^ \t]*)))?(?:[ \t]+((?:.*)|(?:[*].*)))?
     captures:
       '1': # label column
-        name: meta.label
+        name: meta.label.asm6x09
         patterns:
           - name: variable.name.asm6x09
-            match: '[a-zA-Z][a-zA-Z0-9_.$@]*'
+            match: '(?i)[a-z._][a-z0-9.$_]*'
 
-          - name: invalid.illegal
+          - name: invalid.illegal.asm6x09
             match: '.*'
 
       '2': # opcode column
-        name: meta.opcode
+        name: meta.opcode.asm6x09
         patterns:
           - name: keyword.control.pragma.asm6x09
             match: (?i)(?<=[ \t])([*]?pragma|[*]pragma(push|pop))\b
@@ -48,43 +48,43 @@ patterns:
           - name: keyword.other.dotmisc.asm6x09
             match: (?i)(?<=[ \t])([.]module)\b
 
-          - name: keyword.opcode.logical.asm6x09
+          - name: keyword.other.opcode.logical.asm6x09
             match: (?i)\b(and(a|b|cc)|clr[ab]?|eor[ab]|or(a|b|cc))\b
 
-          - name: keyword.opcode.arithmetic.asm6x09
+          - name: keyword.other.opcode.arithmetic.asm6x09
             match: (?i)\b(abx|adc[ab]|add[abd]|com[ab]?|dec[ab]?|daa|inc[ab]?|mul|neg[ab]?|sbc[ab]|sex|sub[abd])\b
 
-          - name: keyword.opcode.branch.asm6x09
+          - name: keyword.other.opcode.branch.asm6x09
             match: (?i)\b(l?b(c[cs]|eq|g[et]|h[is]|l[eost]|mi|ne|pl|ra|sr|v[cs])|rts)\b
 
-          - name: keyword.opcode.comparison.asm6x09
+          - name: keyword.other.opcode.comparison.asm6x09
             match: (?i)\b(bit[ab]|cmp[abdsuxy]|tst[ab]?)\b
 
-          - name: keyword.opcode.jump.asm6x09
+          - name: keyword.other.opcode.jump.asm6x09
             match: (?i)\b(j(mp|sr))\b
 
-          - name: keyword.opcode.interrupt.asm6x09
+          - name: keyword.other.opcode.interrupt.asm6x09
             match: (?i)\b(cwai|rti|swi[23]?|sync)\b
 
-          - name: keyword.opcode.shiftrotate.asm6x09
+          - name: keyword.other.opcode.shiftrotate.asm6x09
             match: (?i)\b(as[lr][ab]?|ls[lr][ab]?|ro[lr][ab]?)\b
 
-          - name: keyword.opcode.transfer.asm6x09
+          - name: keyword.other.opcode.transfer.asm6x09
             match: (?i)\b(exg|ld[abdsuxy]|lea[suxy]|psh[su]|pul[su]|st[abdsuxy]|tfr)\b
 
-          - name: keyword.opcode.nop.asm6x09
+          - name: keyword.other.opcode.nop.asm6x09
             match: (?i)\b(nop|l?brn)\b
 
-          - name: keyword.opcode.6309.asm6x09
+          - name: keyword.other.opcode.6309.asm6x09
             match: (?i)\b(adc[defr]|add[rw]|[aeo]im|and[dr]|as[lr]d|bi?and|bi?eor|bi?or|bit(d|md)|clr[defw]|cmp[efrw])\b
 
-          - name: keyword.opcode.6309.asm6x09
+          - name: keyword.other.opcode.6309.asm6x09
             match: (?i)\b(com[defw]|dec[defw]|div[dq]|eor[dr]|inc[defw]|ld([efqw]|bt|md)|lsld|lsr[dw]|muld|negd|or[dr])\b
 
-          - name: keyword.opcode.6309.asm6x09
+          - name: keyword.other.opcode.6309.asm6x09
             match: (?i)\b(psh[su]w|pul[su]w|ro[lr][dw]|sbc[dr]|sexw|st([efqw]|bt)|sub[rw]|tfm|tim|tst[defw])\b
 
-          - name: invalid.illegal
+          - name: invalid.illegal.asm6x09
             match: '.*'
 
       '3': # operand column
@@ -97,7 +97,7 @@ patterns:
             match: "/[^/]*/"
 
           - name: constant.character.asm6x09
-            match: "'."
+            match: "('.)|(\"..)"
 
           - name: constant.numeric.hex.asm6x09
             match: (?<![a-zA-Z_.])((\$|(0[xX]))[0-9A-Fa-f]*\b)|([0-9][0-9A-Fa-f]*H\b)
@@ -121,6 +121,6 @@ patterns:
             match: '[a-zA-Z][a-zA-Z0-9_.$@]*'
 
       '4': # comment column
-        name: comment
+        name: comment.asm6x09
 
 

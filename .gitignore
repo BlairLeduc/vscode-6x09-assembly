@@ -3,3 +3,5 @@ node_modules
 client/server
 .vscode-test
 syntaxes/*.json
+Thumbs.db
+.DS_Store
