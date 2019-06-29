@@ -1,0 +1,18 @@
+{
+  "label": "lwasm",
+  "type": "shell",
+  "command": "lwasm -b ${relativeFile} -o${fileBasenameNoExtension}.bin || true",
+  "windows": {
+    "command": "lwasm -b ${relativeFile} -o${fileBasenameNoExtension}.bin"
+  },
+  "group": {
+    "kind": "build",
+    "isDefault": true
+  },
+  "problemMatcher": [
+    "$lwasm"
+  ],
+  "presentation": {
+    "reveal": "never"
+  }
+}
