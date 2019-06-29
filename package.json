@@ -53,6 +53,25 @@
 				"scopeName": "source.asm.6x09",
 				"path": "./syntaxes/6x09.tmLanguage.json"
 			}
+		],
+		"problemMatchers": [
+			{
+				"name": "lwasm",
+				"owner": "asm6x09",
+				"fileLocation": [
+					"relative",
+					"${workspaceFolder}"
+				],
+				"pattern": [
+					{
+						"regexp": "^([^(].*)\\((\\d+)\\)\\s*:\\s*([A-Z]+)\\s*:\\s*(.*)$",
+						"file": 1,
+						"line": 2,
+						"severity": 3,
+						"message": 4
+					}
+				]
+			}
 		]
 	},
 	"scripts": {
