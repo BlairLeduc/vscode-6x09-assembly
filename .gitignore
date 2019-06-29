@@ -5,3 +5,4 @@ client/server
 syntaxes/*.json
 Thumbs.db
 .DS_Store
+*.
