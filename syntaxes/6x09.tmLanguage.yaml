@@ -4,16 +4,16 @@ filetypes: [a, asm]
 
 patterns:
   - name: comment.line.asterisk.asm6x09
-    match: "[*;][^\n]*\n"
+    match: "[*;].*"
 
   - name: meta.line.asm6x09
-    match: ^([^ \t]*)(?:[ \t]+([^ \t*]+))?(?:[ \t]+((?![*])(?:"[^"]*"|/[^/]*/|[^ \t]*)))?(?:[ \t]+((?:.*)|(?:[*].*)))?
+    match: ^([^ \t*;]*)(?:[ \t]+([^ \t*;]+))?(?:[ \t]+((?:"[^"]*"|/[^/]*/|[^ \t*;]*)))?(?:[ \t]+(.*))?
     captures:
       '1': # label column
         name: meta.label.asm6x09
         patterns:
           - name: variable.name.asm6x09
-            match: '(?i)[a-z._][a-z0-9.$_]*'
+            match: '(?i)[a-z._][a-z0-9.$_@]*'
 
           - name: invalid.illegal.asm6x09
             match: '.*'
