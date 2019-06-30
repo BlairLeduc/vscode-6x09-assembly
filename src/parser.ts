@@ -1,4 +1,4 @@
-import { CancellationToken, Position, Range, TextDocument, TextLine } from 'vscode';
+import { CancellationToken, DocumentRangeFormattingEditProvider, Position, Range, TextDocument, TextLine } from 'vscode';
 
 export class AssemblyLine {
   public label: string = '';
@@ -13,6 +13,9 @@ export class AssemblyLine {
   public comment: string = '';
   public commentRange: Range;
 
+  public reference: string = '';
+  public referenceRange: Range;
+
   public startOfLine: Position;
   public endOfLine: Position;
 
@@ -21,8 +24,9 @@ export class AssemblyLine {
 
   private lineNumber: number = 0;
   private lineLength: number = 0;
-  private index: number = 0;
-  private ch: string = '';
+
+  private commentRegExp: RegExp = /[*;][^\n]*\n/;
+  private lineRegExp: RegExp = /^([^ \t]*)(?:[ \t]+([^ \t*]+))?(?:[ \t]+((?![*])(?:"[^"]*"|\/[^/]*\/|[^ \t]*)))?/;
 
   constructor(private rawLine: string, private textLine?: TextLine) {
     if (textLine) {
@@ -35,13 +39,27 @@ export class AssemblyLine {
     this.endOfLine = this.getPositon(this.rawLine.length);
     this.labelRange = this.getRange(0, 0);
     this.opcodeRange = this.getRange(0, 0);
-    this.opcodeRange = this.getRange(0, 0);
+    this.operandRange = this.getRange(0, 0);
     this.commentRange = this.getRange(0, 0);
+
+    this.errorRange = this.getRange(0, 0);
 
     this.parse();
   }
 
+  // first three columns: ^([^ \t]*)(?:[ \t]+([^ \t*]+))?(?:[ \t]+((?![*])(?:"[^"]*"|\/[^/]*\/|[^ \t]*)))?
   private parse(): void {
+
+    if (this.commentRegExp.exec(this.rawLine)) {
+      this.comment = this.rawLine;
+      this.commentRange = this.getRange(0, this.lineLength);
+    } else {
+      const match = this.lineRegExp.exec(this.rawLine);
+      if (match) {
+          // todo
+      }
+    }
+
     if (this.isCommentLine()) {
       this.comment = this.rawLine;
       this.commentRange = this.getRange(0, this.lineLength);

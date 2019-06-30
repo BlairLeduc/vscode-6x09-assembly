@@ -3,42 +3,33 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"type": "extensionHost",
-			"request": "launch",
-			"name": "Launch Client",
-			"runtimeExecutable": "${execPath}",
-			"args": ["--extensionDevelopmentPath=${workspaceRoot}"],
-			"outFiles": ["${workspaceRoot}/client/out/**/*.js"],
-			"preLaunchTask": {
-				"type": "npm",
-				"script": "watch"
-			}
-		},
-		{
-			"type": "node",
-			"request": "attach",
-			"name": "Attach to Server",
-			"port": 6009,
-			"restart": true,
-			"outFiles": ["${workspaceRoot}/server/out/**/*.js"]
-		},
-		{
-			"name": "Language Server E2E Test",
+			"name": "Run Extension",
 			"type": "extensionHost",
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
 			"args": [
-				"--extensionDevelopmentPath=${workspaceRoot}",
-				"--extensionTestsPath=${workspaceRoot}/client/out/test",
-				"${workspaceRoot}/client/testFixture"
+				"--disable-extensions",
+				"--extensionDevelopmentPath=${workspaceFolder}"
 			],
-			"outFiles": ["${workspaceRoot}/client/out/test/**/*.js"]
-		}
-	],
-	"compounds": [
+			"outFiles": [
+				"${workspaceFolder}/out/**/*.js"
+			],
+			"preLaunchTask": "npm: watch"
+		},
 		{
-			"name": "Client + Server",
-			"configurations": ["Launch Client", "Attach to Server"]
+			"name": "Extension Tests",
+			"type": "extensionHost",
+			"request": "launch",
+			"runtimeExecutable": "${execPath}",
+			"args": [
+				"--disable-extensions",
+				"--extensionDevelopmentPath=${workspaceFolder}/src/test/data",
+				"--extensionTestsPath=${workspaceFolder}/out/test"
+			],
+			"outFiles": [
+				"${workspaceFolder}/out/test/**/*.js"
+			],
+			"preLaunchTask": "npm: watch"
 		}
 	]
 }

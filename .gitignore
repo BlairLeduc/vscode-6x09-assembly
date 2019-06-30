@@ -1,8 +1,7 @@
 out
 node_modules
-client/server
-.vscode-test
+.vscode-test/
+*.vsix
 syntaxes/*.json
 Thumbs.db
 .DS_Store
-*.

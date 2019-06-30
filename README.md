@@ -4,7 +4,7 @@ This is a Visual Studio extenstion for 6x09 Assembly language.
 
 This extension supports files extensions `.asm` and `.a`.
 
-<img src="media/Sample-Syntax-Folding.png" width="320px">
+<img src="media/lwasm-errors.png" width="480px">
 
 ## Current Functionality
 
@@ -15,6 +15,29 @@ This extension supports files extensions `.asm` and `.a`.
 ## Tasks
 
 I have included a sample of tasks in the tasks folder.
+
+For example, to use `lwasm` to assembly your file when you run the build task:
+
+```json
+{
+  "label": "lwasm",
+  "type": "shell",
+  "command": "lwasm -b ${relativeFile} -o${fileBasenameNoExtension}.bin || true",
+  "windows": {
+    "command": "lwasm -b ${relativeFile} -o${fileBasenameNoExtension}.bin"
+  },
+  "group": {
+    "kind": "build",
+    "isDefault": true
+  },
+  "problemMatcher": [
+    "$lwasm"
+  ],
+  "presentation": {
+    "reveal": "never"
+  }
+}
+```
 
 ## Roadmap
 

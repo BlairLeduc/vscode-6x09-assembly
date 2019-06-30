@@ -4,7 +4,7 @@
 	"description": "Language support for 6x09 Assembly language.",
 	"author": "Blair Leduc",
 	"license": "MIT",
-	"version": "0.1.2",
+	"version": "0.2.0",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/BlairLeduc/vscode-6x09-assembly"
@@ -13,7 +13,9 @@
 		"url": "https://github.com/BlairLeduc/vscode-6x09-assembly/issues"
 	},
 	"publisher": "blairleduc",
-	"categories": ["Programming Languages"],
+	"categories": [
+		"Programming Languages"
+	],
 	"keywords": [
 		"6809",
 		"6309",
@@ -31,7 +33,7 @@
 	"activationEvents": [
 		"onLanguage:asm6x09"
 	],
-	"main": "./out/extension",
+	"main": "./out/extension.js",
 	"contributes": {
 		"languages": [
 			{
@@ -72,23 +74,36 @@
 					}
 				]
 			}
+		],
+		"colors": [
+			{
+				"id": "keyword.other.opcode.6309.asm6x09",
+				"description": "Color for 6309 opcodes.",
+				"defaults": {
+					"dark": "#5f56d6",
+					"light": "#8800ff",
+					"highContrast": "foreground"
+				}
+			}
 		]
 	},
 	"scripts": {
-		"vscode:prepublish": "npm run convert && npm run update-vscode && npm run compile",
+		"vscode:prepublish": "npm run update && npm run compile",
 		"compile": "tsc -p ./",
 		"lint": "tslint -p ./",
 		"watch": "tsc -watch -p ./",
 		"update-vscode": "vscode-install",
 		"postinstall": "vscode-install",
-		"convert": "npx js-yaml syntaxes/6x09.tmLanguage.yaml > syntaxes/6x09.tmLanguage.json"
+		"convert": "npx js-yaml syntaxes/6x09.tmLanguage.yaml > syntaxes/6x09.tmLanguage.json",
+		"update": "npm run update-vscode && npm run convert",
+		"test": "npm run update && npm run compile && node ./node_modules/vscode/bin/test"
 	},
 	"devDependencies": {
 		"@types/mocha": "^5.2.7",
-		"@types/node": "^12.0.8",
+		"@types/node": "^12.0.10",
 		"js-yaml": "^3.13.1",
-		"tslint": "^5.17.0",
+		"tslint": "^5.18.0",
 		"typescript": "^3.5.2",
-		"vscode": "^1.1.34"
+		"vscode": "^1.1.35"
 	}
 }
