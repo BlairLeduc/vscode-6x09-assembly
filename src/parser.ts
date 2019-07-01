@@ -141,7 +141,7 @@ export class AssemblyDocument {
 
     // Post process references, remove anything that is not in the symbols
     this.references.forEach( (value, index, array) => {
-      if (!this.symbols.find(s => s.name == value.name)) {
+      if (!this.symbols.find(s => s.name === value.name)) {
         array.splice(index, 1);
       }
     });
