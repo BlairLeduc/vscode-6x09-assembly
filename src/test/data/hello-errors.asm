@@ -13,7 +13,7 @@ hel020	lda	,x+
 	sta	,y+++
 	bra	hel020
 	ldw	#1234
-loop    bra	loop
+loop	bra	loop
 text	FCB	"HELLO, WORLD!"
 	FCB	0
 	END

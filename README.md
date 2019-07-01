@@ -1,6 +1,6 @@
 # vscode-6x09-assembly
 
-This is a Visual Studio extenstion for 6x09 Assembly language.
+This is a Visual Studio extension for 6x09 Assembly language.
 
 This extension supports files extensions `.asm` and `.a`.
 

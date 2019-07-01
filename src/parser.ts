@@ -14,19 +14,17 @@ export class AssemblyLine {
   public commentRange: Range;
 
   public reference: string = '';
-  public referenceRange: Range;
 
   public startOfLine: Position;
   public endOfLine: Position;
 
-  public error: string;
-  public errorRange: Range;
-
   private lineNumber: number = 0;
   private lineLength: number = 0;
 
-  private commentRegExp: RegExp = /[*;][^\n]*\n/;
-  private lineRegExp: RegExp = /^([^ \t]*)(?:[ \t]+([^ \t*]+))?(?:[ \t]+((?![*])(?:"[^"]*"|\/[^/]*\/|[^ \t]*)))?/;
+  private commentRegExp: RegExp = RegExp('^([*;].*)');
+  private lineRegExp: RegExp = RegExp('^([^ \t*;]*)(?:[ \t]+([^ \t*;]+))?(?:[ \t]+((?![*;])(?:"[^"]*"|/[^/]*/|[^ \t]*)))?(?:[ \t]+(.*))?');
+
+  private symbolRegExp: RegExp = RegExp('[a-zA-Z._][a-zA-Z0-9.$_@]*');
 
   constructor(private rawLine: string, private textLine?: TextLine) {
     if (textLine) {
@@ -42,66 +40,56 @@ export class AssemblyLine {
     this.operandRange = this.getRange(0, 0);
     this.commentRange = this.getRange(0, 0);
 
-    this.errorRange = this.getRange(0, 0);
-
     this.parse();
   }
 
   // first three columns: ^([^ \t]*)(?:[ \t]+([^ \t*]+))?(?:[ \t]+((?![*])(?:"[^"]*"|\/[^/]*\/|[^ \t]*)))?
   private parse(): void {
 
-    if (this.commentRegExp.exec(this.rawLine)) {
-      this.comment = this.rawLine;
-      this.commentRange = this.getRange(0, this.lineLength);
+    let match = this.commentRegExp.exec(this.rawLine);
+    if (match) {
+      this.comment = match[1];
+      this.commentRange = this.getRange(match.index, this.lineLength - 1);
     } else {
-      const match = this.lineRegExp.exec(this.rawLine);
+      match = this.lineRegExp.exec(this.rawLine);
       if (match) {
-          // todo
-      }
-    }
-
-    if (this.isCommentLine()) {
-      this.comment = this.rawLine;
-      this.commentRange = this.getRange(0, this.lineLength);
-    } else {
-      let index = 0;
-
-      const ch = this.rawLine.charAt(index);
-      if (this.isStartOfLabel(ch)) {
-        const len = this.getLabelLength(index);
-        if (!this.isWhitespace(this.rawLine.charAt(index + len))) {
-          this.error = 'Invalid Label';
-          this.errorRange = this.getRange(index, index + len);
-          return;
+        let pos = 0;
+        // Label
+        if (match[1]) {
+          this.label = match[1];
+          pos = this.label.length;
+          this.labelRange = this.getRange(0, pos - 1);
         }
-        this.label = this.rawLine.substr(index, len);
-        this.labelRange = this.getRange(index, index + len - 1);
-        index += len;
+        // Opcode
+        if (match[2]) {
+          this.opcode = match[2];
+          const start = this.rawLine.indexOf(this.opcode, pos);
+          pos = start + this.opcode.length;
+          this.opcodeRange = this.getRange(start, pos - 1);
+        }
+        // Operand
+        if (match[3]) {
+          this.operand = match[3];
+          const start = this.rawLine.indexOf(this.operand, pos);
+          pos = start + this.operand.length;
+          this.operandRange = this.getRange(start, pos - 1);
+          // Reference?
+          if (!/"[^"]*"|\/[^/]*\//.exec(this.operand)) {
+            // not a string
+            const refMatch = this.symbolRegExp.exec(this.operand);
+            if (refMatch) {
+              this.reference = refMatch[0];
+            }
+          }
+        }
+        // Comment
+        if (match[4]) {
+          this.comment = match[4];
+          const start = this.rawLine.indexOf(this.comment);
+          this.commentRange = this.getRange(start, start + this.comment.length - 1);
+        }
       }
-      // index = consumeSpace(index);
     }
-  }
-
-  private consumeLabel(index: number): [number, string] {
-    const start = index;
-    let end = start;
-    let ch = '';
-
-    do {
-      end++;
-      ch = this.rawLine.charAt(end);
-    } while (end < this.lineLength && this.isPartOfLabel(ch));
-
-    return [end, this.rawLine.substr(start, end - start)];
-  }
-
-  private consumeSpace(index: number): number {
-    do {
-      index++;
-    }
-    while (index < this.lineLength && this.rawLine.charAt(index) === ' ');
-
-    return index;
   }
 
   private getPositon(index: number): Position {
@@ -111,43 +99,21 @@ export class AssemblyLine {
   private getRange(from: number, to: number): Range {
     return new Range(new Position(this.lineNumber, from), new Position(this.lineNumber, to));
   }
+}
 
-  private isCommentLine() {
-    return this.rawLine.trimLeft().charAt(0) === '*';
-  }
-
-  private isStartOfLabel(ch: string): boolean {
-    return this.isLetter(ch) || ch === '.' || ch === '_';
-  }
-
-  private isPartOfLabel(ch: string): boolean {
-    return  this.isLetter(ch) || this.isNumber(ch) || ch === '.' || ch === '$' || ch === '_';
-  }
-
-  private getLabelLength(index: number) {
-    let len = 0;
-    while (this.isPartOfLabel(this.rawLine.charAt(index + len))) {
-      len++;
-    }
-    return len;
-  }
-
-  private isLetter(ch: string): boolean {
-    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
-  }
-
-  private isNumber(ch: string): boolean {
-    return ch >= '0' && ch <= '9';
-  }
-
-  private isWhitespace(ch: string): boolean {
-    return ch === ' ' || ch === '\t';
-  }
+export class AssemblySymbol {
+  constructor(public name: string, public lineNumber: number) { }
 }
 
 export class AssemblyDocument {
   public lines = new Array<AssemblyLine>();
-  public symbols = new Array<string>();
+  public symbols = new Array<AssemblySymbol>();
+  public references = new Array<AssemblySymbol>();
+
+  constructor(private document: TextDocument) {
+    this.parse(document);
+  }
+
   private parse(document: TextDocument, range?: Range, cancelationToken?: CancellationToken) {
     if (document.lineCount <= 0) {
       return;
@@ -166,8 +132,18 @@ export class AssemblyDocument {
       const asmLine = new AssemblyLine(line.text, line);
       this.lines.push(asmLine);
       if (asmLine.label) {
-        this.symbols.push(asmLine.label);
+        this.symbols.push(new AssemblySymbol(asmLine.label, line.lineNumber));
+      }
+      if (asmLine.reference) {
+        this.references.push(new AssemblySymbol(asmLine.reference, line.lineNumber));
       }
     }
+
+    // Post process references, remove anything that is not in the symbols
+    this.references.forEach( (value, index, array) => {
+      if (!this.symbols.find(s => s.name == value.name)) {
+        array.splice(index, 1);
+      }
+    });
   }
 }
