@@ -106,12 +106,16 @@ export class AssemblySymbol {
 }
 
 export class AssemblyDocument {
-  public lines = new Array<AssemblyLine>();
-  public symbols = new Array<AssemblySymbol>();
-  public references = new Array<AssemblySymbol>();
+  public lines: AssemblyLine[] = new Array<AssemblyLine>();
+  public symbols: AssemblySymbol[] = new Array<AssemblySymbol>();
+  public references: AssemblySymbol[] = new Array<AssemblySymbol>();
 
   constructor(private document: TextDocument) {
     this.parse(document);
+  }
+
+  public findLabel(startsWith: string): string[] {
+    return this.symbols.filter(s => s.name.startsWith(startsWith)).map(s => s.name);
   }
 
   private parse(document: TextDocument, range?: Range, cancelationToken?: CancellationToken) {

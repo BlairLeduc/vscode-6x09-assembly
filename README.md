@@ -1,16 +1,17 @@
 # vscode-6x09-assembly
 
-This is a Visual Studio extension for 6x09 Assembly language.
+This is a Visual Studio extension for the 6x09 Assembly language.
 
-This extension supports files extensions `.asm` and `.a`.
+This extension supports files with the extensions `.asm` and `.a`.
 
 <img src="media/lwasm-errors.png" width="480px">
 
-## Current Functionality
+## Current Feature set
 
-- Syntax highlighting for 6809 and 6309 assembly language.
+- Syntax highlighting for 6809 and 6309 assembly languages
   - Syntax Highlighting, bracket matching, bracket autoclosing, brack surronding, comment toggling, autoindentation and folding
   - Problem matcher for `lwasm`
+- Completions for symbols in the operand
 
 ## Tasks
 
@@ -38,9 +39,3 @@ For example, to use `lwasm` to assembly your file when you run the build task:
   }
 }
 ```
-
-## Roadmap
-
-- Completions for nmemonics and sumbols.
-- Linting
-- Debugging
