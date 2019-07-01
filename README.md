@@ -4,7 +4,7 @@ This is a Visual Studio extension for the 6x09 Assembly language.
 
 This extension supports files with the extensions `.asm` and `.a`.
 
-<img src="media/lwasm-errors.png" width="480px">
+<img src="https://github.com/BlairLeduc/vscode-6x09-assembly/raw/master/media/lwasm-errors.png" width="480px">
 
 ## Current Feature set
 
