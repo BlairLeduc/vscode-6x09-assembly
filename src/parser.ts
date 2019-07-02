@@ -1,5 +1,7 @@
 import { CancellationToken, DocumentRangeFormattingEditProvider, Position, Range, TextDocument, TextLine } from 'vscode';
 
+export const AssemblyDocuments: { [id: string]: AssemblyDocument; } = {};
+
 export class AssemblyLine {
   public label: string = '';
   public labelRange: Range;
