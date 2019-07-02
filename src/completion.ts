@@ -16,9 +16,18 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         const assemblyLine = assemblyDocument.lines[position.line];
 
         if (assemblyLine.operand && range.intersection(assemblyLine.operandRange)) {
-          resolve(assemblyDocument.findLabel(word).map(x => new vscode.CompletionItem(x, vscode.CompletionItemKind.Variable)));
+          resolve(assemblyDocument.findLabel(word).map(label => this.createCompletionItem(label)));
         }
       }
     });
+  }
+
+  private createCompletionItem(symbol: parser.AssemblySymbol): vscode.CompletionItem {
+    const item = new vscode.CompletionItem(symbol.name, vscode.CompletionItemKind.Variable);
+    if (symbol.documentation) {
+      item.detail = symbol.documentation;
+    }
+
+    return item;
   }
 }

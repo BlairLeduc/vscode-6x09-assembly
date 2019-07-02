@@ -44,7 +44,8 @@
 				],
 				"extensions": [
 					".asm",
-					".a"
+					".a",
+					".d"
 				],
 				"configuration": "./language-configuration.json"
 			}

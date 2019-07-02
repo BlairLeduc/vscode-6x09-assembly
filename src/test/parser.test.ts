@@ -11,6 +11,10 @@ import * as vscode from 'vscode';
 // Classes under test
 import * as parser from '../parser';
 
+function createRange(line: number, from: number, to: number): vscode.Range {
+  return new vscode.Range(new vscode.Position(line, from), new vscode.Position(line, to));
+}
+
 // Defines a Mocha test suite to group tests of similar kind together
 suite('Parser Tests', () => {
   const testFolderLocation = '../../src/test/data';
@@ -19,7 +23,7 @@ suite('Parser Tests', () => {
     const text = '* This is a comment';
     const expected = '* This is a comment';
     const expectedStart = 0;
-    const expectedEnd = expected.length - 1;
+    const expectedEnd = expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -32,7 +36,7 @@ suite('Parser Tests', () => {
     const text = '; This is a comment';
     const expected = '; This is a comment';
     const expectedStart = 0;
-    const expectedEnd = expected.length - 1;
+    const expectedEnd = expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -45,7 +49,7 @@ suite('Parser Tests', () => {
     const text = '\t\t* This is a comment';
     const expected = '* This is a comment';
     const expectedStart = 2;
-    const expectedEnd = expectedStart + expected.length - 1;
+    const expectedEnd = expectedStart + expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -58,7 +62,7 @@ suite('Parser Tests', () => {
     const text = '        ; This is a comment';
     const expected = '; This is a comment';
     const expectedStart = 8;
-    const expectedEnd = expectedStart + expected.length - 1;
+    const expectedEnd = expectedStart + expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -84,7 +88,7 @@ suite('Parser Tests', () => {
     const text = 'Start';
     const expected = 'Start';
     const expectedStart = 0;
-    const expectedEnd = expected.length - 1;
+    const expectedEnd = expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -97,7 +101,7 @@ suite('Parser Tests', () => {
     const text = 'Start   clra';
     const expected = 'Start';
     const expectedStart = 0;
-    const expectedEnd = expected.length - 1;
+    const expectedEnd = expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -110,7 +114,7 @@ suite('Parser Tests', () => {
     const text = 'Sta_rt   lda     #$40';
     const expected = 'Sta_rt';
     const expectedStart = 0;
-    const expectedEnd = expected.length - 1;
+    const expectedEnd = expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -123,7 +127,7 @@ suite('Parser Tests', () => {
     const text = 'Sta.rt   lda     #$40    load *';
     const expected = 'Sta.rt';
     const expectedStart = 0;
-    const expectedEnd = expected.length - 1;
+    const expectedEnd = expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -136,7 +140,7 @@ suite('Parser Tests', () => {
     const text = 'S$tart            * a comment';
     const expected = 'S$tart';
     const expectedStart = 0;
-    const expectedEnd = expected.length - 1;
+    const expectedEnd = expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -149,7 +153,7 @@ suite('Parser Tests', () => {
     const text = 'Start@            ; a comment';
     const expected = 'Start@';
     const expectedStart = 0;
-    const expectedEnd = expected.length - 1;
+    const expectedEnd = expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -162,7 +166,7 @@ suite('Parser Tests', () => {
     const text = '   clra';
     const expected = 'clra';
     const expectedStart = 3;
-    const expectedEnd = expectedStart + expected.length - 1;
+    const expectedEnd = expectedStart + expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -175,7 +179,7 @@ suite('Parser Tests', () => {
     const text = 'Start   clra';
     const expected = 'clra';
     const expectedStart = 8;
-    const expectedEnd = expectedStart + expected.length - 1;
+    const expectedEnd = expectedStart + expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -188,7 +192,7 @@ suite('Parser Tests', () => {
     const text = 'Sta_rt   lda     #$40';
     const expected = 'lda';
     const expectedStart = 9;
-    const expectedEnd = expectedStart + expected.length - 1;
+    const expectedEnd = expectedStart + expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -201,7 +205,7 @@ suite('Parser Tests', () => {
     const text = 'Sta.rt   lda     #$40    load *';
     const expected = 'lda';
     const expectedStart = 9;
-    const expectedEnd = expectedStart + expected.length - 1;
+    const expectedEnd = expectedStart + expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -214,7 +218,7 @@ suite('Parser Tests', () => {
     const text = '   ldb #$40';
     const expected = '#$40';
     const expectedStart = 7;
-    const expectedEnd = expectedStart + expected.length - 1;
+    const expectedEnd = expectedStart + expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -227,7 +231,7 @@ suite('Parser Tests', () => {
     const text = 'hello   ldb #$40';
     const expected = '#$40';
     const expectedStart = 12;
-    const expectedEnd = expectedStart + expected.length - 1;
+    const expectedEnd = expectedStart + expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -240,16 +244,16 @@ suite('Parser Tests', () => {
     const text = 'STA010   lda     ,x+    Test of all';
     const expectedLabel = 'STA010';
     const expectedLabelStart = 0;
-    const expectedLabelEnd = expectedLabelStart + expectedLabel.length - 1;
+    const expectedLabelEnd = expectedLabelStart + expectedLabel.length;
     const expectedOpcode = 'lda';
     const expectedOpcodeStart = 9;
-    const expectedOpcodeEnd = expectedOpcodeStart + expectedOpcode.length - 1;
+    const expectedOpcodeEnd = expectedOpcodeStart + expectedOpcode.length;
     const expectedOperand = ',x+';
     const expectedOperandStart = 17;
-    const expectedOperandEnd = expectedOperandStart + expectedOperand.length - 1;
+    const expectedOperandEnd = expectedOperandStart + expectedOperand.length;
     const expectedComment = 'Test of all';
     const expectedCommentStart = 24;
-    const expectedCommentEnd = expectedCommentStart + expectedComment.length - 1;
+    const expectedCommentEnd = expectedCommentStart + expectedComment.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -271,7 +275,7 @@ suite('Parser Tests', () => {
     const text = 'clra   clra';
     const expected = 'clra';
     const expectedStart = 7;
-    const expectedEnd = expectedStart + expected.length - 1;
+    const expectedEnd = expectedStart + expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -280,28 +284,41 @@ suite('Parser Tests', () => {
     assert.equal(line.opcodeRange.end.character, expectedEnd, 'Range end incorrect');
   });
 
+  test('Find reference in operand on line with label and opcode', () => {
+    const text = 'hello   ldx   #screen';
+    const expected = 'screen';
+    const expectedStart = 15;
+    const expectedEnd = expectedStart + expected.length;
+
+    const line = new parser.AssemblyLine(text);
+
+    assert.equal(line.reference, expected);
+    assert.equal(line.referenceRange.start.character, expectedStart, 'Range start incorrect');
+    assert.equal(line.referenceRange.end.character, expectedEnd, 'Range end incorrect');
+  });
+
   test('Load document', async () => {
     const uri = vscode.Uri.file(
       path.join(__dirname, testFolderLocation, 'hello-clean.asm')
     );
     const content = await vscode.workspace.openTextDocument(uri);
     const expectedSymbols = [
-      { lineNumber: 2, name: 'screen' },
-      { lineNumber: 3, name: 'hello' },
-      { lineNumber: 5, name: 'hel010' },
-      { lineNumber: 10, name: 'hel020' },
-      { lineNumber: 15, name: 'loop' },
-      { lineNumber: 16, name: 'text' },
+      { range: createRange(2, 0, 6), name: 'screen', documentation: '' },
+      { range: createRange(3, 0, 5), name: 'hello', documentation: '' },
+      { range: createRange(5, 0, 6), name: 'hel010', documentation: ''  },
+      { range: createRange(10, 0, 6), name: 'hel020', documentation: '' },
+      { range: createRange(15, 0, 4), name: 'loop', documentation: '' },
+      { range: createRange(16, 0, 4), name: 'text', documentation: '' },
     ];
     const expectedReferences = [
-      { name: 'screen', lineNumber: 3 },
-      { name: 'screen', lineNumber: 6 },
-      { name: 'hel010', lineNumber: 7 },
-      { name: 'text', lineNumber: 8 },
-      { name: 'screen', lineNumber: 9 },
-      { name: 'loop', lineNumber: 11 },
-      { name: 'hel020', lineNumber: 13 },
-      { name: 'loop', lineNumber: 15 },
+      { name: 'screen', documentation: '', range: createRange(3, 11, 17) },
+      { name: 'screen', documentation: '', range: createRange(6, 7, 13) },
+      { name: 'hel010', documentation: '', range: createRange(7, 5, 11) },
+      { name: 'text', documentation: '', range: createRange(8, 6, 10) },
+      { name: 'screen', documentation: '', range: createRange(9, 6, 12) },
+      { name: 'loop', documentation: '', range: createRange(11, 5, 9) },
+      { name: 'hel020', documentation: '', range: createRange(13, 5, 11) },
+      { name: 'loop', documentation: '', range: createRange(15, 9, 13) },
     ];
     const expectedNumberOfLines = 19;
 
