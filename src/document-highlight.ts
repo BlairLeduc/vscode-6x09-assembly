@@ -1,7 +1,11 @@
 import * as vscode from 'vscode';
 import * as parser from './parser';
+import { AssemblyWorkspaceManager } from './workspace-manager';
 
 export class DocumentHighlightProvider implements vscode.DocumentHighlightProvider {
+
+  constructor(private workspaceManager: AssemblyWorkspaceManager) {
+  }
 
   public provideDocumentHighlights(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<vscode.DocumentHighlight[]> {
     return new Promise((resolve, reject) => {
@@ -9,7 +13,7 @@ export class DocumentHighlightProvider implements vscode.DocumentHighlightProvid
 
       if (range) {
         const word = document.getText(range);
-        const assemblyDocument = parser.AssemblyDocuments[document.uri.toString()] || new parser.AssemblyDocument(document);
+        const assemblyDocument = this.workspaceManager.getAssemblyDocument(document);
         const assemblyLine = assemblyDocument.lines[position.line];
 
         if ((assemblyLine.label && range.intersection(assemblyLine.labelRange)) || (assemblyLine.operand && range.intersection(assemblyLine.operandRange))) {

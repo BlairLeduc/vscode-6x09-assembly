@@ -12,7 +12,6 @@ hel020	lda	,x+
 	beq	loop
 	sta	,y+
 	bra	hel020
-	ldw	#1234
 loop	bra	loop
 text	FCC	"HELLO, WORLD!"
 	FCB	0

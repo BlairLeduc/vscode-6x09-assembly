@@ -1,7 +1,11 @@
 import * as vscode from 'vscode';
 import * as parser from './parser';
+import { AssemblyWorkspaceManager } from './workspace-manager';
 
 export class DefinitionProvider implements vscode.DefinitionProvider {
+
+  constructor(private workspaceManager: AssemblyWorkspaceManager) {
+  }
 
   public provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<vscode.Location[]> {
     return new Promise((resolve, reject) => {
@@ -9,7 +13,7 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
 
       if (range) {
         const word = document.getText(range);
-        const assemblyDocument = parser.AssemblyDocuments[document.uri.toString()] || new parser.AssemblyDocument(document);
+        const assemblyDocument = this.workspaceManager.getAssemblyDocument(document);
         const assemblyLine = assemblyDocument.lines[position.line];
 
         if ((assemblyLine.operand && range.intersection(assemblyLine.operandRange)) || (assemblyLine.label && range.intersection(assemblyLine.labelRange))) {

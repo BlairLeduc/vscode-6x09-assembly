@@ -1,6 +1,4 @@
-import { CancellationToken, DocumentRangeFormattingEditProvider, Position, Range, TextDocument, TextLine } from 'vscode';
-
-export const AssemblyDocuments: { [id: string]: AssemblyDocument; } = {};
+import { CancellationToken, DocumentRangeFormattingEditProvider, Position, Range, TextDocument, TextLine, Uri } from 'vscode';
 
 export class AssemblyLine {
   public label: string = '';
@@ -110,11 +108,14 @@ export class AssemblySymbol {
 }
 
 export class AssemblyDocument {
+  public uri: Uri;
   public lines: AssemblyLine[] = new Array<AssemblyLine>();
   public symbols: AssemblySymbol[] = new Array<AssemblySymbol>();
   public references: AssemblySymbol[] = new Array<AssemblySymbol>();
+  public referencedDocuments: string[] = new Array<string>();
 
-  constructor(private document: TextDocument) {
+  constructor(document: TextDocument) {
+    this.uri = document.uri;
     this.parse(document);
   }
 

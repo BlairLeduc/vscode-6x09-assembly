@@ -307,8 +307,8 @@ suite('Parser Tests', () => {
       { range: createRange(3, 0, 5), name: 'hello', documentation: '' },
       { range: createRange(5, 0, 6), name: 'hel010', documentation: ''  },
       { range: createRange(10, 0, 6), name: 'hel020', documentation: '' },
-      { range: createRange(15, 0, 4), name: 'loop', documentation: '' },
-      { range: createRange(16, 0, 4), name: 'text', documentation: '' },
+      { range: createRange(14, 0, 4), name: 'loop', documentation: '' },
+      { range: createRange(15, 0, 4), name: 'text', documentation: '' },
     ];
     const expectedReferences = [
       { name: 'screen', documentation: '', range: createRange(3, 11, 17) },
@@ -318,9 +318,9 @@ suite('Parser Tests', () => {
       { name: 'screen', documentation: '', range: createRange(9, 6, 12) },
       { name: 'loop', documentation: '', range: createRange(11, 5, 9) },
       { name: 'hel020', documentation: '', range: createRange(13, 5, 11) },
-      { name: 'loop', documentation: '', range: createRange(15, 9, 13) },
+      { name: 'loop', documentation: '', range: createRange(14, 9, 13) },
     ];
-    const expectedNumberOfLines = 19;
+    const expectedNumberOfLines = 18;
 
     const document = new parser.AssemblyDocument(content);
 

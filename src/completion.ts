@@ -1,9 +1,11 @@
 import * as vscode from 'vscode';
-import * as parser from './parser';
+import { AssemblySymbol } from './parser';
+import { AssemblyWorkspaceManager } from './workspace-manager';
 
 export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
-  private watcher: vscode.FileSystemWatcher;
+  constructor(private workspaceManager: AssemblyWorkspaceManager) {
+  }
 
   public provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<vscode.CompletionItem[]> {
     return new Promise((resolve, reject) => {
@@ -12,7 +14,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
       if (range) {
         const word = document.getText(range);
 
-        const assemblyDocument = parser.AssemblyDocuments[document.uri.toString()] || new parser.AssemblyDocument(document);
+        const assemblyDocument = this.workspaceManager.getAssemblyDocument(document);
         const assemblyLine = assemblyDocument.lines[position.line];
 
         if (assemblyLine.operand && range.intersection(assemblyLine.operandRange)) {
@@ -25,7 +27,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
     });
   }
 
-  private createCompletionItem(symbol: parser.AssemblySymbol): vscode.CompletionItem {
+  private createCompletionItem(symbol: AssemblySymbol): vscode.CompletionItem {
     const item = new vscode.CompletionItem(symbol.name, vscode.CompletionItemKind.Variable);
     if (symbol.documentation) {
       item.detail = symbol.documentation;
