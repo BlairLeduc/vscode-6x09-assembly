@@ -95,7 +95,7 @@
 		"watch": "tsc -watch -p ./",
 		"convert": "npx js-yaml syntaxes/6x09.tmLanguage.yaml > syntaxes/6x09.tmLanguage.json",
 		"update": "npm run convert",
-		"test": "npm run compile && node ./node_modules/vscode/bin/test"
+		"test": "npm run compile && node ./out/test/runTests"
 	},
 	"devDependencies": {
 		"@types/glob": "^7.1.1",

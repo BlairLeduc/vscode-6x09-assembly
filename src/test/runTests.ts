@@ -10,15 +10,16 @@ async function main() {
 
     // The path to the extension test runner script
     // Passed to --extensionTestsPath
-    const extensionTestsPath = path.resolve(__dirname, './suite/index');
+    const extensionTestsPath = path.resolve(__dirname, './index');
 
     // Download VS Code, unzip it and run the integration test
-    await runTests({ 
-      extensionDevelopmentPath, 
+    await runTests({
+      extensionDevelopmentPath,
       extensionTestsPath,
       launchArgs: ['--disable-extensions'],
     });
   } catch (err) {
+    // tslint:disable-next-line: no-console
     console.error('Failed to run tests');
     process.exit(1);
   }
