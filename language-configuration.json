@@ -18,6 +18,13 @@
       ]
     },
     {
+      "open": "'",
+      "close": "'",
+      "notIn": [
+        "string"
+      ]
+    },
+    {
       "open": "(",
       "close": ")"
     }
@@ -35,11 +42,15 @@
     [
       "/",
       "/"
+    ],
+    [
+      "'",
+      "'"
     ]
   ],
   "folding": {
     "markers": {
-      "start": "^\\s*\\*\\s*region\\b|\\b(IF|if|MACRO|macro).*\\b",
+      "start": "^\\s*\\*\\s*region\\b|\\b(IF|if|MACRO|macro|STRUCT|struct).*\\b",
       "end": "^\\s*\\*\\s*endregion\\b|\\b(END|end).\\b"
     }
   }

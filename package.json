@@ -89,22 +89,25 @@
 		]
 	},
 	"scripts": {
-		"vscode:prepublish": "npm run update && npm run compile",
+		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
 		"lint": "tslint -p ./",
 		"watch": "tsc -watch -p ./",
-		"update-vscode": "vscode-install",
-		"postinstall": "vscode-install",
 		"convert": "npx js-yaml syntaxes/6x09.tmLanguage.yaml > syntaxes/6x09.tmLanguage.json",
-		"update": "npm run update-vscode && npm run convert",
-		"test": "npm run update && npm run compile && node ./node_modules/vscode/bin/test"
+		"update": "npm run convert",
+		"test": "npm run compile && node ./node_modules/vscode/bin/test"
 	},
 	"devDependencies": {
+		"@types/glob": "^7.1.1",
 		"@types/mocha": "^5.2.7",
 		"@types/node": "^12.0.10",
+		"@types/vscode": "^1.35.0",
+		"glob": "^7.1.4",
 		"js-yaml": "^3.13.1",
+		"mocha": "^4.1.0",
 		"tslint": "^5.18.0",
 		"typescript": "^3.5.2",
-		"vscode": "^1.1.35"
-	}
+		"vscode-test": "^1.0.0"
+	},
+	"dependencies": {}
 }
