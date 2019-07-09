@@ -3,8 +3,19 @@ scopeName: source.asm.6x09
 filetypes: [a, asm]
 
 patterns:
+  # Only comment on line
   - include: '#linecomment'
 
+  # Special case for select pseudo ops
+  - name: meta.line.asm6x09
+    match: '^[ \t]+(nam|ttl|use|include(?:bin)?|error|warning)[ \t]+(.*)'
+    captures:
+      '1': # opcode column
+        name: keyword.other.misc.asm6x09
+      '2': # text column
+        name: string.unquoted.asm8x09
+
+  # Symbol and comment on line
   - name: meta.line.asm6x09
     match: '^([^ \t*;]*)(?:[ \t]+((?:[*]\s|;).*))'
     captures:
@@ -15,11 +26,9 @@ patterns:
       '2': # comment column
         name: comment.asm6x09
 
+  # Symbol?, operand-free opcode and comment on line
   - name: meta.line.asm6x09
-    match: ''
-
-  - name: meta.line.asm6x09
-    match: '^([^ \t*;]*)(?:[ \t]+([^ \t]+))(?:[ \t]+((?:[*]\s|;).*))'
+    match: '^([^ \t*;]*)(?:[ \t]+(abx|as[lr][abd]|clr[abdefw]|com[abdefw]|daa|dec[abdefw]|inc[abdefw]|ls[lr][abdw]|mul|neg[abd]|nop|psh[su]w|pul[su]w|ro[lr][abdw]|rt[is]|sexw?|swi[23]?|tst[abdefw]))(?:[ \t]+(.*))'
     captures:
       '1': # label column
         name: meta.label.asm6x09
@@ -34,6 +43,27 @@ patterns:
       '3': # comment column
         name: comment.asm6x09
 
+  # Symbol?, opcode, operand? and comment on line
+  - name: meta.line.asm6x09
+    match: '^([^ \t*;]*)(?:[ \t]+([^ \t]+))(?:[ \t]+((?:[*]\s|;).*))'
+    captures:
+      '1': # label column
+        name: meta.label.asm6x09
+        patterns:
+          - include: '#symbol'
+      '2': # opcode column
+        name: meta.opcode
+        patterns:
+          - include: '#opcode'
+          - include: '#pseudo'
+          - include: '#symbol'
+      '3': # comment column
+        name: meta.comment.asm6x09
+        patterns:
+          - name: comment.asm6x09
+            match: '^([*]\s|;).*$'
+  
+  # Symbol?, opcode, operand? and comment on line
   - name: meta.line.asm6x09
     match: '^([^ \t*;]*)(?:[ \t]+([^ \t]+))?(?:[ \t]+((?:"[^"]*"|/[^/]*/|''[^'']*''|[^ \t]*)))?(?:[ \t]+(.*))?'
     captures:
