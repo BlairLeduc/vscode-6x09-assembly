@@ -19,7 +19,8 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         const assemblyLine = assemblyDocument.lines[position.line];
 
         if (assemblyLine.opcode && range.intersection(assemblyLine.opcodeRange)) {
-          resolve(this.workspaceManager.opcodeDocs.findOpcode(word.toUpperCase()).map(opcode => this.createOpcodeCompletionItem(opcode)));
+          const items = this.workspaceManager.opcodeDocs.findOpcode(word.toUpperCase()).map(opcode => this.createOpcodeCompletionItem(opcode));
+          resolve(items.concat(assemblyDocument.findMacro(word).map(label => this.createSymbolCompletionItem(label))));
         }
 
         if (assemblyLine.operand && range.intersection(assemblyLine.operandRange)) {

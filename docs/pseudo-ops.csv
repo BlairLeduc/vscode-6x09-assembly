@@ -1,0 +1,47 @@
+FCB,Include One or More Constant Bytes
+FDB,Include One or More Constant Words
+FQB,Include One or More Double Words
+FCC,Include String
+FCN,Include Null-terminated String
+FCS,Include High-bit-terminated String
+ZMB,Include Number of Null Bytes
+ZMD,Include Number of Null Words
+ZMQ,Include Number of Null Double Words
+RMB,Reserve a Number of Bytes
+RMD,Reserve a Number of Words
+RMQ,Reserve a Number of Double Words
+INCLUDEBIN,Insert Binary File
+FILL,Fill a Number of Bytes with Constant
+ORG,Set the Assembly Address
+EQU,Define Value to Symbol (Immutable)
+SET,Define Value to Symbol (Mutable)
+SETDP,Define the Value of DP
+ALIGN,Force Assembly Address to Boundary
+IFEQ,Include if Equal
+IFNE,Include if Not Equal
+IFGT,Include if Greater Than
+IFGE,Include if Greater Than or Equal
+IFLT,Include if Less Than
+IFLE,Include if Less Than or Equal
+IFDEF,Include if Defined
+IFPRAGMA,Include if Pragma in Effect
+IFNDEF,Include if Not Defined
+ELSE,Include if Not Previous Condition
+ENDC,Marks End of Condition
+OS9,OS-9 System Call
+MOD,Marks Start of OS-9 Module
+EMOD,Marks End of OS-9 Module
+INCLUDE,Include Contents of File
+USE,Include Contents of File
+END,Marks End of Assembly
+ERROR,Print Custom Error Message
+WARNING,Print Custom Warning Message
+MACRO,Mark Start of Macro 
+ENDM,Mark End of Macro
+STRUCT,Mark Start of Struct
+ENDS,Mark End of Struct
+ENDSTRUCT,Mark End of Struct
+PRAGMA,Set Assembler Options
+*PRAGMA,Set Assembler Options (Quiet)
+*PRAGMAPUSH,Push Assembler Options (Quiet)
+*PRAGMEPOP,Pop Assembler Options (Quiet)

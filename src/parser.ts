@@ -111,6 +111,7 @@ export class AssemblyDocument {
   public uri: Uri;
   public lines: AssemblyLine[] = new Array<AssemblyLine>();
   public symbols: AssemblySymbol[] = new Array<AssemblySymbol>();
+  public macros: AssemblySymbol[] = new Array<AssemblySymbol>();
   public references: AssemblySymbol[] = new Array<AssemblySymbol>();
   public referencedDocuments: string[] = new Array<string>();
 
@@ -121,6 +122,10 @@ export class AssemblyDocument {
 
   public findLabel(startsWith: string): AssemblySymbol[] {
     return this.symbols.filter(s => s.name.startsWith(startsWith));
+  }
+
+  public findMacro(startsWith: string): AssemblySymbol[] {
+    return this.macros.filter(m => m.name.startsWith(startsWith));
   }
 
   public findReferences(name: string, includeLabel: boolean): AssemblySymbol[] {
@@ -149,7 +154,7 @@ export class AssemblyDocument {
       const asmLine = new AssemblyLine(line.text, line);
       this.lines.push(asmLine);
       if (this.IsMacroDefinition(asmLine)) {
-        this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Function));
+        this.macros.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Function));
       } else if (this.IsStructDefintion(asmLine)) {
         this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Struct));
       } else if (this.IsStorageDefinition(asmLine)) {
