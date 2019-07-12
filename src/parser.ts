@@ -1,4 +1,4 @@
-import { CancellationToken, DocumentRangeFormattingEditProvider, Position, Range, TextDocument, TextLine, Uri } from 'vscode';
+import { CancellationToken, CompletionItemKind, Position, Range, TextDocument, TextLine, Uri } from 'vscode';
 
 export class AssemblyLine {
   public label: string = '';
@@ -104,7 +104,7 @@ export class AssemblyLine {
 }
 
 export class AssemblySymbol {
-  constructor(public name: string, public range: Range, public documentation: string) { }
+  constructor(public name: string, public range: Range, public documentation: string, public kind: CompletionItemKind) { }
 }
 
 export class AssemblyDocument {
@@ -148,11 +148,19 @@ export class AssemblyDocument {
       const line = document.lineAt(i);
       const asmLine = new AssemblyLine(line.text, line);
       this.lines.push(asmLine);
-      if (asmLine.label) {
-        this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment));
+      if (this.IsMacroDefinition(asmLine)) {
+        this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Function));
+      } else if (this.IsStructDefintion(asmLine)) {
+        this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Struct));
+      } else if (this.IsStorageDefinition(asmLine)) {
+        this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Variable));
+      } else if (this.IsConstantDefinition(asmLine)) {
+        this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Constant));
+      } else if (asmLine.label) {
+        this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Method));
       }
       if (asmLine.reference) {
-        this.references.push(new AssemblySymbol(asmLine.reference, asmLine.referenceRange, ''));
+        this.references.push(new AssemblySymbol(asmLine.reference, asmLine.referenceRange, '', CompletionItemKind.Reference));
       }
     }
 
@@ -162,5 +170,21 @@ export class AssemblyDocument {
         array.splice(index, 1);
       }
     });
+  }
+
+  private IsMacroDefinition(line: AssemblyLine): boolean {
+    return line.label && line.opcode && line.opcode.toUpperCase() === 'MACRO';
+  }
+
+  private IsStructDefintion(line: AssemblyLine): boolean {
+    return line.label && line.opcode && line.opcode.toUpperCase() === 'STRUCT';
+  }
+
+  private IsStorageDefinition(line: AssemblyLine): boolean {
+    return line.label && line.opcode && (line.opcode.match(/f[cdq]b|fc[cns]|[zr]m[dbq]|includebin|fill/i) !== null);
+  }
+
+  private IsConstantDefinition(line: AssemblyLine): boolean {
+    return line.label && line.opcode && (line.opcode.match(/equ|set/i) !== null);
   }
 }

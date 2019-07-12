@@ -33,7 +33,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
   }
 
   private createSymbolCompletionItem(symbol: AssemblySymbol): vscode.CompletionItem {
-    const item = new vscode.CompletionItem(symbol.name, vscode.CompletionItemKind.Variable);
+    const item = new vscode.CompletionItem(symbol.name, symbol.kind);
     if (symbol.documentation) {
       item.detail = symbol.documentation;
     }
