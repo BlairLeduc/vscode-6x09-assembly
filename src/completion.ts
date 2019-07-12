@@ -43,9 +43,11 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
   private createOpcodeCompletionItem(opcode: DocOpcode): vscode.CompletionItem {
     const item = new vscode.CompletionItem(opcode.name.toLowerCase(), vscode.CompletionItemKind.Keyword);
-    if (opcode.documentation) {
-      item.detail = opcode.documentation;
+    item.detail = opcode.documentation;
+    if (opcode.processor === '6309') {
+      item.detail = '(6309) ' + item.detail;
     }
-
+    // TODO: add documentation for opcodes, for example:
+    // item.documentation = new vscode.MarkdownString(opcode.documentation);
     return item;
   }}
