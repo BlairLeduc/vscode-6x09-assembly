@@ -1,0 +1,216 @@
+ABX,Add B into X (Unsigned),6809
+ADCA,Add Memory with Carry into A,6809
+ADCB,Add Memory with Carry into B,6809
+ADCD,Add Memory with Carry into D,6309
+ADCR,Add Register with Carry into Register,6309
+ADDA,Add Memory into A,6809
+ADDB,Add Memory into B,6809
+ADDCC,Add Memory into CC,6809
+ADDD,Add Memory into D,6809
+ADDE,Add Memory into E,6309
+ADDF,Add Memory into F,6309
+ADDR,Add Register into Register,6309
+ADDW,Add Memory into W,6309
+AIM,Logical AND of Value with Memory,6309
+ANDA,Logical AND Memory into A,6809
+ANDB,Logical AND Memory into B,6809
+ANDD,Logical AND Memory into D,6309
+ANDR,Logical AND Memory into R,6309
+ASL,Arithmetic Memory Shift Left,6809
+ASLA,Arithmetic A Shift Left,6809
+ASLB,Arithmetic B Shift Left,6809
+ASLD,Arithmetic D Shift Left,6309
+ASR,Arithmetic Memory Shift Right,6809
+ASRA,Arithmetic A Shift Right,6809
+ASRB,Arithmetic B Shift Right,6809
+ASRD,Arithmetic D Shift Right,6309
+BCC,Branch if Carry Clear (C=0) (Unsigned),6809
+BCS,Branch if Carry Set (C=1) (Unsigned),6809
+BEQ,Branch if Equal (Z=1),6809
+BGE,Branch if Greater Than or Equal to Zero (Z=1 or N XOR V=0) (Signed),6809
+BGT,Branch if Greater (N XOR V=0) (Signed),6809
+BHI,Branch if Higher (Z=0 AND C=0) (Unsigned),6809
+BHS,Branch if Higher or Same (C=0) (Unsigned),6809
+BLE,Branch if Less than or Equal to Zero (Z=1 or N XOR V=0) (Signed),6809
+BLO,Branch if Lower (C=1) (Unsigned),6809
+BLS,Branch if Lower or Same (Z=1 or C=1) (Unsigned),6809
+BLT,Branch if Less than Zero (N XOR V=1) (Signed),6809
+BMI,Branch if Minus (N=1),6809
+BNE,Branch Not Equal (Z=0),6809
+BPL,Branch if Plus (N=0),6809
+BRA,Branch Always,6809
+BRN,Branch Never (NOP),6809
+BSR,Branch to Subroutine,6809
+BVC,Branch if valid twos complement result (V=0),6809
+BVS,Branch if invalid twos complement result (V=1),6809
+BAND,Logical AND Register Bit with Memory Bit into Register Bit,6309
+BEOR,Logical EOR Register Bit with Memory Bit into Register Bit,6309
+BIAND,Logical AND Register Bit with Inverted Memory Bit into Register Bit,6309
+BIEOR,Logical EOR Register Bit with Inverted Memory Bit into Register Bit,6309
+BIOR,Logical OR Register Bit with Inverted Memory Bit into Register Bit,6309
+BITA,Bit Test with A,6809
+BITB,Bit Test with B,6809
+BITD,Bit Test with D,6309
+BITMD,Bit Test with MD,6309
+BOR,Logical OR Register Bit with Memory Bit into Register Bit,6309
+CLR,Clear Memory,6809
+CLRA,Clear A,6809
+CLRB,Clear B,6809
+CLRD,Clear D,6309
+CLRE,Clear E,6309
+CLRF,Clear F,6309
+CLRW,Clear W,6309
+CMPA,Compare Memory from A,6809
+CMPB,Compare Memory from B,6809
+CMPE,Compare Memory from E,6309
+CMPF,Compare Memory from F,6309
+CMPD,Compare Memory from D,6809
+CMPW,Compare Memory from W,6309
+CMPX,Compare Memory from X,6809
+CMPY,Compare Memory from Y,6809
+CMPR,Compare Register from Register,6309
+CMPS,Compare Memory from S,6809
+CMPU,Compare Memory from U,6809
+COM,Complement Memory,6809
+COMA,Complement A,6809
+COMB,Complement B,6809
+COMD,Complement D,6309
+COME,Complement E,6309
+COMF,Complement F,6309
+COMW,Complement W,6309
+CWAI,Clear CC bit's and Wait for Interrupt,6809
+DAA,Decimal Addition Adjust,6809
+DEC,Decrement,6809
+DECA,Decrement A,6809
+DECB,Decrement B,6809
+DECD,Decrement D,6309
+DECE,Decrement E,6309
+DECF,Decrement F,6309
+DECW,Decrement W,6309
+DIVD,Signed Divide D by Memory,6309
+DIVQ,Signed Divide Q by Memory,6309
+EIM,Logical EOR of Value into Memory,6309
+EORA,Exclusive OR Memory into A,6809
+EORB,Exclusive OR Memory into B,6809
+EORD,Exclusive OR Memory into D,6309
+EORR,Exclusive OR Register into Register,6309
+EXG,Exchange Registers,6809
+INC,Increment Memory,6809
+INCA,Increment A,6809
+INCB,Increment B,6809
+INCD,Increment D,6309
+INCE,Increment E,6309
+INCF,Increment F,6309
+INCW,Increment W,6309
+JMP,Jump,6809
+JSR,Jump to Subroutine,6809
+LBCC,Long Branch if Carry Clear (C=0) (Unsigned),6809
+LBCS,Long Branch if Carry Set (C=1) (Unsigned),6809
+LBEQ,Long Branch if Equal (Z=1),6809
+LBGE,Long Branch if Greater Than or Equal to Zero (Z=1 or N XOR V=0) (Signed),6809
+LBGT,Long Branch if Greater (N XOR V=0) (Signed),6809
+LBHI,Long Branch if Higher (Z=0 AND C=0) (Unsigned),6809
+LBHS,Long Branch if Higher or Same (C=0) (Unsigned),6809
+LBLE,Long Branch if Less than or Equal to Zero (Z=1 or N XOR V=0) (Signed),6809
+LBLO,Long Branch if Lower (C=1) (Unsigned),6809
+LBLS,Long Branch if Lower or Same (Z=1 or C=1) (Unsigned),6809
+LBLT,Long Branch if Less than Zero (N XOR V=1) (Signed),6809
+LBMI,Long Branch if Minus (N=1),6809
+LBNE,Long Branch Not Equal (Z=0),6809
+LBPL,Long Branch if Plus (N=0),6809
+LBRA,Long Branch Always,6809
+LBRN,Long Branch Never (NOP),6809
+LBSR,Long Branch to Subroutine,6809
+LBVC,Long Branch if valid twos complement result (V=0),6809
+LBVS,Long Branch if invalid twos complement result (V=1),6809
+LDA,Load A from Memory,6809
+LDB,Load B from Memory,6809
+LDD,Load D from Memory,6309
+LDE,Load E from Memory,6309
+LDF,Load F from Memory,6309
+LDW,Load W from Memory,6309
+LDX,Load X from Memory,6809
+LDY,Load Y from Memory,6809
+LDS,Load S from Memory,6809
+LDU,Load U from Memory,6809
+LDBT,Load Register Bit from Memory,6309
+LDMD,Load Value into MD,6309
+LDQ,Load Q from Memory,6309
+LEAX,Load Effective Address into X,6809
+LEAY,Load Effective Address into Y,6809
+LEAS,Load Effective Address into S,6809
+LEAU,Load Effective Address into U,6809
+LSL,Logical Memory Shift Left,6809
+LSLA,Logical A Shift Left,6809
+LSLB,Logical B Shift Left,6809
+LSLD,Logical D Shift Left,6309
+LSR,Logical Memory Shift Right,6809
+LSRA,Logical A Shift Right,6809
+LSRB,Logical B Shift Right,6809
+LSRD,Logical D Shift Right,6309
+LSRW,Logical W Shift Right,6309
+MUL,Unsigned Multiply into D,6809
+MULD,Signed Multiply into Q,6309
+NEG,Negate Memory,6809
+NEGA,Negate A,6809
+NEGB,Negate B,6809
+NEGD,Negate D,6309
+NOP,No Operation,6809
+OIM,Logical OR Value into Memory,6309
+ORA,Inclusive OR Memory into A,6809
+ORB,Inclusive OR Memory into B,6809
+ORCC,Inclusive OR Memory into CC,6809
+ORD,Inclusive OR Memory into D,6309
+ORR,Inclusive OR Register into Register,6309
+PSHS,Push Registers onto Hardware Stack,6809
+PSHSW,Push W onto Hardware Stack,6309
+PSHU,Push Registers onto User Stack,6809
+PSHUW,Push W onto User Stack,6309
+PULS,Pull Registers from Hardware Stack,6809
+PULSW,Pull W from Hardware Stack,3809
+PULU,Pull Registers from User Stack,6809
+PULUW,Pull W from User Stack,6309
+ROL,Rotate Memory Left,6809
+ROLA,Rotate A Left,6809
+ROLB,Rotate B Left,6809
+ROLD,Rotate D Left,6309
+ROLW,Rotate W Left,6309
+ROR,Rotate Memory Right,6809
+RORA,Rotate A Right,6809
+RORB,Rotate B Right,6809
+RORD,Rotate D Right,6309
+RORW,Rotate W Right,6309
+RTI,Return from Interrupt,6809
+RTS,Return from Subroutine,6809
+SBCA,Subtract Memory from A with Borrow,6809
+SBCB,Subtract Memory from B with Borrow,6809
+SBCD,Subtract Memory from D with Borrow,6309
+SBCR,Subtract Register from Register with Borrow,6309
+SEX,Sign Extend B into D,6809
+SEXW,Sign Extend W into Q,6309
+STA,Store A into Memory,6809
+STB,Store B into Memory,6809
+STE,Store E into Memory,6309
+STF,Store F into Memory,6309
+STD,Store D into Memory,6809
+STW,Store W into Memory,6309
+STX,Store X into Memory,6809
+STY,Store Y into Memory,6809
+STS,Store S into Memory,6809
+STU,Store U into Memory,6809
+STBT,Store Register Bit into Memory,6309
+STQ,Store Q into Memory,6309
+SUBA,Subtract Memory from A,6809
+SUBB,Subtract Memory from B,6809
+SUBD,Subtract Memory from D,6809
+SUBR,Subtract Register from Register,6309
+SWI,Software Interrupt,6809
+SWI2,Software Interrupt 2,6809
+SWI3,Software Interrupt 3,6809
+SYNC,Synchronize to External Event,6809
+TFM,Transfer Memory,6309
+TFR,Transfer Register to Register,6809
+TIM,Bit Test Value with Memory,6309
+TST,Test Memory,6809
+TSTA,Test A,6809
+TSTB,Test B,6809

@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { CompletionItemProvider } from './completion';
 import { DefinitionProvider } from './definition';
@@ -6,7 +7,7 @@ import { ReferenceProvider } from './reference';
 import { AssemblyWorkspaceManager } from './workspace-manager';
 
 const ASM6X09_MODE: vscode.DocumentSelector = { language: 'asm6x09', scheme: 'file' };
-const WorkspaceManager: AssemblyWorkspaceManager = new AssemblyWorkspaceManager();
+const WorkspaceManager: AssemblyWorkspaceManager = new AssemblyWorkspaceManager(path.join(__dirname, '..'));
 
 let completionItemProvider: vscode.Disposable | undefined;
 let definitionProvider: vscode.Disposable | undefined;

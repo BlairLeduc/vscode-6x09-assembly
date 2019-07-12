@@ -1,12 +1,18 @@
 import { TextDocument, TextDocumentChangeEvent, Uri, workspace, WorkspaceFolder } from 'vscode';
 import { Collection } from './collection';
+import { Docs } from './docs';
 import { AssemblyFolder } from './folder';
 import { AssemblyDocument } from './parser';
 
 export class AssemblyWorkspaceManager {
   private static readonly NoWorkspaceUri = 'wsf:none';
+  public readonly opcodeDocs: Docs;
 
   private folders: Collection<AssemblyFolder> = new Collection<AssemblyFolder>();
+
+  constructor(extensionPath: string) {
+    this.opcodeDocs = new Docs(extensionPath);
+  }
 
   public addDocument(document: TextDocument): void {
     const folder = this.getOrCreateFolder(document);

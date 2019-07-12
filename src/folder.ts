@@ -19,7 +19,7 @@ export class AssemblyFolder {
     return this.documents.get(document.uri);
   }
 
-  public updateAssemblyDocument(document: TextDocument, _: TextDocumentContentChangeEvent[]): AssemblyDocument {
+  public updateAssemblyDocument(document: TextDocument, _: readonly TextDocumentContentChangeEvent[]): AssemblyDocument {
     // Optimisation potential: look at what changed in document instead of re-parseing the whole thing
     return this.documents.add(document.uri, new AssemblyDocument(document));
   }
