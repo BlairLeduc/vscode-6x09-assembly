@@ -303,22 +303,22 @@ suite('Parser Tests', () => {
     );
     const content = await vscode.workspace.openTextDocument(uri);
     const expectedSymbols = [
-      { range: createRange(2, 0, 6), name: 'screen', documentation: '' },
-      { range: createRange(3, 0, 5), name: 'hello', documentation: '' },
-      { range: createRange(5, 0, 6), name: 'hel010', documentation: ''  },
-      { range: createRange(10, 0, 6), name: 'hel020', documentation: '' },
-      { range: createRange(14, 0, 4), name: 'loop', documentation: '' },
-      { range: createRange(15, 0, 4), name: 'text', documentation: '' },
+      { range: createRange(2, 0, 6), name: 'screen', documentation: '', kind: vscode.CompletionItemKind.Constant },
+      { range: createRange(3, 0, 5), name: 'hello', documentation: '', kind: vscode.CompletionItemKind.Method },
+      { range: createRange(5, 0, 6), name: 'hel010', documentation: '', kind: vscode.CompletionItemKind.Method  },
+      { range: createRange(10, 0, 6), name: 'hel020', documentation: '', kind: vscode.CompletionItemKind.Method },
+      { range: createRange(14, 0, 4), name: 'loop', documentation: '', kind: vscode.CompletionItemKind.Method },
+      { range: createRange(15, 0, 4), name: 'text', documentation: '', kind: vscode.CompletionItemKind.Variable },
     ];
     const expectedReferences = [
-      { name: 'screen', documentation: '', range: createRange(3, 11, 17) },
-      { name: 'screen', documentation: '', range: createRange(6, 7, 13) },
-      { name: 'hel010', documentation: '', range: createRange(7, 5, 11) },
-      { name: 'text', documentation: '', range: createRange(8, 6, 10) },
-      { name: 'screen', documentation: '', range: createRange(9, 6, 12) },
-      { name: 'loop', documentation: '', range: createRange(11, 5, 9) },
-      { name: 'hel020', documentation: '', range: createRange(13, 5, 11) },
-      { name: 'loop', documentation: '', range: createRange(14, 9, 13) },
+      { name: 'screen', documentation: '', range: createRange(3, 11, 17), kind: vscode.CompletionItemKind.Reference },
+      { name: 'screen', documentation: '', range: createRange(6, 7, 13), kind: vscode.CompletionItemKind.Reference },
+      { name: 'hel010', documentation: '', range: createRange(7, 5, 11), kind: vscode.CompletionItemKind.Reference },
+      { name: 'text', documentation: '', range: createRange(8, 6, 10), kind: vscode.CompletionItemKind.Reference },
+      { name: 'screen', documentation: '', range: createRange(9, 6, 12), kind: vscode.CompletionItemKind.Reference },
+      { name: 'loop', documentation: '', range: createRange(11, 5, 9), kind: vscode.CompletionItemKind.Reference },
+      { name: 'hel020', documentation: '', range: createRange(13, 5, 11), kind: vscode.CompletionItemKind.Reference },
+      { name: 'loop', documentation: '', range: createRange(14, 9, 13), kind: vscode.CompletionItemKind.Reference },
     ];
     const expectedNumberOfLines = 18;
 
