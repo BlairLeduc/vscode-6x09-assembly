@@ -5,7 +5,6 @@ ADCD,Add Memory with Carry into D,6309
 ADCR,Add Register with Carry into Register,6309
 ADDA,Add Memory into A,6809
 ADDB,Add Memory into B,6809
-ADDCC,Add Memory into CC,6809
 ADDD,Add Memory into D,6809
 ADDE,Add Memory into E,6309
 ADDF,Add Memory into F,6309
@@ -14,6 +13,7 @@ ADDW,Add Memory into W,6309
 AIM,Logical AND of Value with Memory,6309
 ANDA,Logical AND Memory into A,6809
 ANDB,Logical AND Memory into B,6809
+ANDCC,Logical AND Immediate Value into CC,6809
 ANDD,Logical AND Memory into D,6309
 ANDR,Logical AND Memory into R,6309
 ASL,Arithmetic Memory Shift Left,6809
