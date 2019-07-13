@@ -31,10 +31,28 @@
 		"vscode": "^1.36.0"
 	},
 	"activationEvents": [
-		"onLanguage:asm6x09"
+		"onLanguage:asm6x09",
+		"onCommand:asm6x09.opcodeLowercase",
+		"onCommand:asm6x09.opcodeUppercase",
+		"onCommand:asm6x09.opcodeCapitalise"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"commands": [
+			{
+				"command": "asm6x09.opcodeLowercase",
+				"title": "6x09: Transform opcodes to lowercase",
+				"when": "editorLangId == asm6x09"
+			},
+			{
+				"command": "asm6x09.opcodeUppercase",
+				"title": "6x09: Transform opcodes to uppercase"
+			},
+			{ 
+				"command": "asm6x09.opcodeCapitalise",
+				"title": "6x09: Transform opcodes to capitalised"
+			}
+		],
 		"languages": [
 			{
 				"id": "asm6x09",
@@ -50,6 +68,22 @@
 				"configuration": "./language-configuration.json"
 			}
 		],
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "asm6x09.opcodeLowercase",
+					"when": "editorLangId == asm6x09"
+				},
+				{
+					"command": "asm6x09.opcodeUppercase",
+					"when": "editorLangId == asm6x09"
+				},
+				{
+					"command": "asm6x09.opcodeCapitalise",
+					"when": "editorLangId == asm6x09"
+				}
+			]
+		},
 		"grammars": [
 			{
 				"language": "asm6x09",

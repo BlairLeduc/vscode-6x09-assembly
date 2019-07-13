@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { AssemblyConfigurationManager, opcodeCase } from './config';
 import { DocOpcode } from './docs';
 import { AssemblySymbol } from './parser';
+import { convertToCase } from './utilities';
 import { AssemblyWorkspaceManager } from './workspace-manager';
 
 export class CompletionItemProvider implements vscode.CompletionItemProvider {
@@ -45,7 +46,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
   }
 
   private createOpcodeCompletionItem(opcode: DocOpcode, casing: opcodeCase): vscode.CompletionItem {
-    const item = new vscode.CompletionItem(this.convertToCase(opcode.name, casing), vscode.CompletionItemKind.Keyword);
+    const item = new vscode.CompletionItem(convertToCase(opcode.name, casing), vscode.CompletionItemKind.Keyword);
     item.detail = opcode.documentation;
     if (opcode.processor === '6309') {
       item.detail = '(6309) ' + item.detail;
@@ -53,15 +54,5 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
     // TODO: add documentation for opcodes, for example:
     // item.documentation = new vscode.MarkdownString(opcode.documentation);
     return item;
-  }
-
-  private convertToCase(name: string, casing: opcodeCase): string {
-    if (casing === opcodeCase.lowercase) {
-      return name.toLowerCase();
-    }
-    if (casing === opcodeCase.capitalised) {
-      return name[0].toUpperCase() + name.substr(1).toLowerCase();
-    }
-    return name;
   }
 }

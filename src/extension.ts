@@ -1,7 +1,8 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { ChangeCaseOpcodeCommand } from './commands';
 import { CompletionItemProvider } from './completion';
-import { AssemblyConfigurationManager } from './config';
+import { AssemblyConfigurationManager, opcodeCase } from './config';
 import { DefinitionProvider } from './definition';
 import { DocumentHighlightProvider } from './document-highlight';
 import { ReferenceProvider } from './reference';
@@ -15,6 +16,7 @@ let completionItemProvider: vscode.Disposable | undefined;
 let definitionProvider: vscode.Disposable | undefined;
 let referenceProvider: vscode.Disposable | undefined;
 let documentHighlightProvider: vscode.Disposable | undefined;
+
 export function activate(context: vscode.ExtensionContext) {
 
   ConfigurationManager.update(vscode.workspace.getConfiguration('asm6x09.editor'));
@@ -72,6 +74,20 @@ export function activate(context: vscode.ExtensionContext) {
     change.added.forEach(folder => WorkspaceManager.addFolder(folder));
     change.removed.forEach(folder => WorkspaceManager.removeFolder(folder));
   });
+
+  // Commands
+  const opcodeLowerCommand = 'asm6x09.opcodeLowercase';
+  const opcodeUpperCommand = 'asm6x09.opcodeUppercase';
+  const opcodeCapitaliseCommand = 'asm6x09.opcodeCapitalise';
+
+  const lowercaseCommand = new ChangeCaseOpcodeCommand(WorkspaceManager, opcodeCase.lowercase);
+  context.subscriptions.push(vscode.commands.registerTextEditorCommand(opcodeLowerCommand, lowercaseCommand.handler, lowercaseCommand));
+
+  const uppercaseCommand = new ChangeCaseOpcodeCommand(WorkspaceManager, opcodeCase.uppercase);
+  context.subscriptions.push(vscode.commands.registerTextEditorCommand(opcodeUpperCommand, uppercaseCommand.handler, uppercaseCommand));
+
+  const capitalizeCommand = new ChangeCaseOpcodeCommand(WorkspaceManager, opcodeCase.capitalised);
+  context.subscriptions.push(vscode.commands.registerTextEditorCommand(opcodeCapitaliseCommand, capitalizeCommand.handler, capitalizeCommand));
 }
 
 export function deactivate(): void {
