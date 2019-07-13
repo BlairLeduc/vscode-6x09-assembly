@@ -76,6 +76,29 @@
 				]
 			}
 		],
+		"configuration": {
+			"title": "6x09 Assembly Configuration",
+			"properties": {
+				"asm6x09.editor.opcodeCasing": {
+					"type": "string",
+					"default": "lowercase",
+					"enum": [
+						"lowercase",
+						"uppercase",
+						"capitalised"
+					],
+					"description": "The case used in opcode Intellisense."
+				}
+			}
+		},
+		"configurationDefaults": {
+			"[asm6x09]": {
+				"editor.wordBasedSuggestions": false,
+				"editor.tabSize": 8,
+				"editor.useTabStops": true,
+				"editor.insertSpaces": false
+			}
+		},
 		"colors": [
 			{
 				"id": "keyword.other.opcode.6309.asm6x09",
