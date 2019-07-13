@@ -20,18 +20,11 @@ export class AssemblyLine {
   public endOfLine: Position;
 
   private lineNumber: number = 0;
-  private lineLength: number = 0;
-
-  private commentRegExp: RegExp = RegExp('^([*;].*)');
-  private lineRegExp: RegExp = RegExp('^([^ \t*;]*)(?:[ \t]+([^ \t*;]+))?(?:[ \t]+((?![*;])(?:"[^"]*"|/[^/]*/|[^ \t]*)))?(?:[ \t]+(.*))?');
-  private symbolRegExp: RegExp = RegExp('[a-zA-Z._][a-zA-Z0-9.$_@]*');
 
   constructor(private rawLine: string, private textLine?: TextLine) {
     if (textLine) {
       this.lineNumber = this.textLine.lineNumber;
     }
-
-    this.lineLength = this.rawLine.length;
 
     this.startOfLine = this.getPositon(0);
     this.endOfLine = this.getPositon(this.rawLine.length);
@@ -46,51 +39,41 @@ export class AssemblyLine {
 
   private parse(): void {
 
-    let match = this.commentRegExp.exec(this.rawLine);
+    let match = this.matchLineComment(this.rawLine);
+    if (match !== null) {
+      this.fillComment(match[1]);
+      return;
+    }
+
+    match = this.matchSelectPseudoOps(this.rawLine);
     if (match) {
-      this.comment = match[1];
-      this.commentRange = this.getRange(match.index, this.lineLength);
-    } else {
-      match = this.lineRegExp.exec(this.rawLine);
-      if (match) {
-        let pos = 0;
-        // Label
-        if (match[1]) {
-          this.label = match[1];
-          pos = this.label.length;
-          this.labelRange = this.getRange(0, pos);
-        }
-        // Opcode
-        if (match[2]) {
-          this.opcode = match[2];
-          const start = this.rawLine.indexOf(this.opcode, pos);
-          pos = start + this.opcode.length;
-          this.opcodeRange = this.getRange(start, pos);
-        }
-        // Operand
-        if (match[3]) {
-          this.operand = match[3];
-          const start = this.rawLine.indexOf(this.operand, pos);
-          pos = start + this.operand.length;
-          this.operandRange = this.getRange(start, pos);
-          // Reference?
-          if (!/"[^"]*"|\/[^/]*\//.exec(this.operand)) {
-            // not a string
-            const refMatch = this.symbolRegExp.exec(this.operand);
-            if (refMatch) {
-              this.reference = refMatch[0];
-              const refStart = start + refMatch.index;
-              this.referenceRange = this.getRange(refStart, refStart + this.reference.length);
-            }
-          }
-        }
-        // Comment
-        if (match[4]) {
-          this.comment = match[4];
-          const start = this.rawLine.indexOf(this.comment);
-          this.commentRange = this.getRange(start, start + this.comment.length);
-        }
-      }
+      this.fillOperand(match[2],
+        this.fillOpcode(match[1]));
+      return;
+    }
+
+    match = this.matchLabelAndComment(this.rawLine);
+    if (match) {
+      this.fillComment(match[2],
+        this.fillLabel(match[1]));
+      return;
+    }
+
+    match = this.matchLabelOpcodeAndComment(this.rawLine);
+    if (match) {
+      this.fillComment(match[3],
+        this.fillOpcode(match[2],
+          this.fillLabel(match[1])));
+      return;
+    }
+
+    match = this.matchLabelOpcodeOperandAndComment(this.rawLine);
+    if (match) {
+      this.fillComment(match[4],
+        this.fillOperand(match[3],
+          this.fillOpcode(match[2],
+            this.fillLabel(match[1]))));
+      return;
     }
   }
 
@@ -100,6 +83,84 @@ export class AssemblyLine {
 
   private getRange(from: number, to: number): Range {
     return new Range(new Position(this.lineNumber, from), new Position(this.lineNumber, to));
+  }
+
+  private matchSymbol(text: string) {
+    return text.match(/([a-z._][a-z0-9.$_@]*)/i);
+  }
+
+  private matchLineComment(text: string) {
+    const match = text.match(/(?:^\s*)[*](?:\s|[*])(.*)/);
+    if (match) {
+      return match;
+    }
+    return text.match(/(?:^\s*)[;](.*)/);
+  }
+
+  private matchSelectPseudoOps(text: string): RegExpMatchArray {
+    return text.match(/^[ \t]+(nam|ttl|use|include(?:bin)?|error|warning)[ \t]+(.*)/);
+  }
+
+  private matchLabelAndComment(text: string): RegExpMatchArray {
+    return text.match(/^([^ \t*;]*)(?:[ \t]+(?:[*]\s|;)(.*))/);
+  }
+
+  private matchLabelOpcodeAndComment(text: string): RegExpMatchArray {
+    return text.match(/^([^ \t*;]*)(?:[ \t]+(abx|as[lr][abd]|clr[abdefw]|com[abdefw]|daa|dec[abdefw]|inc[abdefw]|ls[lr][abdw]|mul|neg[abd]|nop|psh[su]w|pul[su]w|ro[lr][abdw]|rt[is]|sexw?|swi[23]?|tst[abdefw]|macro|struct))(?:[ \t]+(.*))/i);
+  }
+
+  private matchLabelOpcodeOperandAndComment(text: string) {
+    return text.match(/^([^ \t*;]*)(?:[ \t]+([^ \t]+))?(?:[ \t]+((?:"[^"]*"|\/[^\/]*\/|'[^']*'|[^ \t]*)))?(?:[ \t]+(.*))?/i);
+  }
+
+  private fillLabel(text: string, pos: number = 0): number {
+    if (text && text.length > 0) {
+      this.label = text;
+      const start = this.rawLine.indexOf(this.label, pos);
+      pos = start + this.label.length;
+      this.labelRange = this.getRange(start, pos);
+    }
+    return pos;
+  }
+
+  private fillOpcode(text: string, pos: number = 0): number {
+    if (text && text.length > 0) {
+      this.opcode = text;
+      const start = this.rawLine.indexOf(this.opcode, pos);
+      pos = start + this.opcode.length;
+      this.opcodeRange = this.getRange(start, pos);
+    }
+    return pos;
+  }
+
+  private fillOperand(text: string, pos: number = 0): number {
+    if (text && text.length > 0) {
+      this.operand = text;
+      const start = this.rawLine.indexOf(this.operand, pos);
+      pos = start + this.operand.length;
+      this.operandRange = this.getRange(start, pos);
+      // Reference?
+      if (!/"[^"]*"|\/[^/]*\//.exec(this.operand)) {
+        // not a string
+        const refMatch = this.matchSymbol(this.operand);
+        if (refMatch) {
+          this.reference = refMatch[0];
+          const refStart = start + refMatch.index;
+          this.referenceRange = this.getRange(refStart, refStart + this.reference.length);
+        }
+      }
+    }
+    return pos;
+  }
+
+  private fillComment(text: string, pos: number = 0): number {
+    if (text && text.length > 0) {
+      this.comment = text.trim();
+      const start = this.rawLine.indexOf(this.comment, pos);
+      pos = start + this.comment.length;
+      this.commentRange = this.getRange(start, pos);
+    }
+    return pos;
   }
 }
 
@@ -131,7 +192,14 @@ export class AssemblyDocument {
   public findReferences(name: string, includeLabel: boolean): AssemblySymbol[] {
     const symbols = this.references.filter(s => s.name === name);
     if (includeLabel) {
-      symbols.push(this.symbols.find(s => s.name === name));
+      const symbolDef = this.symbols.find(s => s.name === name);
+      if (symbolDef) {
+        symbols.push(symbolDef);
+      }
+      const macroDef = this.macros.find(m => m.name === name);
+      if (macroDef) {
+        symbols.push(macroDef);
+      }
     }
     return symbols;
   }
@@ -153,13 +221,13 @@ export class AssemblyDocument {
       const line = document.lineAt(i);
       const asmLine = new AssemblyLine(line.text, line);
       this.lines.push(asmLine);
-      if (this.IsMacroDefinition(asmLine)) {
+      if (this.isMacroDefinition(asmLine)) {
         this.macros.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Function));
-      } else if (this.IsStructDefintion(asmLine)) {
+      } else if (this.isStructDefintion(asmLine)) {
         this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Struct));
-      } else if (this.IsStorageDefinition(asmLine)) {
+      } else if (this.isStorageDefinition(asmLine)) {
         this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Variable));
-      } else if (this.IsConstantDefinition(asmLine)) {
+      } else if (this.isConstantDefinition(asmLine)) {
         this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Constant));
       } else if (asmLine.label) {
         this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Method));
@@ -170,26 +238,36 @@ export class AssemblyDocument {
     }
 
     // Post process references, remove anything that is not in the symbols
-    this.references.forEach( (value, index, array) => {
+    this.references.forEach((value, index, array) => {
       if (!this.symbols.find(s => s.name === value.name)) {
         array.splice(index, 1);
       }
     });
+
+    // Post process macros, find macros
+    this.lines.forEach(line => {
+      if (line.opcode) {
+        const macro = this.macros.find(m => m.name === line.opcode);
+        if (macro) {
+          this.references.push(new AssemblySymbol(line.opcode, line.opcodeRange, macro.documentation, macro.kind));
+        }
+      }
+    });
   }
 
-  private IsMacroDefinition(line: AssemblyLine): boolean {
+  private isMacroDefinition(line: AssemblyLine): boolean {
     return line.label && line.opcode && line.opcode.toUpperCase() === 'MACRO';
   }
 
-  private IsStructDefintion(line: AssemblyLine): boolean {
+  private isStructDefintion(line: AssemblyLine): boolean {
     return line.label && line.opcode && line.opcode.toUpperCase() === 'STRUCT';
   }
 
-  private IsStorageDefinition(line: AssemblyLine): boolean {
+  private isStorageDefinition(line: AssemblyLine): boolean {
     return line.label && line.opcode && (line.opcode.match(/f[cdq]b|fc[cns]|[zr]m[dbq]|includebin|fill/i) !== null);
   }
 
-  private IsConstantDefinition(line: AssemblyLine): boolean {
+  private isConstantDefinition(line: AssemblyLine): boolean {
     return line.label && line.opcode && (line.opcode.match(/equ|set/i) !== null);
   }
 }

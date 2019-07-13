@@ -17,13 +17,27 @@ export class ReferenceProvider implements vscode.ReferenceProvider {
         const assemblyLine = assemblyDocument.lines[position.line];
 
         if (assemblyLine.label && range.intersection(assemblyLine.labelRange)) {
-          resolve(assemblyDocument.findReferences(word, context.includeDeclaration).map(s => new vscode.Location(document.uri, s.range)));
+          resolve(this.findReferences(assemblyDocument, word, context.includeDeclaration, document.uri));
+          return;
+        }
+
+        if (assemblyLine.opcode && range.intersection(assemblyLine.opcodeRange)) {
+          resolve(this.findReferences(assemblyDocument, word, context.includeDeclaration, document.uri));
+          return;
+        }
+
+        if (assemblyLine.operand && range.intersection(assemblyLine.operandRange)) {
+          resolve(this.findReferences(assemblyDocument, word, context.includeDeclaration, document.uri));
           return;
         }
       }
 
       reject();
     });
+  }
+
+  private findReferences(assemblyDocument: parser.AssemblyDocument, word: string, includeDeclaration: boolean, uri: vscode.Uri) {
+    return assemblyDocument.findReferences(word, includeDeclaration).map(s => new vscode.Location(uri, s.range));
   }
 
 }

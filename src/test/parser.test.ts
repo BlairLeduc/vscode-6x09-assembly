@@ -21,9 +21,9 @@ suite('Parser Tests', () => {
 
   test('See comment line from start (asterisk)', () => {
     const text = '* This is a comment';
-    const expected = '* This is a comment';
-    const expectedStart = 0;
-    const expectedEnd = expected.length;
+    const expected = 'This is a comment';
+    const expectedStart = 2;
+    const expectedEnd = expectedStart + expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -34,9 +34,9 @@ suite('Parser Tests', () => {
 
   test('See comment line from start (semicolon)', () => {
     const text = '; This is a comment';
-    const expected = '; This is a comment';
-    const expectedStart = 0;
-    const expectedEnd = expected.length;
+    const expected = 'This is a comment';
+    const expectedStart = 2;
+    const expectedEnd = expectedStart + expected.length;
 
     const line = new parser.AssemblyLine(text);
 
@@ -47,8 +47,8 @@ suite('Parser Tests', () => {
 
   test('See comment line from anywhere (asterisk)', () => {
     const text = '\t\t* This is a comment';
-    const expected = '* This is a comment';
-    const expectedStart = 2;
+    const expected = 'This is a comment';
+    const expectedStart = 4;
     const expectedEnd = expectedStart + expected.length;
 
     const line = new parser.AssemblyLine(text);
@@ -60,8 +60,8 @@ suite('Parser Tests', () => {
 
   test('See comment line from anywhere (semicolon)', () => {
     const text = '        ; This is a comment';
-    const expected = '; This is a comment';
-    const expectedStart = 8;
+    const expected = 'This is a comment';
+    const expectedStart = 10;
     const expectedEnd = expectedStart + expected.length;
 
     const line = new parser.AssemblyLine(text);
@@ -140,7 +140,7 @@ suite('Parser Tests', () => {
     const text = 'S$tart            * a comment';
     const expected = 'S$tart';
     const expectedStart = 0;
-    const expectedEnd = expected.length;
+    const expectedEnd = expectedStart + expected.length;
 
     const line = new parser.AssemblyLine(text);
 

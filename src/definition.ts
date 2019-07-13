@@ -16,8 +16,14 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
         const assemblyDocument = this.workspaceManager.getAssemblyDocument(document);
         const assemblyLine = assemblyDocument.lines[position.line];
 
-        if ((assemblyLine.operand && range.intersection(assemblyLine.operandRange)) || (assemblyLine.label && range.intersection(assemblyLine.labelRange))) {
+        if ((assemblyLine.operand && range.intersection(assemblyLine.operandRange))
+          || (assemblyLine.label && range.intersection(assemblyLine.labelRange))) {
           resolve(assemblyDocument.findLabel(word).map(s => new vscode.Location(document.uri, s.range)));
+          return;
+        }
+
+        if (assemblyLine.opcode && range.intersection(assemblyLine.opcodeRange)) {
+          resolve(assemblyDocument.findMacro(word).map(s => new vscode.Location(document.uri, s.range)));
           return;
         }
       }
