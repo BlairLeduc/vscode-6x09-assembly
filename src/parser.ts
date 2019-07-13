@@ -189,6 +189,10 @@ export class AssemblyDocument {
     return this.macros.filter(m => m.name.startsWith(startsWith));
   }
 
+  public getMacro(name: string): AssemblySymbol {
+    return this.macros.find(m => m.name === name);
+  }
+
   public findReferences(name: string, includeLabel: boolean): AssemblySymbol[] {
     const symbols = this.references.filter(s => s.name === name);
     if (includeLabel) {
@@ -202,6 +206,10 @@ export class AssemblyDocument {
       }
     }
     return symbols;
+  }
+
+  public getReference(name: string): AssemblySymbol {
+    return this.references.find(r => r.name === name);
   }
 
   private parse(document: TextDocument, range?: Range, cancelationToken?: CancellationToken) {
@@ -238,9 +246,12 @@ export class AssemblyDocument {
     }
 
     // Post process references, remove anything that is not in the symbols
-    this.references.forEach((value, index, array) => {
-      if (!this.symbols.find(s => s.name === value.name)) {
+    this.references.forEach((reference, index, array) => {
+      const symbol = this.symbols.find(s => s.name === reference.name);
+      if (!symbol) {
         array.splice(index, 1);
+      } else {
+        reference.documentation = symbol.documentation;
       }
     });
 

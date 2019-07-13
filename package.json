@@ -48,7 +48,7 @@
 				"command": "asm6x09.opcodeUppercase",
 				"title": "6x09: Transform opcodes to uppercase"
 			},
-			{ 
+			{
 				"command": "asm6x09.opcodeCapitalise",
 				"title": "6x09: Transform opcodes to capitalised"
 			}

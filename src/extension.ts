@@ -5,6 +5,7 @@ import { CompletionItemProvider } from './completion';
 import { AssemblyConfigurationManager, opcodeCase } from './config';
 import { DefinitionProvider } from './definition';
 import { DocumentHighlightProvider } from './document-highlight';
+import { HoverProvider } from './hover';
 import { ReferenceProvider } from './reference';
 import { AssemblyWorkspaceManager } from './workspace-manager';
 
@@ -16,6 +17,7 @@ let completionItemProvider: vscode.Disposable | undefined;
 let definitionProvider: vscode.Disposable | undefined;
 let referenceProvider: vscode.Disposable | undefined;
 let documentHighlightProvider: vscode.Disposable | undefined;
+let hoverProvider: vscode.Disposable | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -42,11 +44,17 @@ export function activate(context: vscode.ExtensionContext) {
     new DocumentHighlightProvider(WorkspaceManager)
   );
 
+  hoverProvider = vscode.languages.registerHoverProvider(
+    ASM6X09_MODE,
+    new HoverProvider(WorkspaceManager)
+  );
+
   context.subscriptions.push(
     completionItemProvider,
     definitionProvider,
     referenceProvider,
-    documentHighlightProvider
+    documentHighlightProvider,
+    hoverProvider
   );
 
   // Update configuration on change
