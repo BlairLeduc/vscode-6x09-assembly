@@ -208,8 +208,8 @@ export class AssemblyDocument {
     return symbols;
   }
 
-  public getReference(name: string): AssemblySymbol {
-    return this.references.find(r => r.name === name);
+  public getSymbol(name: string): AssemblySymbol {
+    return this.symbols.find(s => s.name === name);
   }
 
   private parse(document: TextDocument, range?: Range, cancelationToken?: CancellationToken) {
@@ -250,8 +250,6 @@ export class AssemblyDocument {
       const symbol = this.symbols.find(s => s.name === reference.name);
       if (!symbol) {
         array.splice(index, 1);
-      } else {
-        reference.documentation = symbol.documentation;
       }
     });
 

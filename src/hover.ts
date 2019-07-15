@@ -18,7 +18,7 @@ export class HoverProvider implements vscode.HoverProvider {
           const opcode = this.workspaceManager.opcodeDocs.getOpcode(assemblyLine.opcode);
           if (opcode) {
             const help = new vscode.MarkdownString();
-            help.appendCodeblock(`(opcode) ${opcode.name} (${opcode.processor === '6809' ? '6809/6309' : '6309'})`);
+            help.appendCodeblock(`(opcode) ${opcode.name} (${opcode.processor === '6809' ? '6809/6309' : '6309'}) ${opcode.summary}`);
             help.appendMarkdown(`---\n${opcode.documentation}`);
             resolve(new vscode.Hover(help, assemblyLine.opcodeRange));
             return;
@@ -34,11 +34,11 @@ export class HoverProvider implements vscode.HoverProvider {
         }
 
         if (assemblyLine.reference && range.intersection(assemblyLine.referenceRange)) {
-          const reference = assemblyDocument.getReference(assemblyLine.reference);
-          if (reference) {
+          const symbol = assemblyDocument.getSymbol(assemblyLine.reference);
+          if (symbol) {
             const help = new vscode.MarkdownString();
-            help.appendCodeblock(`(symbol) ${reference.name}`);
-            help.appendMarkdown(`---\n${reference.documentation}`);
+            help.appendCodeblock(`(symbol) ${symbol.name}`);
+            help.appendMarkdown(`---\n${symbol.documentation}`);
             resolve(new vscode.Hover(help, assemblyLine.referenceRange));
             return;
           }

@@ -3,13 +3,14 @@ import * as path from 'path';
 
 export class DocOpcode {
   public static parse(line: string) {
-    const columns = line.split(',');
+    const columns = line.replace(/\!/g, '\n').split(';');
     if (columns.length > 1) {
       const opcode = new DocOpcode();
       opcode.name = columns[0];
-      opcode.documentation = columns[1];
+      opcode.summary = columns[1];
       if (columns.length > 2) {
-        opcode.processor = columns[2];
+        opcode.documentation = columns[2];
+        opcode.processor = columns[3];
       }
       return opcode;
     }
@@ -17,6 +18,7 @@ export class DocOpcode {
   }
 
   public name: string = '';
+  public summary: string = '';
   public documentation: string = '';
   public processor: string = '';
 }
