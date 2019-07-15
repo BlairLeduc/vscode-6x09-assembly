@@ -5,8 +5,10 @@ import { CompletionItemProvider } from './completion';
 import { AssemblyConfigurationManager, opcodeCase } from './config';
 import { DefinitionProvider } from './definition';
 import { DocumentHighlightProvider } from './document-highlight';
+import { DocumentSymbolProvider } from './document-symbol';
 import { HoverProvider } from './hover';
 import { ReferenceProvider } from './reference';
+import { RenameProvider } from './rename';
 import { AssemblyWorkspaceManager } from './workspace-manager';
 
 const ASM6X09_MODE: vscode.DocumentSelector = { language: 'asm6x09', scheme: 'file' };
@@ -15,9 +17,11 @@ const ConfigurationManager: AssemblyConfigurationManager = new AssemblyConfigura
 
 let completionItemProvider: vscode.Disposable | undefined;
 let definitionProvider: vscode.Disposable | undefined;
-let referenceProvider: vscode.Disposable | undefined;
 let documentHighlightProvider: vscode.Disposable | undefined;
+let documentSymbolProvider: vscode.Disposable | undefined;
 let hoverProvider: vscode.Disposable | undefined;
+let referenceProvider: vscode.Disposable | undefined;
+let renameProvider: vscode.Disposable | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -34,14 +38,14 @@ export function activate(context: vscode.ExtensionContext) {
     new DefinitionProvider(WorkspaceManager)
   );
 
-  referenceProvider = vscode.languages.registerReferenceProvider(
-    ASM6X09_MODE,
-    new ReferenceProvider(WorkspaceManager)
-  );
-
   documentHighlightProvider = vscode.languages.registerDocumentHighlightProvider(
     ASM6X09_MODE,
     new DocumentHighlightProvider(WorkspaceManager)
+  );
+
+  documentSymbolProvider = vscode.languages.registerDocumentSymbolProvider(
+    ASM6X09_MODE,
+    new DocumentSymbolProvider(WorkspaceManager)
   );
 
   hoverProvider = vscode.languages.registerHoverProvider(
@@ -49,12 +53,23 @@ export function activate(context: vscode.ExtensionContext) {
     new HoverProvider(WorkspaceManager)
   );
 
+  referenceProvider = vscode.languages.registerReferenceProvider(
+    ASM6X09_MODE,
+    new ReferenceProvider(WorkspaceManager)
+  );
+  renameProvider = vscode.languages.registerRenameProvider(
+    ASM6X09_MODE,
+    new RenameProvider(WorkspaceManager)
+  );
+
   context.subscriptions.push(
     completionItemProvider,
     definitionProvider,
-    referenceProvider,
     documentHighlightProvider,
-    hoverProvider
+    documentSymbolProvider,
+    hoverProvider,
+    referenceProvider,
+    renameProvider
   );
 
   // Update configuration on change
@@ -105,10 +120,16 @@ export function deactivate(): void {
   if (definitionProvider) {
     definitionProvider.dispose();
   }
-  if (referenceProvider) {
-    referenceProvider.dispose();
-  }
   if (documentHighlightProvider) {
     documentHighlightProvider.dispose();
+  }
+  if (documentSymbolProvider) {
+    documentSymbolProvider.dispose();
+  }
+  if (hoverProvider) {
+    hoverProvider.dispose();
+  }
+  if (referenceProvider) {
+    referenceProvider.dispose();
   }
 }

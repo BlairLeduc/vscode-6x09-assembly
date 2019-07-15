@@ -1,3 +1,4 @@
+import { SymbolKind } from 'vscode';
 import { opcodeCase } from './config';
 
 export function convertToCase(name: string, casing: opcodeCase): string {
@@ -8,4 +9,8 @@ export function convertToCase(name: string, casing: opcodeCase): string {
     return name[0].toUpperCase() + name.substr(1).toLowerCase();
   }
   return name.toUpperCase();
+}
+
+export function convertToSymbolKind(kind: string): SymbolKind {
+  return SymbolKind[kind];
 }
