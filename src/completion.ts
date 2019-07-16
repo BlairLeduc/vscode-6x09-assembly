@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { AssemblyConfigurationManager, OpcodeCase } from './config';
+import { AssemblyConfigurationManager, OpcodeCase } from './config-manager';
 import { DocOpcode } from './docs';
 import { AssemblySymbol } from './parser';
 import { convertToCase } from './utilities';

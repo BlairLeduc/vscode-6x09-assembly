@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { AssemblyConfigurationManager, HoverVerbosity } from './config';
+import { AssemblyConfigurationManager, HoverVerbosity } from './config-manager';
 import { AssemblyWorkspaceManager } from './workspace-manager';
 
 export class HoverProvider implements vscode.HoverProvider {

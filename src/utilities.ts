@@ -1,5 +1,5 @@
 import { SymbolKind } from 'vscode';
-import { OpcodeCase } from './config';
+import { OpcodeCase } from './config-manager';
 
 export function convertToCase(name: string, casing: OpcodeCase): string {
   if (casing === OpcodeCase.lowercase) {

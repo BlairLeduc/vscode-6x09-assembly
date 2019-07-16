@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { AssemblyConfigurationManager } from './config';
+import { AssemblyConfigurationManager } from './config-manager';
 import { AssemblyWorkspaceManager } from './workspace-manager';
 
 export class CodeLensProvider implements vscode.CodeLensProvider {

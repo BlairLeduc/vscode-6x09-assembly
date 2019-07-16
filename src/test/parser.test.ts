@@ -303,30 +303,30 @@ suite('Parser Tests', () => {
     );
     const content = await vscode.workspace.openTextDocument(uri);
     const expectedSymbols = [
-      { range: createRange(2, 0, 6), name: 'screen', documentation: '', kind: vscode.CompletionItemKind.Constant },
-      { range: createRange(3, 0, 5), name: 'hello', documentation: '', kind: vscode.CompletionItemKind.Method },
-      { range: createRange(5, 0, 6), name: 'hel010', documentation: '', kind: vscode.CompletionItemKind.Method  },
-      { range: createRange(10, 0, 6), name: 'hel020', documentation: '', kind: vscode.CompletionItemKind.Method },
-      { range: createRange(14, 0, 4), name: 'loop', documentation: '', kind: vscode.CompletionItemKind.Method },
-      { range: createRange(15, 0, 4), name: 'text', documentation: '', kind: vscode.CompletionItemKind.Variable },
+      { range: createRange(2, 0, 6), name: 'screen', documentation: '', kind: vscode.CompletionItemKind.Constant, lineRange: createRange(2, 0, 15) },
+      { range: createRange(3, 0, 5), name: 'hello', documentation: '', kind: vscode.CompletionItemKind.Method, lineRange: createRange(3, 0, 17) },
+      { range: createRange(5, 0, 6), name: 'hel010', documentation: '', kind: vscode.CompletionItemKind.Method, lineRange: createRange(5, 0, 14)  },
+      { range: createRange(10, 0, 6), name: 'hel020', documentation: '', kind: vscode.CompletionItemKind.Method, lineRange: createRange(10, 0, 14) },
+      { range: createRange(14, 0, 4), name: 'loop', documentation: '', kind: vscode.CompletionItemKind.Method, lineRange: createRange(14, 0, 13) },
+      { range: createRange(15, 0, 4), name: 'text', documentation: '', kind: vscode.CompletionItemKind.Variable, lineRange: createRange(15, 0, 24) },
     ];
     const expectedReferences = [
-      { name: 'screen', documentation: '', range: createRange(3, 11, 17), kind: vscode.CompletionItemKind.Reference },
-      { name: 'screen', documentation: '', range: createRange(6, 7, 13), kind: vscode.CompletionItemKind.Reference },
-      { name: 'hel010', documentation: '', range: createRange(7, 5, 11), kind: vscode.CompletionItemKind.Reference },
-      { name: 'text', documentation: '', range: createRange(8, 6, 10), kind: vscode.CompletionItemKind.Reference },
-      { name: 'screen', documentation: '', range: createRange(9, 6, 12), kind: vscode.CompletionItemKind.Reference },
-      { name: 'loop', documentation: '', range: createRange(11, 5, 9), kind: vscode.CompletionItemKind.Reference },
-      { name: 'hel020', documentation: '', range: createRange(13, 5, 11), kind: vscode.CompletionItemKind.Reference },
-      { name: 'loop', documentation: '', range: createRange(14, 9, 13), kind: vscode.CompletionItemKind.Reference },
+      { name: 'screen', documentation: '', range: createRange(3, 11, 17), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(3, 0, 17) },
+      { name: 'screen', documentation: '', range: createRange(6, 7, 13), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(6, 0, 17) },
+      { name: 'hel010', documentation: '', range: createRange(7, 5, 11), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(7, 0, 11) },
+      { name: 'text', documentation: '', range: createRange(8, 6, 10), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(8, 0, 10) },
+      { name: 'screen', documentation: '', range: createRange(9, 6, 12), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(9, 0, 12) },
+      { name: 'loop', documentation: '', range: createRange(11, 5, 9), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(11, 0, 9) },
+      { name: 'hel020', documentation: '', range: createRange(13, 5, 11), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(13, 0, 11) },
+      { name: 'loop', documentation: '', range: createRange(14, 9, 13), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(14, 0, 13) },
     ];
     const expectedNumberOfLines = 18;
 
     const document = new parser.AssemblyDocument(content);
 
-    assert.deepEqual(document.symbols, expectedSymbols);
-    assert.deepEqual(document.references, expectedReferences);
-    assert.equal(document.lines.length, expectedNumberOfLines);
+    assert.equal(document.lines.length, expectedNumberOfLines, 'Expected number of lines do not match');
+    assert.deepEqual(document.symbols, expectedSymbols, 'Symbols do not match');
+    assert.deepEqual(document.references, expectedReferences, 'References do not match');
   });
 
 });

@@ -1,5 +1,5 @@
 import { TextEditor, TextEditorEdit } from 'vscode';
-import { OpcodeCase } from './config';
+import { OpcodeCase } from './config-manager';
 import { AssemblyLine } from './parser';
 import { convertToCase } from './utilities';
 import { AssemblyWorkspaceManager } from './workspace-manager';
