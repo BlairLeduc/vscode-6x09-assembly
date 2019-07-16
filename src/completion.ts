@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { AssemblyConfigurationManager, opcodeCase } from './config';
+import { AssemblyConfigurationManager, OpcodeCase } from './config';
 import { DocOpcode } from './docs';
 import { AssemblySymbol } from './parser';
 import { convertToCase } from './utilities';
@@ -19,7 +19,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
         const assemblyDocument = this.workspaceManager.getAssemblyDocument(document);
         const assemblyLine = assemblyDocument.lines[position.line];
-        const casing = this.configurationManager.getOpcodeCasing();
+        const casing = this.configurationManager.opcodeCasing;
 
         if (assemblyLine.opcode && range.intersection(assemblyLine.opcodeRange)) {
           const items = this.workspaceManager.opcodeDocs.findOpcode(word.toUpperCase()).map(opcode => this.createOpcodeCompletionItem(opcode, casing));
@@ -45,7 +45,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
     return item;
   }
 
-  private createOpcodeCompletionItem(opcode: DocOpcode, casing: opcodeCase): vscode.CompletionItem {
+  private createOpcodeCompletionItem(opcode: DocOpcode, casing: OpcodeCase): vscode.CompletionItem {
     const item = new vscode.CompletionItem(convertToCase(opcode.name, casing), vscode.CompletionItemKind.Keyword);
     item.detail = opcode.summary;
     if (opcode.processor === '6309') {

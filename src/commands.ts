@@ -1,12 +1,12 @@
 import { TextEditor, TextEditorEdit } from 'vscode';
-import { opcodeCase } from './config';
+import { OpcodeCase } from './config';
 import { AssemblyLine } from './parser';
 import { convertToCase } from './utilities';
 import { AssemblyWorkspaceManager } from './workspace-manager';
 
 export class ChangeCaseOpcodeCommand {
 
-  constructor(private workspaceManager: AssemblyWorkspaceManager, private casing: opcodeCase) {
+  constructor(private workspaceManager: AssemblyWorkspaceManager, private casing: OpcodeCase) {
   }
   public handler(textEditor: TextEditor, edit: TextEditorEdit) {
     const assemblyDocument = this.workspaceManager.getAssemblyDocument(textEditor.document);

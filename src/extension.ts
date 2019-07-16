@@ -1,8 +1,9 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { CodeLensProvider } from './codelens';
 import { ChangeCaseOpcodeCommand } from './commands';
 import { CompletionItemProvider } from './completion';
-import { AssemblyConfigurationManager, opcodeCase } from './config';
+import { AssemblyConfigurationManager, OpcodeCase } from './config';
 import { DefinitionProvider } from './definition';
 import { DocumentHighlightProvider } from './document-highlight';
 import { DocumentSymbolProvider } from './document-symbol';
@@ -15,6 +16,7 @@ const ASM6X09_MODE: vscode.DocumentSelector = { language: 'asm6x09', scheme: 'fi
 const WorkspaceManager: AssemblyWorkspaceManager = new AssemblyWorkspaceManager(path.join(__dirname, '..'));
 const ConfigurationManager: AssemblyConfigurationManager = new AssemblyConfigurationManager();
 
+let codeLensProvider: vscode.Disposable;
 let completionItemProvider: vscode.Disposable | undefined;
 let definitionProvider: vscode.Disposable | undefined;
 let documentHighlightProvider: vscode.Disposable | undefined;
@@ -28,6 +30,11 @@ export function activate(context: vscode.ExtensionContext) {
   ConfigurationManager.update(vscode.workspace.getConfiguration('asm6x09.editor'));
 
   // language features
+  codeLensProvider = vscode.languages.registerCodeLensProvider(
+    ASM6X09_MODE,
+    new CodeLensProvider(WorkspaceManager, ConfigurationManager)
+  );
+
   completionItemProvider = vscode.languages.registerCompletionItemProvider(
     ASM6X09_MODE,
     new CompletionItemProvider(WorkspaceManager, ConfigurationManager),
@@ -50,7 +57,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   hoverProvider = vscode.languages.registerHoverProvider(
     ASM6X09_MODE,
-    new HoverProvider(WorkspaceManager)
+    new HoverProvider(WorkspaceManager, ConfigurationManager)
   );
 
   referenceProvider = vscode.languages.registerReferenceProvider(
@@ -63,6 +70,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
+    codeLensProvider,
     completionItemProvider,
     definitionProvider,
     documentHighlightProvider,
@@ -103,17 +111,20 @@ export function activate(context: vscode.ExtensionContext) {
   const opcodeUpperCommand = 'asm6x09.opcodeUppercase';
   const opcodeCapitaliseCommand = 'asm6x09.opcodeCapitalise';
 
-  const lowercaseCommand = new ChangeCaseOpcodeCommand(WorkspaceManager, opcodeCase.lowercase);
+  const lowercaseCommand = new ChangeCaseOpcodeCommand(WorkspaceManager, OpcodeCase.lowercase);
   context.subscriptions.push(vscode.commands.registerTextEditorCommand(opcodeLowerCommand, lowercaseCommand.handler, lowercaseCommand));
 
-  const uppercaseCommand = new ChangeCaseOpcodeCommand(WorkspaceManager, opcodeCase.uppercase);
+  const uppercaseCommand = new ChangeCaseOpcodeCommand(WorkspaceManager, OpcodeCase.uppercase);
   context.subscriptions.push(vscode.commands.registerTextEditorCommand(opcodeUpperCommand, uppercaseCommand.handler, uppercaseCommand));
 
-  const capitalizeCommand = new ChangeCaseOpcodeCommand(WorkspaceManager, opcodeCase.capitalised);
+  const capitalizeCommand = new ChangeCaseOpcodeCommand(WorkspaceManager, OpcodeCase.capitalised);
   context.subscriptions.push(vscode.commands.registerTextEditorCommand(opcodeCapitaliseCommand, capitalizeCommand.handler, capitalizeCommand));
 }
 
 export function deactivate(): void {
+  if (codeLensProvider) {
+    codeLensProvider.dispose();
+  }
   if (completionItemProvider) {
     completionItemProvider.dispose();
   }

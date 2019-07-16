@@ -40,6 +40,4 @@ export class RenameProvider implements vscode.RenameProvider {
       reject();
     });
   }
-
-
 }

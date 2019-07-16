@@ -122,6 +122,21 @@
 						"capitalised"
 					],
 					"description": "The case used in opcode Intellisense."
+				},
+				"asm6x09.editor.hovers": {
+					"type": "string",
+					"default": "full",
+					"enum": [
+						"none",
+						"light",
+						"full"
+					],
+					"description": "The ammount of documentation to provide when hovering over an opcode."
+				},
+				"asm6x09.editor.enableCodeLens": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable CodeLens for labels."
 				}
 			}
 		},

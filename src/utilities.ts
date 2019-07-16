@@ -1,11 +1,11 @@
 import { SymbolKind } from 'vscode';
-import { opcodeCase } from './config';
+import { OpcodeCase } from './config';
 
-export function convertToCase(name: string, casing: opcodeCase): string {
-  if (casing === opcodeCase.lowercase) {
+export function convertToCase(name: string, casing: OpcodeCase): string {
+  if (casing === OpcodeCase.lowercase) {
     return name.toLowerCase();
   }
-  if (casing === opcodeCase.capitalised) {
+  if (casing === OpcodeCase.capitalised) {
     return name[0].toUpperCase() + name.substr(1).toLowerCase();
   }
   return name.toUpperCase();
