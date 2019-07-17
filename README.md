@@ -19,7 +19,10 @@ This extension supports files with the extensions `.a`, `.asm` and `.d`.
 <img src="https://github.com/BlairLeduc/vscode-6x09-assembly/raw/master/media/Hover-opcode.png" width="480px">
 
 ### Code Lens showing number of references for labels
-<img src="https://github.com/BlairLeduc/vscode-6x09-assembly/raw/master/media/codelens.png" width="512px">
+<img src="https://github.com/BlairLeduc/vscode-6x09-assembly/raw/master/media/codelens.png" width="640px">
+
+### Commands
+<img src="https://github.com/BlairLeduc/vscode-6x09-assembly/raw/master/media/commands.png" width="640px">
 
 ## Current Feature set
 
