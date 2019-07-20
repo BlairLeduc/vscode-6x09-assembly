@@ -167,7 +167,14 @@ export class AssemblyLine {
 }
 
 export class AssemblySymbol {
-  constructor(public name: string, public range: Range, public documentation: string, public kind: CompletionItemKind, public lineRange: Range) { }
+  constructor(
+    public name: string,
+    public range: Range,
+    public documentation: string,
+    public kind: CompletionItemKind,
+    public lineRange: Range,
+    public uri: Uri
+  ) { }
 }
 
 export class AssemblyDocument {
@@ -232,18 +239,18 @@ export class AssemblyDocument {
       const asmLine = new AssemblyLine(line.text, line);
       this.lines.push(asmLine);
       if (this.isMacroDefinition(asmLine)) {
-        this.macros.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Function, asmLine.lineRange));
+        this.macros.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Function, asmLine.lineRange, this.uri));
       } else if (this.isStructDefintion(asmLine)) {
-        this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Struct, asmLine.lineRange));
+        this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Struct, asmLine.lineRange, this.uri));
       } else if (this.isStorageDefinition(asmLine)) {
-        this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Variable, asmLine.lineRange));
+        this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Variable, asmLine.lineRange, this.uri));
       } else if (this.isConstantDefinition(asmLine)) {
-        this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Constant, asmLine.lineRange));
+        this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Constant, asmLine.lineRange, this.uri));
       } else if (asmLine.label) {
-        this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Method, asmLine.lineRange));
+        this.symbols.push(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Method, asmLine.lineRange, this.uri));
       }
       if (asmLine.reference) {
-        this.references.push(new AssemblySymbol(asmLine.reference, asmLine.referenceRange, '', CompletionItemKind.Reference, asmLine.lineRange));
+        this.references.push(new AssemblySymbol(asmLine.reference, asmLine.referenceRange, '', CompletionItemKind.Reference, asmLine.lineRange, this.uri));
       }
     }
 
@@ -260,7 +267,7 @@ export class AssemblyDocument {
       if (line.opcode) {
         const macro = this.macros.find(m => m.name === line.opcode);
         if (macro) {
-          this.references.push(new AssemblySymbol(line.opcode, line.opcodeRange, macro.documentation, macro.kind, line.lineRange));
+          this.references.push(new AssemblySymbol(line.opcode, line.opcodeRange, macro.documentation, macro.kind, line.lineRange, this.uri));
         }
       }
     });

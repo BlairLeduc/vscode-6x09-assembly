@@ -70,3 +70,13 @@ For example, to use `lwasm` to assembly your file when you run the build task:
   }
 }
 ```
+
+To run your program in XRoar on macOS:
+```json
+{
+    "label": "Run",
+    "type": "shell",
+    "command": "/Applications/XRoar.app/Contents/MacOS/xroar -becker -machine-desc cocous -vdg-type 6847t1 -nodos ${fileBasenameNoExtension}.bin",
+    "problemMatcher": []
+}
+```
