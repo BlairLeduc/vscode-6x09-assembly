@@ -1,10 +1,9 @@
 import * as vscode from 'vscode';
-import * as parser from './parser';
-import { AssemblyWorkspaceManager } from './workspace-manager';
+import { WorkspaceManager } from '../managers/workspace';
 
 export class DefinitionProvider implements vscode.DefinitionProvider {
 
-  constructor(private workspaceManager: AssemblyWorkspaceManager) {
+  constructor(private workspaceManager: WorkspaceManager) {
   }
 
   public provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<vscode.Location[]> {

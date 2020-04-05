@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
-import { AssemblyConfigurationManager, OpcodeCase } from './config-manager';
-import { DocOpcode } from './docs';
-import { AssemblySymbol } from './parser';
-import { convertToCase } from './utilities';
-import { AssemblyWorkspaceManager } from './workspace-manager';
+import { ConfigurationManager, OpcodeCase } from '../managers/configuration';
+import { DocOpcode } from '../parsers/docs';
+import { AssemblySymbol } from '../parsers/assembly-document';
+import { convertToCase } from '../utilities';
+import { WorkspaceManager } from '../managers/workspace';
 
 export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
-  constructor(private workspaceManager: AssemblyWorkspaceManager, private configurationManager: AssemblyConfigurationManager) {
+  constructor(private workspaceManager: WorkspaceManager, private configurationManager: ConfigurationManager) {
   }
 
   public provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<vscode.CompletionItem[]> {

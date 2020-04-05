@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { convertToSymbolKind } from './utilities';
-import { AssemblyWorkspaceManager } from './workspace-manager';
+import { convertToSymbolKind } from '../utilities';
+import { WorkspaceManager } from '../managers/workspace';
 
 export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 
-  constructor(private workspaceManager: AssemblyWorkspaceManager) {
+  constructor(private workspaceManager: WorkspaceManager) {
   }
 
   public provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.ProviderResult<vscode.SymbolInformation[] | vscode.DocumentSymbol[]> {

@@ -1,4 +1,4 @@
-import { Event, EventEmitter, WorkspaceConfiguration } from 'vscode';
+import * as vscode from 'vscode';
 
 export enum OpcodeCase {
   lowercase,
@@ -12,15 +12,19 @@ export enum HoverVerbosity {
   full,
 }
 
-export class AssemblyConfigurationManager {
-  private onDidChangeConfigurationEmitter = new EventEmitter<void>();
-  private config: WorkspaceConfiguration;
+export class ConfigurationManager implements vscode.Disposable {
+  private onDidChangeConfigurationEmitter = new vscode.EventEmitter<void>();
+  private config: vscode.WorkspaceConfiguration;
 
-  public get onDidChangeConfiguration(): Event<void> {
+  public dispose(): void {
+    this.onDidChangeConfigurationEmitter.dispose();
+  }
+
+  public get onDidChangeConfiguration(): vscode.Event<void> {
     return this.onDidChangeConfigurationEmitter.event;
   }
 
-  public update(config: WorkspaceConfiguration) {
+  public update(config: vscode.WorkspaceConfiguration): void {
     this.config = config;
     this.onDidChangeConfigurationEmitter.fire();
   }

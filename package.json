@@ -38,6 +38,17 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"colors": [
+			{
+				"id": "keyword.other.opcode.6309.asm6x09",
+				"description": "Color for 6309 opcodes.",
+				"defaults": {
+					"dark": "#5f56d6",
+					"light": "#8800ff",
+					"highContrast": "foreground"
+				}
+			}
+		],
 		"commands": [
 			{
 				"command": "asm6x09.opcodeLowercase",
@@ -46,68 +57,13 @@
 			},
 			{
 				"command": "asm6x09.opcodeUppercase",
-				"title": "6x09: Transform opcodes to uppercase"
+				"title": "6x09: Transform opcodes to uppercase",
+				"when": "editorLangId == asm6x09"
 			},
 			{
 				"command": "asm6x09.opcodeCapitalise",
-				"title": "6x09: Transform opcodes to capitalised"
-			}
-		],
-		"languages": [
-			{
-				"id": "asm6x09",
-				"aliases": [
-					"6x09 Assembly",
-					"asm6x09"
-				],
-				"extensions": [
-					".asm",
-					".a",
-					".d"
-				],
-				"configuration": "./language-configuration.json"
-			}
-		],
-		"menus": {
-			"commandPalette": [
-				{
-					"command": "asm6x09.opcodeLowercase",
-					"when": "editorLangId == asm6x09"
-				},
-				{
-					"command": "asm6x09.opcodeUppercase",
-					"when": "editorLangId == asm6x09"
-				},
-				{
-					"command": "asm6x09.opcodeCapitalise",
-					"when": "editorLangId == asm6x09"
-				}
-			]
-		},
-		"grammars": [
-			{
-				"language": "asm6x09",
-				"scopeName": "source.asm.6x09",
-				"path": "./syntaxes/6x09.tmLanguage.json"
-			}
-		],
-		"problemMatchers": [
-			{
-				"name": "lwasm",
-				"owner": "asm6x09",
-				"fileLocation": [
-					"relative",
-					"${workspaceFolder}"
-				],
-				"pattern": [
-					{
-						"regexp": "^([^(].*)\\((\\d+)\\)\\s*:\\s*([A-Z]+)\\s*:\\s*(.*)$",
-						"file": 1,
-						"line": 2,
-						"severity": 3,
-						"message": 4
-					}
-				]
+				"title": "6x09: Transform opcodes to capitalised",
+				"when": "editorLangId == asm6x09"
 			}
 		],
 		"configuration": {
@@ -148,22 +104,68 @@
 				"editor.insertSpaces": false
 			}
 		},
-		"colors": [
+		"grammars": [
 			{
-				"id": "keyword.other.opcode.6309.asm6x09",
-				"description": "Color for 6309 opcodes.",
-				"defaults": {
-					"dark": "#5f56d6",
-					"light": "#8800ff",
-					"highContrast": "foreground"
+				"language": "asm6x09",
+				"scopeName": "source.asm.6x09",
+				"path": "./syntaxes/6x09.tmLanguage.json"
+			}
+		],
+		"languages": [
+			{
+				"id": "asm6x09",
+				"aliases": [
+					"6x09 Assembly",
+					"asm6x09"
+				],
+				"extensions": [
+					".asm",
+					".a",
+					".d"
+				],
+				"configuration": "./language-configuration.json"
+			}
+		],
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "asm6x09.opcodeLowercase",
+					"when": "editorLangId == asm6x09"
+				},
+				{
+					"command": "asm6x09.opcodeUppercase",
+					"when": "editorLangId == asm6x09"
+				},
+				{
+					"command": "asm6x09.opcodeCapitalise",
+					"when": "editorLangId == asm6x09"
 				}
+			]
+		},
+		"problemMatchers": [
+			{
+				"name": "lwasm",
+				"owner": "asm6x09",
+				"fileLocation": [
+					"relative",
+					"${workspaceFolder}"
+				],
+				"pattern": [
+					{
+						"regexp": "^([^(].*)\\((\\d+)\\)\\s*:\\s*([A-Z]+)\\s*:\\s*(.*)$",
+						"file": 1,
+						"line": 2,
+						"severity": 3,
+						"message": 4
+					}
+				]
 			}
 		]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
-		"lint": "tslint -p ./",
+		"lint": "eslint -c .eslintrc.js --ext .ts src",
 		"watch": "tsc -watch -p ./",
 		"convert": "npx js-yaml syntaxes/6x09.tmLanguage.yaml > syntaxes/6x09.tmLanguage.json",
 		"update": "npm run convert",
@@ -172,14 +174,18 @@
 	"devDependencies": {
 		"@types/glob": "^7.1.1",
 		"@types/mocha": "^5.2.7",
-		"@types/node": "^12.0.10",
-		"@types/vscode": "^1.36.0",
-		"glob": "^7.1.4",
+		"@types/node": "^12.12.34",
+		"@types/vscode": "^1.43.0",
+		"@typescript-eslint/eslint-plugin": "^2.26.0",
+		"@typescript-eslint/parser": "^2.26.0",
+		"eslint": "^6.8.0",
+		"glob": "^7.1.6",
 		"js-yaml": "^3.13.1",
 		"mocha": "^4.1.0",
-		"tslint": "^5.18.0",
-		"typescript": "^3.5.3",
-		"vscode-test": "^1.0.0"
+		"typescript": "^3.8.3",
+		"vscode-debugadapter": "^1.40.0",
+		"vscode-debugprotocol": "^1.40.0",
+		"vscode-test": "^1.3.0"
 	},
 	"dependencies": {}
 }

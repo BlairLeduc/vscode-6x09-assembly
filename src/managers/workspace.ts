@@ -1,10 +1,10 @@
-import { TextDocument, TextDocumentChangeEvent, Uri, workspace, WorkspaceFolder } from 'vscode';
+import * as vscode from 'vscode';
+import { AssemblyDocument } from '../parsers/assembly-document';
+import { Docs } from '../parsers/docs';
 import { Collection } from './collection';
-import { Docs } from './docs';
 import { AssemblyFolder } from './folder';
-import { AssemblyDocument } from './parser';
 
-export class AssemblyWorkspaceManager {
+export class WorkspaceManager implements vscode.Disposable {
   private static readonly NoWorkspaceUri = 'wsf:none';
   public readonly opcodeDocs: Docs;
 
@@ -14,12 +14,16 @@ export class AssemblyWorkspaceManager {
     this.opcodeDocs = new Docs(extensionPath);
   }
 
-  public addDocument(document: TextDocument): void {
+  public dispose(): void {
+    // Nothing to dispose
+  }
+
+  public addDocument(document: vscode.TextDocument): void {
     const folder = this.getOrCreateFolder(document);
     folder.addAssemblyDocument(document);
   }
 
-  public getAssemblyDocument(document: TextDocument): AssemblyDocument {
+  public getAssemblyDocument(document: vscode.TextDocument): AssemblyDocument {
     const folder = this.getOrCreateFolder(document);
     if (folder.containsAssemblyDocument(document)) {
       return folder.getAssemblyDocument(document);
@@ -27,27 +31,27 @@ export class AssemblyWorkspaceManager {
     return folder.addAssemblyDocument(document);
   }
 
-  public updateDocument(change: TextDocumentChangeEvent): void {
+  public updateDocument(change: vscode.TextDocumentChangeEvent): void {
     const folder = this.getOrCreateFolder(change.document);
     folder.updateAssemblyDocument(change.document, change.contentChanges);
   }
 
-  public removeDocument(document: TextDocument): void {
+  public removeDocument(document: vscode.TextDocument): void {
     const folder = this.getOrCreateFolder(document);
     folder.removeAssemblyDocument(document);
   }
 
-  public addFolder(workspaceFolder: WorkspaceFolder): AssemblyFolder {
+  public addFolder(workspaceFolder: vscode.WorkspaceFolder): AssemblyFolder {
     return this.folders.add(workspaceFolder.uri, new AssemblyFolder(workspaceFolder.uri));
   }
 
-  public removeFolder(workspaceFolder: WorkspaceFolder): void {
+  public removeFolder(workspaceFolder: vscode.WorkspaceFolder): void {
     this.folders.remove(workspaceFolder.uri);
   }
 
-  private getOrCreateFolder(document: TextDocument): AssemblyFolder {
-    const workspaceFolder = workspace.getWorkspaceFolder(document.uri);
-    const uri = workspaceFolder ? workspaceFolder.uri : Uri.parse(AssemblyWorkspaceManager.NoWorkspaceUri);
+  private getOrCreateFolder(document: vscode.TextDocument): AssemblyFolder {
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+    const uri = workspaceFolder ? workspaceFolder.uri : vscode.Uri.parse(WorkspaceManager.NoWorkspaceUri);
 
     if (!this.folders.containsKey(uri)) {
       return this.folders.add(uri, new AssemblyFolder(uri));

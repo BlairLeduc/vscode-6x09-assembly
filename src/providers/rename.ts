@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
-import { AssemblyWorkspaceManager } from './workspace-manager';
+import { WorkspaceManager } from '../managers/workspace';
 
 export class RenameProvider implements vscode.RenameProvider {
 
-  constructor(private workspaceManager: AssemblyWorkspaceManager) {}
+  constructor(private workspaceManager: WorkspaceManager) {}
 
   public provideRenameEdits(document: vscode.TextDocument, position: vscode.Position, newName: string, token: vscode.CancellationToken): vscode.ProviderResult<vscode.WorkspaceEdit> {
     return new Promise((resolve, reject) => {
@@ -23,7 +23,7 @@ export class RenameProvider implements vscode.RenameProvider {
       reject();
     });  }
 
-  public prepareRename?(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.ProviderResult<vscode.Range | { range: vscode.Range; placeholder: string; }> {
+  public prepareRename?(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.ProviderResult<vscode.Range | { range: vscode.Range; placeholder: string }> {
     return new Promise((resolve, reject) => {
       const range = document.getWordRangeAtPosition(position);
 

@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
-import { AssemblyConfigurationManager } from './config-manager';
-import { AssemblyWorkspaceManager } from './workspace-manager';
+import { ConfigurationManager } from '../managers/configuration';
+import { WorkspaceManager } from '../managers/workspace';
 
 export class CodeLensProvider implements vscode.CodeLensProvider {
-  private enabled: boolean = true;
+  private enabled = true;
   private onDidChangeCodeLensesEmitter = new vscode.EventEmitter<void>();
 
-  constructor(private workspaceManager: AssemblyWorkspaceManager, private configurationManger: AssemblyConfigurationManager) {
+  constructor(private workspaceManager: WorkspaceManager, private configurationManger: ConfigurationManager) {
     this.enabled = configurationManger.isCodeLensEnabled;
 
     configurationManger.onDidChangeConfiguration(() => {

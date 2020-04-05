@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import * as parser from './parser';
-import { AssemblyWorkspaceManager } from './workspace-manager';
+import * as parser from '../parsers/assembly-document';
+import { WorkspaceManager } from '../managers/workspace';
 
 export class ReferenceProvider implements vscode.ReferenceProvider {
 
-  constructor(private workspaceManager: AssemblyWorkspaceManager) {
+  constructor(private workspaceManager: WorkspaceManager) {
   }
 
   public provideReferences(document: vscode.TextDocument, position: vscode.Position, context: vscode.ReferenceContext, token: vscode.CancellationToken): Promise<vscode.Location[]> {
@@ -36,7 +36,7 @@ export class ReferenceProvider implements vscode.ReferenceProvider {
     });
   }
 
-  private findReferences(assemblyDocument: parser.AssemblyDocument, word: string, includeDeclaration: boolean, uri: vscode.Uri) {
+  private findReferences(assemblyDocument: parser.AssemblyDocument, word: string, includeDeclaration: boolean, uri: vscode.Uri): vscode.Location[] {
     return assemblyDocument.findReferences(word, includeDeclaration).map(s => new vscode.Location(uri, s.range));
   }
 

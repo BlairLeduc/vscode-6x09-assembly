@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { AssemblyConfigurationManager, HoverVerbosity } from './config-manager';
-import { AssemblyWorkspaceManager } from './workspace-manager';
+import { ConfigurationManager, HoverVerbosity } from '../managers/configuration';
+import { WorkspaceManager } from '../managers/workspace';
 
 export class HoverProvider implements vscode.HoverProvider {
 
-  constructor(private workspaceManager: AssemblyWorkspaceManager, private configurationManager: AssemblyConfigurationManager) {
+  constructor(private workspaceManager: WorkspaceManager, private configurationManager: ConfigurationManager) {
   }
   public provideHover(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.ProviderResult<vscode.Hover> {
     return new Promise((resolve, reject) => {

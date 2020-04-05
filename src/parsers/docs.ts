@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 export class DocOpcode {
-  public static parse(line: string) {
+  public static parse(line: string): DocOpcode {
     const columns = line.replace(/\!/g, '\n').split(';');
     if (columns.length > 1) {
       const opcode = new DocOpcode();
@@ -17,10 +17,10 @@ export class DocOpcode {
     return null;
   }
 
-  public name: string = '';
-  public summary: string = '';
-  public documentation: string = '';
-  public processor: string = '';
+  public name = '';
+  public summary = '';
+  public documentation = '';
+  public processor = '';
 }
 
 export class Docs {
@@ -45,7 +45,7 @@ export class Docs {
     return this.opcodes.get(name.toUpperCase());
   }
 
-  private parse(filePath: string) {
+  private parse(filePath: string): void {
     const lines = fs.readFileSync(filePath, 'utf8').split(/\r\n|\r|\n/g);
 
     let lineNumber = 0;
