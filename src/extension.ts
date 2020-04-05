@@ -12,7 +12,7 @@ import { RenameProvider } from './providers/rename';
 import { State } from './state';
 
 const ASM6X09_LANGUAGE = 'asm6x09';
-const ASM6X09_MODE: vscode.DocumentSelector = { language: 'asm6x09', scheme: 'file' };
+const ASM6X09_MODE: vscode.DocumentSelector = { language: ASM6X09_LANGUAGE, scheme: 'file' };
 const disposables: Array<vscode.Disposable| undefined> = new Array<vscode.Disposable | undefined>();
 
 export let ExtensionState: State;

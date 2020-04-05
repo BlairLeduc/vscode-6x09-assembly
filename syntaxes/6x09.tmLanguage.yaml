@@ -8,7 +8,7 @@ patterns:
 
   # Special case for select pseudo ops
   - name: meta.line.asm6x09
-    match: '^[ \t]+(nam|ttl|use|include(?:bin)?|error|warning)[ \t]+(.*)'
+    match: '^[ \t]+(nam|ttl|use|opt|include(?:bin)?|error|warning)[ \t]+(.*)'
     captures:
       '1': # opcode column
         name: keyword.other.misc.asm6x09
