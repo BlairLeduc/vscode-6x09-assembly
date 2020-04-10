@@ -10,13 +10,22 @@ import * as vscode from 'vscode';
 
 // Classes under test
 import * as parser from '../parsers/assembly-document';
-import * as AssemblyLine from '../parsers/assembly-line';
+import { AssemblyLine } from '../parsers/assembly-line';
+import { ListingLine } from '../parsers/listing-line';
+
+interface SymbolOrReferenceDefinition {
+  range: vscode.Range;
+  name: string;
+  documentation: string;
+  kind: vscode.CompletionItemKind;
+  lineRange: vscode.Range;
+}
 
 function createRange(line: number, from: number, to: number): vscode.Range {
   return new vscode.Range(new vscode.Position(line, from), new vscode.Position(line, to));
 }
 
-function compareSymbols(actual: parser.AssemblySymbol[], expected: parser.AssemblySymbol[]): boolean {
+function compareSymbolsOrReferences(actual: parser.AssemblySymbol[], expected: SymbolOrReferenceDefinition[]): boolean {
   if (actual.length !== expected.length) {
     return false;
   }
@@ -44,7 +53,7 @@ suite('Parser Tests', () => {
     const expectedStart = 2;
     const expectedEnd = expectedStart + expected.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.comment, expected, 'Comment not captured correctly');
     assert.equal(line.commentRange.start.character, expectedStart, 'Comment Range start incorrect');
@@ -57,7 +66,7 @@ suite('Parser Tests', () => {
     const expectedStart = 2;
     const expectedEnd = expectedStart + expected.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.comment, expected, 'Comment not captured correctly');
     assert.equal(line.commentRange.start.character, expectedStart, 'Comment Range start incorrect');
@@ -70,7 +79,7 @@ suite('Parser Tests', () => {
     const expectedStart = 4;
     const expectedEnd = expectedStart + expected.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.comment, expected, 'Comment not captured correctly');
     assert.equal(line.commentRange.start.character, expectedStart, 'Comment Range start incorrect');
@@ -83,7 +92,7 @@ suite('Parser Tests', () => {
     const expectedStart = 10;
     const expectedEnd = expectedStart + expected.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.comment, expected, 'Comment not captured correctly');
     assert.equal(line.commentRange.start.character, expectedStart, 'Comment Range start incorrect');
@@ -96,7 +105,7 @@ suite('Parser Tests', () => {
     const expectedStart = 0;
     const expectedEnd = 0;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.label, expected);
     assert.equal(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
@@ -109,7 +118,7 @@ suite('Parser Tests', () => {
     const expectedStart = 0;
     const expectedEnd = expected.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.label, expected);
     assert.equal(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
@@ -122,7 +131,7 @@ suite('Parser Tests', () => {
     const expectedStart = 0;
     const expectedEnd = expected.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.label, expected);
     assert.equal(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
@@ -135,7 +144,7 @@ suite('Parser Tests', () => {
     const expectedStart = 0;
     const expectedEnd = expected.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.label, expected);
     assert.equal(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
@@ -148,7 +157,7 @@ suite('Parser Tests', () => {
     const expectedStart = 0;
     const expectedEnd = expected.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.label, expected);
     assert.equal(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
@@ -161,7 +170,7 @@ suite('Parser Tests', () => {
     const expectedStart = 0;
     const expectedEnd = expectedStart + expected.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.label, expected);
     assert.equal(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
@@ -174,7 +183,7 @@ suite('Parser Tests', () => {
     const expectedStart = 0;
     const expectedEnd = expected.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.label, expected);
     assert.equal(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
@@ -187,7 +196,7 @@ suite('Parser Tests', () => {
     const expectedStart = 3;
     const expectedEnd = expectedStart + expected.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.opcode, expected);
     assert.equal(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
@@ -200,7 +209,7 @@ suite('Parser Tests', () => {
     const expectedStart = 8;
     const expectedEnd = expectedStart + expected.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.opcode, expected);
     assert.equal(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
@@ -213,7 +222,7 @@ suite('Parser Tests', () => {
     const expectedStart = 9;
     const expectedEnd = expectedStart + expected.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.opcode, expected);
     assert.equal(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
@@ -226,7 +235,7 @@ suite('Parser Tests', () => {
     const expectedStart = 9;
     const expectedEnd = expectedStart + expected.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.opcode, expected);
     assert.equal(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
@@ -239,7 +248,7 @@ suite('Parser Tests', () => {
     const expectedStart = 7;
     const expectedEnd = expectedStart + expected.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.operand, expected);
     assert.equal(line.operandRange.start.character, expectedStart, 'Range start incorrect');
@@ -252,7 +261,7 @@ suite('Parser Tests', () => {
     const expectedStart = 12;
     const expectedEnd = expectedStart + expected.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.operand, expected);
     assert.equal(line.operandRange.start.character, expectedStart, 'Range start incorrect');
@@ -274,7 +283,7 @@ suite('Parser Tests', () => {
     const expectedCommentStart = 24;
     const expectedCommentEnd = expectedCommentStart + expectedComment.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.label, expectedLabel, 'Label not captured');
     assert.equal(line.labelRange.start.character, expectedLabelStart, 'Label Range start incorrect');
@@ -296,7 +305,7 @@ suite('Parser Tests', () => {
     const expectedStart = 7;
     const expectedEnd = expectedStart + expected.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.opcode, expected);
     assert.equal(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
@@ -309,7 +318,7 @@ suite('Parser Tests', () => {
     const expectedStart = 15;
     const expectedEnd = expectedStart + expected.length;
 
-    const line = new AssemblyLine.AssemblyLine(text);
+    const line = new AssemblyLine(text);
 
     assert.equal(line.reference, expected);
     assert.equal(line.referenceRange.start.character, expectedStart, 'Range start incorrect');
@@ -321,15 +330,15 @@ suite('Parser Tests', () => {
       path.join(__dirname, testFolderLocation, 'hello-clean.asm')
     );
     const content = await vscode.workspace.openTextDocument(uri);
-    const expectedSymbols = [
+    const expectedSymbols: SymbolOrReferenceDefinition[] = [
       { range: createRange(2, 0, 6), name: 'screen', documentation: '', kind: vscode.CompletionItemKind.Constant, lineRange: createRange(2, 0, 15) },
       { range: createRange(3, 0, 5), name: 'hello', documentation: '', kind: vscode.CompletionItemKind.Method, lineRange: createRange(3, 0, 17) },
       { range: createRange(5, 0, 6), name: 'hel010', documentation: '', kind: vscode.CompletionItemKind.Method, lineRange: createRange(5, 0, 14)  },
       { range: createRange(10, 0, 6), name: 'hel020', documentation: '', kind: vscode.CompletionItemKind.Method, lineRange: createRange(10, 0, 14) },
       { range: createRange(14, 0, 4), name: 'loop', documentation: '', kind: vscode.CompletionItemKind.Method, lineRange: createRange(14, 0, 13) },
       { range: createRange(15, 0, 4), name: 'text', documentation: '', kind: vscode.CompletionItemKind.Variable, lineRange: createRange(15, 0, 24) },
-    ] as parser.AssemblySymbol[];
-    const expectedReferences = [
+    ];
+    const expectedReferences: SymbolOrReferenceDefinition[] = [
       { name: 'screen', documentation: '', range: createRange(3, 11, 17), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(3, 0, 17) },
       { name: 'screen', documentation: '', range: createRange(6, 7, 13), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(6, 0, 17) },
       { name: 'hel010', documentation: '', range: createRange(7, 5, 11), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(7, 0, 11) },
@@ -338,13 +347,115 @@ suite('Parser Tests', () => {
       { name: 'loop', documentation: '', range: createRange(11, 5, 9), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(11, 0, 9) },
       { name: 'hel020', documentation: '', range: createRange(13, 5, 11), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(13, 0, 11) },
       { name: 'loop', documentation: '', range: createRange(14, 9, 13), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(14, 0, 13) },
-    ] as parser.AssemblySymbol[];
+    ];
     const expectedNumberOfLines = 18;
 
     const document = new parser.AssemblyDocument(content);
 
     assert.equal(document.lines.length, expectedNumberOfLines, 'Expected number of lines do not match');
-    assert.ok(compareSymbols(document.symbols, expectedSymbols), 'Symbols do not match');
-    assert.ok(compareSymbols(document.references, expectedReferences), 'References do not match');
+    assert.ok(compareSymbolsOrReferences(document.symbols, expectedSymbols), 'Symbols do not match');
+    assert.ok(compareSymbolsOrReferences(document.references, expectedReferences), 'References do not match');
+  });
+
+  test('Line with only file and line number', () => {
+    const text = '                      (      monitor.asm):00001         *****************************************';
+    const expectedAddress = -1;
+    const expectedFile = 'monitor.asm';
+    const expectedLineNumber = 1;
+    const expectedValue = '';
+    const expectedConinuation = false;
+
+    const line = new ListingLine(text);
+
+    assert.equal(line.address, expectedAddress, 'address not captured correctly');
+    assert.equal(line.file, expectedFile, 'file not captured correctly');
+    assert.equal(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
+    assert.equal(line.value, expectedValue, 'value not captured correctly');
+    assert.equal(line.continuation, expectedConinuation, 'continuation not set correctly');
+  });
+
+  test('Line with value, file and line number', () => {
+    const text = '     FF41             (      monitor.asm):00009         BeckerStatus    equ     $FF41           Status register for becker port';
+    const expectedAddress = -1;
+    const expectedFile = 'monitor.asm';
+    const expectedLineNumber = 9;
+    const expectedValue = 'FF41';
+    const expectedConinuation = false;
+
+    const line = new ListingLine(text);
+
+    assert.equal(line.address, expectedAddress, 'address not captured correctly');
+    assert.equal(line.file, expectedFile, 'file not captured correctly');
+    assert.equal(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
+    assert.equal(line.value, expectedValue, 'value not captured correctly');
+    assert.equal(line.continuation, expectedConinuation, 'continuation not set correctly');
+  });
+
+  test('Line with address, value, file and line number', () => {
+    const text = '7800 8D47             (      monitor.asm):00017         Monitor         bsr     Cls';
+    const expectedAddress = 0x7800;
+    const expectedFile = 'monitor.asm';
+    const expectedLineNumber = 17;
+    const expectedValue = '8D47';
+    const expectedConinuation = false;
+
+    const line = new ListingLine(text);
+
+    assert.equal(line.address, expectedAddress, 'address not captured correctly');
+    assert.equal(line.file, expectedFile, 'file not captured correctly');
+    assert.equal(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
+    assert.equal(line.value, expectedValue, 'value not captured correctly');
+    assert.equal(line.continuation, expectedConinuation, 'continuation not set correctly');
+  });
+
+  test('Line with data continuation', () => {
+    const text = '     6F726C642100';
+    const expectedAddress = -1;
+    const expectedFile = '';
+    const expectedLineNumber = -1;
+    const expectedValue = '6F726C642100';
+    const expectedConinuation = true;
+
+    const line = new ListingLine(text);
+
+    assert.equal(line.address, expectedAddress, 'address not captured correctly');
+    assert.equal(line.file, expectedFile, 'file not captured correctly');
+    assert.equal(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
+    assert.equal(line.value, expectedValue, 'value not captured correctly');
+    assert.equal(line.continuation, expectedConinuation, 'continuation not set correctly');
+  });
+
+  test('Line with macro usage', () => {
+    const text = '                      (      monitor.asm):00047                         __mon_init';
+    const expectedAddress = -1;
+    const expectedFile = 'monitor.asm';
+    const expectedLineNumber = 47;
+    const expectedValue = '';
+    const expectedConinuation = false;
+
+    const line = new ListingLine(text);
+
+    assert.equal(line.address, expectedAddress, 'address not captured correctly');
+    assert.equal(line.file, expectedFile, 'file not captured correctly');
+    assert.equal(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
+    assert.equal(line.value, expectedValue, 'value not captured correctly');
+    assert.equal(line.continuation, expectedConinuation, 'continuation not set correctly');
+  });
+
+  test('Blank line', () => {
+    const text = '                      (      monitor.asm):00044         ';
+    const expectedAddress = -1;
+    const expectedFile = 'monitor.asm';
+    const expectedLineNumber = 44;
+    const expectedValue = '';
+    const expectedConinuation = false;
+
+    const line = new ListingLine(text);
+
+    assert.equal(line.address, expectedAddress, 'address not captured correctly');
+    assert.equal(line.file, expectedFile, 'file not captured correctly');
+    assert.equal(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
+    assert.equal(line.value, expectedValue, 'value not captured correctly');
+    assert.equal(line.continuation, expectedConinuation, 'continuation not set correctly');
   });
 });

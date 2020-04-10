@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { CodeLensProvider } from './providers/codelens';
-import { ChangeCaseOpcodeCommand } from './commands';
-import { CompletionItemProvider } from './providers/completion';
+import { ChangeCaseOpcodeCommand, StartEmulatorCommand } from './commands';
 import { OpcodeCase } from './managers/configuration';
+import { CodeLensProvider } from './providers/codelens';
+import { CompletionItemProvider } from './providers/completion';
 import { DefinitionProvider } from './providers/definition';
 import { DocumentHighlightProvider } from './providers/document-highlight';
 import { DocumentSymbolProvider } from './providers/document-symbol';
@@ -13,19 +13,17 @@ import { State } from './state';
 
 const ASM6X09_LANGUAGE = 'asm6x09';
 const ASM6X09_MODE: vscode.DocumentSelector = { language: ASM6X09_LANGUAGE, scheme: 'file' };
-const disposables: Array<vscode.Disposable| undefined> = new Array<vscode.Disposable | undefined>();
+const disposables: Array<vscode.Disposable | undefined> = new Array<vscode.Disposable | undefined>();
 
 export let ExtensionState: State;
 
 export function activate(context: vscode.ExtensionContext): void {
 
-  ExtensionState = new State(context.globalState);
+  ExtensionState = new State(ASM6X09_LANGUAGE);
 
   const configurationManager = ExtensionState.configurationManager;
-  //const windowManager = ExtensionState.windowManager;
+  // const windowManager = ExtensionState.windowManager;
   const workspaceManager = ExtensionState.workspaceManager;
-
-  configurationManager.update(vscode.workspace.getConfiguration(ASM6X09_LANGUAGE));
 
   // language features
   disposables.push(vscode.languages.registerCodeLensProvider(
@@ -77,7 +75,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // update cache when document changes
   disposables.push(vscode.workspace.onDidOpenTextDocument(document => {
-    workspaceManager.addDocument(document);
+    workspaceManager.addDocument(document, undefined);
   }));
 
   disposables.push(vscode.workspace.onDidChangeTextDocument(change => {
@@ -89,7 +87,7 @@ export function activate(context: vscode.ExtensionContext): void {
   }));
 
   disposables.push(vscode.window.onDidChangeActiveTextEditor(textEditor => {
-    // workspaceManager.
+    // WorkspaceManager.
   }));
 
   // Workspace folders
@@ -116,6 +114,12 @@ export function activate(context: vscode.ExtensionContext): void {
     'asm6x09.opcodeCapitalise',
     capitalizeCommand.handler,
     capitalizeCommand));
+
+  const startEmulatorCommand = new StartEmulatorCommand(configurationManager);
+  disposables.push(vscode.commands.registerCommand(
+    'asm6x09.startEmulator',
+    startEmulatorCommand.handler,
+    startEmulatorCommand));
 
   context.subscriptions.push(...disposables.filter(d => !!d));
 }

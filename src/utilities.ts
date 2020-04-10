@@ -1,4 +1,6 @@
-import { SymbolKind } from 'vscode';
+import * as cp from 'child_process';
+import * as vscode from 'vscode';
+import { ExtensionState } from './extension';
 import { OpcodeCase } from './managers/configuration';
 
 export function convertToCase(name: string, casing: OpcodeCase): string {
@@ -11,6 +13,72 @@ export function convertToCase(name: string, casing: OpcodeCase): string {
   return name.toUpperCase();
 }
 
-export function convertToSymbolKind(kind: string): SymbolKind {
-  return SymbolKind[kind];
+export function convertToSymbolKind(kind: string): vscode.SymbolKind {
+  return vscode.SymbolKind[kind];
+}
+
+export function killProcess(process: cp.ChildProcess, details = ''): void {
+  const outputChannel = ExtensionState.windowManager.outputChannel;
+
+  if (process) {
+    try {
+      process.kill();
+    } catch (e) {
+      outputChannel.appendLine(`${process.pid}:M: Error killing process (${details}): ${e}`);
+    }
+    outputChannel.appendLine(`${process.pid}:M: Killed proccess (${details})`);
+  }
+}
+
+export function execCmd(cmd: string, args: string[], cwd: string, token?: vscode.CancellationToken): Promise<cp.ChildProcess> {
+  return new Promise((resolve, reject) => {
+    const outputChannel = ExtensionState.windowManager.outputChannel;
+
+    const details = [cmd, ...args].join(' ');
+
+    const process = cp.execFile(cmd, args, { cwd });
+
+    if (process.pid) {
+
+      process.stdout.on('data', (data: string) => {
+        data.split(/\r?\n/).forEach(line => {
+          outputChannel.appendLine(`${process.pid}:O: ${line}`);
+        });
+      });
+
+      process.stderr.on('data', (data: string) => {
+        data.split(/\r?\n/).forEach(line => {
+          outputChannel.appendLine(`${process.pid}:E: ${line}`);
+        });
+      });
+
+      process.on('error', err => {
+        outputChannel.appendLine(`${process.pid}:M: Error executing procces ${process.pid} (${details}): ${err.message}`);
+        ExtensionState.windowManager.showErrorMessage(err.message);
+      });
+
+      process.on('exit', (code, signal) => {
+        if (code) {
+          outputChannel.appendLine(`${process.pid}:M: Exited (${[cmd, ...args].join(' ')}) with code: ${code}`);
+        } else if (signal) {
+          outputChannel.appendLine(`${process.pid}:M: Exited (${[cmd, ...args].join(' ')}) from signal: ${signal}`);
+        } else {
+          outputChannel.appendLine(`${process.pid}:M: Exited (${[cmd, ...args].join(' ')}) normally.`);
+        }
+      });
+
+      if (token) {
+        token.onCancellationRequested(() => {
+          if (process) {
+            killProcess(process);
+          }
+        });
+      }
+
+      outputChannel.appendLine(`${process.pid}:M: Started (${[cmd, ...args].join(' ')}) in "${cwd}"`);
+      resolve(process);
+    } else {
+      reject(new Error(`Unable to start process (${details}) in "${cwd}"`));
+    }
+  });
 }

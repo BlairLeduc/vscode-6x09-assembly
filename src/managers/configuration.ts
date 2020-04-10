@@ -16,6 +16,10 @@ export class ConfigurationManager implements vscode.Disposable {
   private onDidChangeConfigurationEmitter = new vscode.EventEmitter<void>();
   private config: vscode.WorkspaceConfiguration;
 
+  constructor(private language: string) {
+    this.update(vscode.workspace.getConfiguration(language));
+  }
+
   public dispose(): void {
     this.onDidChangeConfigurationEmitter.dispose();
   }

@@ -1,4 +1,4 @@
-import { Position, Range, TextLine } from 'vscode';
+import { Position, Range } from 'vscode';
 
 export class AssemblyLine {
   public label = '';
@@ -14,10 +14,11 @@ export class AssemblyLine {
   public startOfLine: Position;
   public endOfLine: Position;
   public lineRange: Range;
-  private lineNumber = 0;
-  constructor(private rawLine: string, private textLine?: TextLine) {
-    if (textLine) {
-      this.lineNumber = this.textLine.lineNumber;
+  public lineNumber = 0;
+
+  constructor(private rawLine: string, rawLineNumber?: number) {
+    if (rawLineNumber) {
+      this.lineNumber = rawLineNumber;
     }
     this.startOfLine = this.getPositon(0);
     this.endOfLine = this.getPositon(this.rawLine.length);

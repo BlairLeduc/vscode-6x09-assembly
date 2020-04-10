@@ -7,8 +7,8 @@ import { WorkspaceManager } from './managers/workspace';
 export class State implements vscode.Disposable {
   private storage: Map<string, vscode.Disposable> = new Map<string, vscode.Disposable>();
 
-  constructor(private globalState: vscode.Memento) {
-    this.storage.set('ConfigurationManager', new ConfigurationManager());
+  constructor(private language: string) {
+    this.storage.set('ConfigurationManager', new ConfigurationManager(language));
     this.storage.set('WindowManager', new WindowManager());
     this.storage.set('WorkspaceManager', new WorkspaceManager(path.join(__dirname, '..')));
   }
