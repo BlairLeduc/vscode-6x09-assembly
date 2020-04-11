@@ -1,10 +1,6 @@
 import * as vscode from 'vscode';
 import { AssemblySymbol } from '../common';
 
-export interface AssemblyReference {
-  from: AssemblySymbol;
-  definition: AssemblySymbol;
-}
 
 export class SymbolManager implements vscode.Disposable {
   public definitions = new Array<AssemblySymbol>();

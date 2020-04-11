@@ -122,6 +122,7 @@
 					".asm",
 					".a",
 					".d",
+					"defs",
 					".s"
 				],
 				"configuration": "./language-configuration.json"
