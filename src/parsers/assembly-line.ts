@@ -1,5 +1,12 @@
 import { Position, Range } from 'vscode';
 
+const registers = ['a', 'b', 'd', 'e', 'f', 'x', 'y', 'w', 'q', 'u', 's', 'v', 'pc', 'dp', 'cc', 'pcr']
+
+interface FoundSymbol {
+  name: string;
+  start: number;
+}
+
 export class AssemblyLine {
   public label = '';
   public labelRange: Range;
@@ -112,16 +119,16 @@ export class AssemblyLine {
       // Reference?
       if (!/"[^"]*"|\/[^/]*\//.exec(this.operand)) {
         // not a string
-        const refMatch = this.matchSymbol(this.operand);
-        if (refMatch) {
-          this.reference = refMatch[0];
-          const refStart = start + refMatch.index;
+        this.getSymbolsFromExpression(this.operand).forEach(foundSymbol => {
+          this.reference = foundSymbol.name;
+          const refStart = start + foundSymbol.start;
           this.referenceRange = this.getRange(refStart, refStart + this.reference.length);
-        }
+        });
       }
     }
     return pos;
   }
+  
   private fillComment(text: string, pos = 0): number {
     if (text && text.length > 0) {
       this.comment = text.trim();
@@ -130,5 +137,48 @@ export class AssemblyLine {
       this.commentRange = this.getRange(start, pos);
     }
     return pos;
+  }
+
+  private getSymbolsFromExpression(expression: string): FoundSymbol[] {
+    const symbols: FoundSymbol[] = [];
+    const findMatch = (s: string): [RegExpMatchArray, boolean] => {
+      let isSymbol = false;
+      let match = s.match(/^[._a-z][a-z0-9.$_]*/i); // symbol
+      if (match) {
+        isSymbol = true;
+      }
+      if (!match) {
+        match = s.match(/^('.)|("..)/); // character constant
+      }
+      if (!match) {
+        match = s.match(/^((\$|(0x))[0-9a-f]*)|([0-9][0-9a-f]*h)/i); // hex number
+      }
+      if (!match) {
+        match = s.match(/^(@[0-7]+)|([0-7]+[qo])/i); // octal number
+      }
+      if (!match) {
+        match = s.match(/^(%[01]+)|([01]+b)/i); // binary number
+      }
+      if (!match) {
+        match = s.match(/^[0-9]+&?/i); // decimal number
+      }
+      return [match, isSymbol];
+    }
+  
+    let pos = 0;
+    while (expression.length > 0) {
+      const match = findMatch(expression);
+      if (match[0]) {
+        if (match[1] && registers.findIndex(r => r === match[0][0].toString().toLocaleLowerCase()) < 0) {
+          symbols.push({name: match[0][0].toString(), start: pos} as FoundSymbol);
+        }
+        expression = expression.substring(match[0][0].length);
+        pos += match[0][0].length;
+      } else {
+        expression = expression.substr(1);
+        pos += 1;
+      }
+    };
+    return symbols;
   }
 }

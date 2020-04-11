@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { WorkspaceManager } from '../managers/workspace';
-import * as parser from '../parsers/assembly-document';
+import { SymbolManager } from '../managers/symbol';
 
 export class ReferenceProvider implements vscode.ReferenceProvider {
 
@@ -17,19 +17,20 @@ export class ReferenceProvider implements vscode.ReferenceProvider {
         if (!token.isCancellationRequested) {
           const word = document.getText(range);
           const assemblyLine = assemblyDocument.lines[position.line];
+          const symbolManager = this.workspaceManager.getSymbolManager(document);
 
           if (assemblyLine.label && range.intersection(assemblyLine.labelRange)) {
-            resolve(this.findReferences(assemblyDocument, word, context.includeDeclaration, document.uri));
+            resolve(this.findReferences(symbolManager, word, context.includeDeclaration, document.uri));
             return;
           }
 
           if (assemblyLine.opcode && range.intersection(assemblyLine.opcodeRange)) {
-            resolve(this.findReferences(assemblyDocument, word, context.includeDeclaration, document.uri));
+            resolve(this.findReferences(symbolManager, word, context.includeDeclaration, document.uri));
             return;
           }
 
           if (assemblyLine.operand && range.intersection(assemblyLine.operandRange)) {
-            resolve(this.findReferences(assemblyDocument, word, context.includeDeclaration, document.uri));
+            resolve(this.findReferences(symbolManager, word, context.includeDeclaration, document.uri));
             return;
           }
         }
@@ -39,8 +40,8 @@ export class ReferenceProvider implements vscode.ReferenceProvider {
     });
   }
 
-  private findReferences(assemblyDocument: parser.AssemblyDocument, word: string, includeDeclaration: boolean, uri: vscode.Uri): vscode.Location[] {
-    return assemblyDocument.findReferences(word, includeDeclaration).map(s => new vscode.Location(uri, s.range));
+  private findReferences(symbolsManager: SymbolManager, word: string, includeDeclaration: boolean, uri: vscode.Uri): vscode.Location[] {
+    return symbolsManager.findReferencesByName(word, includeDeclaration).map(s => new vscode.Location(s.uri, s.range));
   }
 
 }

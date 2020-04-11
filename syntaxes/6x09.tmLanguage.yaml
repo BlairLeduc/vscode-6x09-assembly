@@ -185,4 +185,4 @@ repository:
         match: (?<![a-zA-Z_.])(%[01]+)|([01]+[bB])\b
 
       - name: constant.numeric.integer.asm6x09
-        match: \b(?<![a-zA-Z_.])[0-9]+&?\b
+        match: \b(?<![a-zA-Z_.])&?[0-9]+\b

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { ConfigurationManager, OpcodeCase } from '../managers/configuration';
 import { WorkspaceManager } from '../managers/workspace';
-import { AssemblySymbol } from '../parsers/assembly-document';
+import { AssemblySymbol } from '../common';
 import { DocOpcode } from '../parsers/docs';
 import { convertToCase } from '../utilities';
 
@@ -16,6 +16,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
       if (range) {
         const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
+        const symbolManager = this.workspaceManager.getSymbolManager(document);
 
         if (!token.isCancellationRequested) {
           const word = document.getText(range);
@@ -24,11 +25,11 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
           if (assemblyLine.opcode && range.intersection(assemblyLine.opcodeRange)) {
             const items = this.workspaceManager.opcodeDocs.findOpcode(word.toUpperCase()).map(opcode => this.createOpcodeCompletionItem(opcode, casing));
-            resolve(items.concat(assemblyDocument.findMacro(word).map(label => this.createSymbolCompletionItem(label))));
+            resolve(items.concat(symbolManager.findMacro(word).map(label => this.createSymbolCompletionItem(label))));
           }
 
           if (assemblyLine.operand && range.intersection(assemblyLine.operandRange)) {
-            resolve(assemblyDocument.findLabel(word).map(label => this.createSymbolCompletionItem(label)));
+            resolve(symbolManager.findLabel(word).map(label => this.createSymbolCompletionItem(label)));
             return;
           }
         }

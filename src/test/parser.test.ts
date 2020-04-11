@@ -12,6 +12,8 @@ import * as vscode from 'vscode';
 import * as parser from '../parsers/assembly-document';
 import { AssemblyLine } from '../parsers/assembly-line';
 import { ListingLine } from '../parsers/listing-line';
+import { AssemblySymbol } from '../common';
+import { SymbolManager } from '../managers/symbol';
 
 interface SymbolOrReferenceDefinition {
   range: vscode.Range;
@@ -25,7 +27,7 @@ function createRange(line: number, from: number, to: number): vscode.Range {
   return new vscode.Range(new vscode.Position(line, from), new vscode.Position(line, to));
 }
 
-function compareSymbolsOrReferences(actual: parser.AssemblySymbol[], expected: SymbolOrReferenceDefinition[]): boolean {
+function compareSymbolsOrReferences(actual: AssemblySymbol[], expected: SymbolOrReferenceDefinition[]): boolean {
   if (actual.length !== expected.length) {
     return false;
   }
@@ -268,6 +270,28 @@ suite('Parser Tests', () => {
     assert.equal(line.operandRange.end.character, expectedEnd, 'Range end incorrect');
   });
 
+  test('Find symbol in operand', () => {
+    const text = ' ldb #screen';
+    const expected = 'screen';
+    const expectedStart = 6;
+    const expectedEnd = expectedStart + expected.length;
+
+    const line = new AssemblyLine(text);
+
+    assert.equal(line.reference, expected);
+    assert.equal(line.referenceRange.start.character, expectedStart, 'Range start incorrect');
+    assert.equal(line.referenceRange.end.character, expectedEnd, 'Range end incorrect');
+  });
+
+  test('Should not find symbol in operand', () => {
+    const text = ' org $3f00';
+    const expected = '';
+
+    const line = new AssemblyLine(text);
+
+    assert.equal(line.reference, expected);
+  });
+
   test('Find all columns on a line', () => {
     const text = 'STA010   lda     ,x+    Test of all';
     const expectedLabel = 'STA010';
@@ -330,7 +354,7 @@ suite('Parser Tests', () => {
       path.join(__dirname, testFolderLocation, 'hello-clean.asm')
     );
     const content = await vscode.workspace.openTextDocument(uri);
-    const expectedSymbols: SymbolOrReferenceDefinition[] = [
+    const expectedDefinitions: SymbolOrReferenceDefinition[] = [
       { range: createRange(2, 0, 6), name: 'screen', documentation: '', kind: vscode.CompletionItemKind.Constant, lineRange: createRange(2, 0, 15) },
       { range: createRange(3, 0, 5), name: 'hello', documentation: '', kind: vscode.CompletionItemKind.Method, lineRange: createRange(3, 0, 17) },
       { range: createRange(5, 0, 6), name: 'hel010', documentation: '', kind: vscode.CompletionItemKind.Method, lineRange: createRange(5, 0, 14)  },
@@ -349,12 +373,12 @@ suite('Parser Tests', () => {
       { name: 'loop', documentation: '', range: createRange(14, 9, 13), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(14, 0, 13) },
     ];
     const expectedNumberOfLines = 18;
-
-    const document = new parser.AssemblyDocument(content);
+    const symbolManager = new SymbolManager();
+    const document = new parser.AssemblyDocument(symbolManager, content);
 
     assert.equal(document.lines.length, expectedNumberOfLines, 'Expected number of lines do not match');
-    assert.ok(compareSymbolsOrReferences(document.symbols, expectedSymbols), 'Symbols do not match');
-    assert.ok(compareSymbolsOrReferences(document.references, expectedReferences), 'References do not match');
+    assert.ok(compareSymbolsOrReferences(symbolManager.definitions, expectedDefinitions), 'Symbols do not match');
+    assert.ok(compareSymbolsOrReferences(symbolManager.references, expectedReferences), 'References do not match');
   });
 
   test('Line with only file and line number', () => {

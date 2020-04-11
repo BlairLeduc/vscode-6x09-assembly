@@ -10,12 +10,12 @@ export class RenameProvider implements vscode.RenameProvider {
       const range = document.getWordRangeAtPosition(position);
 
       if (range) {
-        const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
+        const symbolManager = this.workspaceManager.getSymbolManager(document);
 
         if (!token.isCancellationRequested) {
           const word = document.getText(range);
           const edit = new vscode.WorkspaceEdit();
-          const symbols = assemblyDocument.findReferences(word, true);
+          const symbols = symbolManager.findReferencesByName(word, true);
           if (symbols) {
             symbols.forEach(s => edit.replace(document.uri, s.range, newName));
           }
@@ -32,12 +32,12 @@ export class RenameProvider implements vscode.RenameProvider {
       const range = document.getWordRangeAtPosition(position);
 
       if (range) {
-        const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
+        const symbolManager = this.workspaceManager.getSymbolManager(document);
 
         if (!token.isCancellationRequested) {
           const word = document.getText(range);
 
-          const symbol = assemblyDocument.findReferences(word, true).find(s => s.range.intersection(range));
+          const symbol = symbolManager.findReferencesByName(word, true).find(s => s.range.intersection(range));
           if (symbol) {
             resolve({ range: symbol.range, placeholder: symbol.name });
           }

@@ -16,6 +16,7 @@ export class HoverProvider implements vscode.HoverProvider {
 
           if (!token.isCancellationRequested) {
             const assemblyLine = assemblyDocument.lines[position.line];
+            const symbolManager = this.workspaceManager.getSymbolManager(document);
 
             if (assemblyLine.opcode && range.intersection(assemblyLine.opcodeRange)) {
               const opcode = this.workspaceManager.opcodeDocs.getOpcode(assemblyLine.opcode);
@@ -28,7 +29,7 @@ export class HoverProvider implements vscode.HoverProvider {
                 resolve(new vscode.Hover(help, assemblyLine.opcodeRange));
                 return;
               }
-              const macro = assemblyDocument.getMacro(assemblyLine.opcode);
+              const macro = symbolManager.getMacro(assemblyLine.opcode);
               if (macro) {
                 const help = new vscode.MarkdownString();
                 help.appendCodeblock(`(macro) ${macro.name}`);
@@ -39,11 +40,12 @@ export class HoverProvider implements vscode.HoverProvider {
             }
 
             if (assemblyLine.reference && range.intersection(assemblyLine.referenceRange)) {
-              const symbol = assemblyDocument.getSymbol(assemblyLine.reference);
-              if (symbol) {
+              const definitions = symbolManager.findDefinitionsByName(assemblyLine.reference);
+              if (definitions.length > 0) {
+                const definition = definitions[0]; // more than one, pick first
                 const help = new vscode.MarkdownString();
-                help.appendCodeblock(`(symbol) ${symbol.name}`);
-                help.appendMarkdown(`---\n${symbol.documentation}`);
+                help.appendCodeblock(`(symbol) ${definition.name}`);
+                help.appendMarkdown(`---\n${definition.documentation}`);
                 resolve(new vscode.Hover(help, assemblyLine.referenceRange));
                 return;
               }

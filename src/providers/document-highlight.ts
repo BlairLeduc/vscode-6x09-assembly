@@ -12,13 +12,14 @@ export class DocumentHighlightProvider implements vscode.DocumentHighlightProvid
 
       if (range) {
         const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
+        const symbolManager = this.workspaceManager.getSymbolManager(document);
 
         if (!token.isCancellationRequested) {
           const word = document.getText(range);
           const assemblyLine = assemblyDocument.lines[position.line];
 
           if ((assemblyLine.label && range.intersection(assemblyLine.labelRange)) || (assemblyLine.operand && range.intersection(assemblyLine.operandRange))) {
-            resolve(assemblyDocument.findReferences(word, true).map(s => new vscode.Location(document.uri, s.range)));
+            resolve(symbolManager.findReferencesByName(word, true).map(s => new vscode.Location(document.uri, s.range)));
             return;
           }
         }

@@ -9,10 +9,10 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 
   public provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.ProviderResult<vscode.SymbolInformation[] | vscode.DocumentSymbol[]> {
     return new Promise(resolve => {
-      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
+      const symbolManager = this.workspaceManager.getSymbolManager(document);
 
       if (!token.isCancellationRequested) {
-        resolve(assemblyDocument.symbols.map(s => new vscode.DocumentSymbol(s.name, s.documentation, convertToSymbolKind(s.kind.toString()), s.lineRange, s.range)));
+        resolve(symbolManager.definitions.map(s => new vscode.DocumentSymbol(s.name, s.documentation, convertToSymbolKind(s.kind.toString()), s.lineRange, s.range)));
       }
     });
   }
