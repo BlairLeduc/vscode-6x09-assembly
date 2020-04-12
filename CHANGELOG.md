@@ -1,6 +1,9 @@
 # Change Log
 All notable changes to the "vscode-6x09-assembly" extension will be documented in this file.
 
+## [0.5.0]
+ - Loads symbols from definitions files (use/include).
+ - Adds a command to start an emulator. 
 ## [0.4.0]
  - Added documentation for opcodes and pseudo-ops from the datasheet (6809 only). This needs work since the datasheet is not perfect. 
  - Added macros to completion with comments.
