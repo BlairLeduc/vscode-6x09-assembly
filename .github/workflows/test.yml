@@ -10,28 +10,23 @@ on:
   pull_request:
     branches: [ master ]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  macos:
-    # The type of runner that the job will run on
-    runs-on: macos-latest
+  test:
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
-
-    - name: Use Node 12.x
+    - uses: actions/checkout@v1
+    - name: Use Node.js 12.x
       uses: actions/setup-node@v1
       with:
         node-version: '12.x'
 
-    - name: Install Dependencies
-      run: npm install
-      
-    - name: Compile sources
-      run: npm run compile
-    
-    - name: Run Tests
-      run: npm run test
+    - name: npm install, build and test
+      run: |
+        npm install
+        npm run compile
+        npm test
