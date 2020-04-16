@@ -19,14 +19,12 @@ jobs:
         os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Use Node.js 12.x
+    - uses: actions/checkout@v2
+    - name: Use Node 12.x
       uses: actions/setup-node@v1
       with:
         node-version: '12.x'
-
-    - name: npm install, build and test
-      run: |
-        npm install
-        npm run compile
-        npm test
+    - name: Install Dependencies
+      run: npm install  
+    - name: Run Tests
+      run: npm run test
