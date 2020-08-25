@@ -64,16 +64,12 @@
 				"command": "asm6x09.opcodeCapitalise",
 				"title": "6x09: Transform opcodes to capitalised",
 				"when": "editorLangId == asm6x09"
-			},
-			{
-				"command": "asm6x09.startEmulator",
-				"title": "6x09: Start Emulator"
 			}
 		],
 		"configuration": {
-			"title": "6x09 Assembly Configuration",
+			"title": "6x09 Assembly",
 			"properties": {
-				"asm6x09.editor.opcodeCasing": {
+				"6x09Assembly.opcode.casing": {
 					"type": "string",
 					"default": "lowercase",
 					"enum": [
@@ -83,14 +79,66 @@
 					],
 					"description": "The case used in opcode Intellisense."
 				},
-				"asm6x09.editor.hovers": {
+				"6x09Assembly.opcode.hover": {
 					"type": "string",
 					"default": "full",
 					"enum": [
 						"light",
 						"full"
 					],
-					"description": "The ammount of documentation to provide when hovering over an opcode."
+					"description": "The amount of documentation to provide when hovering over an opcode."
+				},
+				"6x09Assembly.enableCodeLens": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable CodeLens for assembly source files"
+				},
+				"6x09Assembly.lwasm.path.linux": {
+					"type": "string",
+					"default": "/usr/local/bin/lwasm",
+					"markdownDescription": "The path of `lwasm` that is used on Linux."
+				},
+				"6x09Assembly.lwasm.path.macOS": {
+					"type": "string",
+					"default": "/usr/local/bin/lwasm",
+					"markdownDescription": "The path of `lwasm` that is used on macOS."
+				},
+				"6x09Assembly.lwasm.path.windows": {
+					"type": "string",
+					"default": "C:\\lwtools\\lwasm.exe",
+					"markdownDescription": "The path of `lwasm` that is used on Windows."
+				},
+				"6x09Assembly.lwasm.arguments": {
+					"type": "string",
+					"default": "--6309",
+					"markdownDescription": "Specifies additional arguments to pass to the `lwasm` command."
+				},
+				"6x09Assembly.xroar.path.linux": {
+					"type": "string",
+					"default": "/usr/local/bin/xroar",
+					"markdownDescription": "The path of `xroar` that is used on Linux."
+				},
+				"6x09Assembly.xroar.path.macOS": {
+					"type": "string",
+					"default": "/usr/local/bin/xroar",
+					"markdownDescription": "The path of `xroar` that is used on macOS."
+				},
+				"6x09Assembly.xroar.path.windows": {
+					"type": "string",
+					"default": "C:\\XRoar\\XRoar.exe",
+					"markdownDescription": "The path of `xroar` that is used on Windows."
+				},
+				"6x09Assembly.xroar.arguments": {
+					"type": "string",
+					"default": "-machine-desc coco2bus",
+					"markdownDescription": "Specifies additional arguments to pass to the `xroar` command."
+				},
+				"6x09Assembly.xroar.debugPort": {
+					"type": "number",
+					"minimum": 1,
+					"maximum": 65535,
+					"default": 65520,
+					"markdownDescription": "The port number used to connect to the GDB debugger interface of `xroar`."
 				}
 			}
 		},
@@ -104,6 +152,63 @@
 				"editor.codeLens": true
 			}
 		},
+		"debuggers": [
+			{
+				"type": "asm6x09",
+				"label": "6x09 Assembly",
+				"configurationAttributes": {
+					"launch": {
+						"required": [
+							"sourceFile"
+						],
+						"properties": {
+							"trace": {
+								"type": "boolean",
+								"description": "Enable logging of the Debug Adapter Protocol.",
+								"default": true
+							},
+							"sourceFile": {
+								"type": "string",
+								"description": "Absolute path to the main (root) assembly file.",
+								"default": "${relativeFile}"
+							},
+							"sourceFileMap": {
+								"type": "string",
+								"description": "Optional source file mappings passed to the debug engine.",
+								"default": "${workspaceFolder}/${fileBasenameNoExtension}.map"
+							},
+							"emulatorOptions": {
+								"type": "string",
+								"description": "Emulator options",
+								"default": "-gdb -machine coco2bus"
+							}
+						}
+					}
+				},
+				"initialConfigurations": [
+					{
+						"type": "asm6x09",
+						"request": "launch",
+						"name": "6x09 Debug Current File",
+						"sourceFile": "${relativeFile}",
+						"sourceFileMap": "${workspaceFolder}/out/${fileBasenameNoExtension}.map"
+					}
+				],
+				"configurationSnippets": [
+					{
+						"type": "asm6x09",
+						"request": "launch",
+						"name": "6x09 Debug Current File",
+						"sourceFile": "${relativeFile}",
+						"sourceFileMap": "${workspaceFolder}/out/${fileBasenameNoExtension}.map"
+					}
+				],
+				"variables": {},
+				"languages": [
+					"asm6x09"
+				]
+			}
+		],
 		"grammars": [
 			{
 				"language": "asm6x09",
@@ -120,10 +225,9 @@
 				],
 				"extensions": [
 					".asm",
-					".a",
-					".d",
-					"defs",
-					".s"
+					".s",
+					".defs",
+					".d"
 				],
 				"configuration": "./language-configuration.json"
 			}
@@ -162,6 +266,29 @@
 					}
 				]
 			}
+		],
+		"taskDefinitions": [
+			{
+				"type": "asm6x09",
+				"required": [
+					"command",
+					"file"
+				],
+				"properties": {
+					"command": {
+						"type": "string",
+						"enum": [
+							"lwasm",
+							"xroar"
+						],
+						"description": "The command to perform, must be 'lwasm' or 'xroar'."
+					},
+					"file": {
+						"type": "string",
+						"description": "The path of the file that the command will use."
+					}
+				}
+			}
 		]
 	},
 	"scripts": {
@@ -174,22 +301,25 @@
 		"test": "npm run compile && node ./out/test/runTests"
 	},
 	"devDependencies": {
-		"@types/glob": "^7.1.1",
-		"@types/line-reader": "0.0.28",
-		"@types/mocha": "^7.0.2",
-		"@types/node": "^12.8.1",
-		"@types/vscode": "^1.44.0",
-		"@typescript-eslint/eslint-plugin": "^2.27.0",
-		"@typescript-eslint/parser": "^2.27.0",
-		"eslint": "^6.8.0",
+		"@types/glob": "^7.1.3",
+		"@types/line-reader": "^0.0.30",
+		"@types/mocha": "^8.0.3",
+		"@types/node": "^14.0.27",
+		"@types/vscode": "^1.48.0",
+		"@typescript-eslint/eslint-plugin": "^3.10.1",
+		"@typescript-eslint/parser": "^3.10.1",
+		"eslint": "^7.6.0",
 		"glob": "^7.1.6",
-		"mocha": "^7.1.1",
-		"typescript": "^3.8.3",
-		"vscode-test": "^1.3.0"
+		"mocha": "^8.1.1",
+		"typescript": "3.9.6",
+		"vsce": "^1.79.3",
+		"vscode-debugadapter-testsupport": "1.41.0",
+		"vscode-test": "^1.4.0"
 	},
 	"dependencies": {
 		"await-notify": "^1.0.1",
 		"file-url": "^3.0.0",
-		"line-reader": "^0.4.0"
+		"line-reader": "^0.4.0",
+		"vscode-debugadapter": "^1.41.1"
 	}
 }

@@ -1,28 +1,32 @@
 import * as vscode from 'vscode';
-import { ChangeCaseOpcodeCommand, StartEmulatorCommand } from './commands';
+import { ChangeCaseOpcodeCommand } from './commands';
 import { OpcodeCase } from './managers/configuration';
 import { CodeLensProvider } from './providers/codelens';
 import { CompletionItemProvider } from './providers/completion';
 import { DefinitionProvider } from './providers/definition';
+import { DebugAdapterDescriptorFactory } from './debug/debug-adapter-descriptor-factory';
+import { DebugConfigurationProvider } from './providers/debug-configuration';
 import { DocumentHighlightProvider } from './providers/document-highlight';
 import { DocumentSymbolProvider } from './providers/document-symbol';
 import { HoverProvider } from './providers/hover';
 import { ReferenceProvider } from './providers/reference';
 import { RenameProvider } from './providers/rename';
 import { State } from './state';
+import { TaskProvider } from './providers/task';
 
 const ASM6X09_LANGUAGE = 'asm6x09';
+const ASM6X09_CONFIG_SECTION = '6x09Assembly';
 const ASM6X09_MODE: vscode.DocumentSelector = { language: ASM6X09_LANGUAGE, scheme: 'file' };
+const ASM6X09_DEBUG_TYPE: string = ASM6X09_LANGUAGE;
 const disposables: Array<vscode.Disposable | undefined> = new Array<vscode.Disposable | undefined>();
 
 export let ExtensionState: State;
 
 export function activate(context: vscode.ExtensionContext): void {
 
-  ExtensionState = new State(ASM6X09_LANGUAGE);
+  ExtensionState = new State(ASM6X09_CONFIG_SECTION);
 
   const configurationManager = ExtensionState.configurationManager;
-  // const windowManager = ExtensionState.windowManager;
   const workspaceManager = ExtensionState.workspaceManager;
 
   // language features
@@ -66,14 +70,30 @@ export function activate(context: vscode.ExtensionContext): void {
     new RenameProvider(workspaceManager)
   ));
 
-  // Update configuration on change
+  // debug
+  disposables.push(vscode.debug.registerDebugConfigurationProvider(
+    ASM6X09_DEBUG_TYPE,
+    new DebugConfigurationProvider()
+  ));
+
+  disposables.push(vscode.debug.registerDebugAdapterDescriptorFactory(
+    ASM6X09_DEBUG_TYPE,
+    new DebugAdapterDescriptorFactory()
+  ));
+
+  // Workspace
+
+  disposables.push(vscode.workspace.registerTaskProvider(
+    ASM6X09_LANGUAGE,
+    new TaskProvider(configurationManager)
+  ));
+
   disposables.push(vscode.workspace.onDidChangeConfiguration(change => {
-    if (change.affectsConfiguration(ASM6X09_LANGUAGE)) {
-      configurationManager.update(vscode.workspace.getConfiguration(ASM6X09_LANGUAGE));
+    if (change.affectsConfiguration(ASM6X09_CONFIG_SECTION)) {
+      configurationManager.update(vscode.workspace.getConfiguration(ASM6X09_CONFIG_SECTION));
     }
   }));
 
-  // update cache when document changes
   disposables.push(vscode.workspace.onDidOpenTextDocument(document => {
     workspaceManager.addDocument(document, undefined);
   }));
@@ -86,11 +106,6 @@ export function activate(context: vscode.ExtensionContext): void {
     workspaceManager.removeDocument(document);
   }));
 
-  disposables.push(vscode.window.onDidChangeActiveTextEditor(textEditor => {
-    // WorkspaceManager.
-  }));
-
-  // Workspace folders
   disposables.push(vscode.workspace.onDidChangeWorkspaceFolders(change => {
     change.added.forEach(folder => workspaceManager.addFolder(folder));
     change.removed.forEach(folder => workspaceManager.removeFolder(folder));
@@ -114,12 +129,6 @@ export function activate(context: vscode.ExtensionContext): void {
     'asm6x09.opcodeCapitalise',
     capitalizeCommand.handler,
     capitalizeCommand));
-
-  const startEmulatorCommand = new StartEmulatorCommand(configurationManager);
-  disposables.push(vscode.commands.registerCommand(
-    'asm6x09.startEmulator',
-    startEmulatorCommand.handler,
-    startEmulatorCommand));
 
   context.subscriptions.push(...disposables.filter(d => !!d));
 }

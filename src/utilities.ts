@@ -1,7 +1,7 @@
 import * as cp from 'child_process';
 import * as vscode from 'vscode';
 import { ExtensionState } from './extension';
-import { OpcodeCase } from './managers/configuration';
+import { OpcodeCase, OSPlatform } from './managers/configuration';
 
 export function convertToCase(name: string, casing: OpcodeCase): string {
   if (casing === OpcodeCase.lowercase) {
@@ -16,6 +16,18 @@ export function convertToCase(name: string, casing: OpcodeCase): string {
 export function convertToSymbolKind(kind: string): vscode.SymbolKind {
   return vscode.SymbolKind[kind];
 }
+
+export function getOSPlatform(): OSPlatform {
+  switch(process.platform) {
+    case 'darwin':
+        return OSPlatform.macOS;
+    case 'win32':
+        return OSPlatform.windows;
+    default:
+        return OSPlatform.linux;
+  }
+}
+
 
 export function killProcess(process: cp.ChildProcess, details = ''): void {
   const outputChannel = ExtensionState.windowManager.outputChannel;

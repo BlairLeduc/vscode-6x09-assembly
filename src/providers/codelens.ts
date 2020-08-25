@@ -6,11 +6,11 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
   private enabled = true;
   private onDidChangeCodeLensesEmitter = new vscode.EventEmitter<void>();
 
-  constructor(private workspaceManager: WorkspaceManager, private configurationManger: ConfigurationManager) {
-    this.enabled = configurationManger.isCodeLensEnabled;
+  constructor(private workspaceManager: WorkspaceManager, private configurationManager: ConfigurationManager) {
+    this.enabled = configurationManager.isCodeLensEnabled;
 
-    configurationManger.onDidChangeConfiguration(() => {
-      const enabled = this.configurationManger.isCodeLensEnabled;
+    configurationManager.onDidChangeConfiguration(() => {
+      const enabled = this.configurationManager.isCodeLensEnabled;
       if (this.enabled !== enabled) {
         this.enabled = enabled;
         this.onDidChangeCodeLensesEmitter.fire();

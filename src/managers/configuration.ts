@@ -1,5 +1,47 @@
 import * as vscode from 'vscode';
 
+interface CommandConfiguration {
+  path: {
+    linux: string;
+    macOS: string;
+    windows: string;
+  };
+  arguments: string;
+}
+interface ExtensionWorkspaceConfiguration extends vscode.WorkspaceConfiguration {
+
+  opcode: {
+    /** the casing of the opcodes */
+    casing: string,
+
+    /** the level of detail when hovering over opcodes */
+    hover: string,
+  };
+
+  /** whether Codelens is enabled */
+  enableCodeLens: boolean;
+
+  /** lwasm configuration */
+  lwasm: CommandConfiguration;
+
+  /** xroar configuration */
+  xroar: CommandConfiguration;
+
+  /** the GDB debug port */
+  debugPort: number;
+}
+
+export enum Command {
+  lwasm,
+  xroar
+}
+
+export enum OSPlatform {
+  windows,
+  macOS,
+  linux
+}
+
 export enum OpcodeCase {
   lowercase,
   uppercase,
@@ -14,7 +56,7 @@ export enum HoverVerbosity {
 
 export class ConfigurationManager implements vscode.Disposable {
   private onDidChangeConfigurationEmitter = new vscode.EventEmitter<void>();
-  private config: vscode.WorkspaceConfiguration;
+  private config: ExtensionWorkspaceConfiguration;
 
   constructor(private language: string) {
     this.update(vscode.workspace.getConfiguration(language));
@@ -29,19 +71,32 @@ export class ConfigurationManager implements vscode.Disposable {
   }
 
   public update(config: vscode.WorkspaceConfiguration): void {
-    this.config = config;
+    this.config = config as ExtensionWorkspaceConfiguration;
     this.onDidChangeConfigurationEmitter.fire();
   }
 
   public get opcodeCasing(): OpcodeCase {
-    return OpcodeCase[this.config.get('opcodeCasing', 'lowercase')];
+    return OpcodeCase[this.config.opcode.casing];
   }
 
   public get isCodeLensEnabled(): boolean {
-    return this.config.get('enableCodeLens', true);
+    return this.config.enableCodeLens;
   }
 
   public get hoverVerbosity(): HoverVerbosity {
-    return HoverVerbosity[this.config.get('hovers', 'full')];
+    return HoverVerbosity[this.config.opcode.hover];
   }
+
+  public getPath(command: Command, platform: OSPlatform): string {
+    return this.config[Command[command]].path[OSPlatform[platform]];
+  }
+
+  public getArgs(command: Command): string {
+    return this.config[Command[command]].arguments;
+  }
+
+  public get debugPort (): number {
+    return this.config.debugPort;
+  }
+
 }
