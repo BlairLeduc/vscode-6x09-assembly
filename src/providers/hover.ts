@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { ConfigurationManager, HoverVerbosity } from '../managers/configuration';
 import { WorkspaceManager } from '../managers/workspace';
+import { DocOpcodeType } from '../parsers/docs';
 
 export class HoverProvider implements vscode.HoverProvider {
 
@@ -22,7 +23,7 @@ export class HoverProvider implements vscode.HoverProvider {
               const opcode = this.workspaceManager.opcodeDocs.getOpcode(assemblyLine.opcode);
               if (opcode) {
                 const help = new vscode.MarkdownString();
-                help.appendCodeblock(`(opcode) ${opcode.name} (${opcode.processor === '6809' ? '6809/6309' : '6309'}) ${opcode.summary}`);
+                help.appendCodeblock(`(${DocOpcodeType[opcode.type]}) ${opcode.name} (${opcode.processor === '6809' ? '6809/6309' : '6309'}) ${opcode.summary}`);
                 if (this.configurationManager.hoverVerbosity === HoverVerbosity.full) {
                   help.appendMarkdown(`---\n${opcode.documentation}`);
                 }

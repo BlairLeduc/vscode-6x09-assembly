@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+export enum DocOpcodeType { unknown, opcode, pseudo }
+
 export class DocOpcode {
   public static parse(line: string): DocOpcode {
     const columns = line.replace(/\!/g, '\n').split(';');
@@ -21,6 +23,7 @@ export class DocOpcode {
   public summary = '';
   public documentation = '';
   public processor = '';
+  public type = DocOpcodeType.unknown;
 }
 
 export class Docs {
@@ -31,10 +34,10 @@ export class Docs {
 
   constructor(extensionPath: string) {
     const opcodesFilePath = path.join(extensionPath, this.docsPath, this.opcodesFile);
-    this.parse(opcodesFilePath);
+    this.parse(opcodesFilePath, DocOpcodeType.opcode);
 
     const pseudoOpsFilePath = path.join(extensionPath, this.docsPath, this.pseudoOpsFile);
-    this.parse(pseudoOpsFilePath);
+    this.parse(pseudoOpsFilePath, DocOpcodeType.pseudo);
   }
 
   public findOpcode(startsWith: string): DocOpcode[] {
@@ -45,7 +48,7 @@ export class Docs {
     return this.opcodes.get(name.toUpperCase());
   }
 
-  private parse(filePath: string): void {
+  private parse(filePath: string, type: DocOpcodeType): void {
     const lines = fs.readFileSync(filePath, 'utf8').split(/\r\n|\r|\n/g);
 
     let lineNumber = 0;
@@ -53,6 +56,7 @@ export class Docs {
       if (line.length > 0) {
         const opcode = DocOpcode.parse(line);
         if (opcode) {
+          opcode.type = type;
           const key = opcode.name.toUpperCase();
           this.opcodes.set(key, opcode);
         } else {
