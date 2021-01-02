@@ -7,6 +7,7 @@ All notable changes to the "vscode-6x09-assembly" extension will be documented i
 - Added documentation for 6309 opcodes from the sources available.  The documentation still has room for improvement.
 - Added provided tasks for assembling with `lwasm` and running your code with `XRoar`.
 - Removed command to start an emulator (a task replaced this).
+- Bug fixes.
 
 ## [0.5.0]
 

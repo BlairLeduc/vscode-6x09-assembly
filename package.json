@@ -149,7 +149,8 @@
 				"editor.useTabStops": true,
 				"editor.insertSpaces": false,
 				"editor.hover.enabled": true,
-				"editor.codeLens": true
+				"editor.codeLens": true,
+				"editor.wordSeparators": "`~!#$%^&*()-=+[{]}\\|;:'\",.<>/?"
 			}
 		},
 		"grammars": [
