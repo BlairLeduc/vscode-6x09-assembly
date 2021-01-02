@@ -1,6 +1,6 @@
 import { Position, Range } from 'vscode';
 
-const registers = ['a', 'b', 'd', 'e', 'f', 'x', 'y', 'w', 'q', 'u', 's', 'v', 'pc', 'dp', 'cc', 'pcr']
+const registers = ['a', 'b', 'd', 'e', 'f', 'x', 'y', 'w', 'q', 'u', 's', 'v', 'pc', 'dp', 'cc', 'pcr'];
 
 interface FoundSymbol {
   name: string;
@@ -37,6 +37,7 @@ export class AssemblyLine {
     this.referenceRange = this.getRange(0, 0);
     this.parse();
   }
+
   private parse(): void {
     let match = this.matchLineComment(this.rawLine);
     if (match !== null) {
@@ -64,15 +65,19 @@ export class AssemblyLine {
       return;
     }
   }
+
   private getPositon(index: number): Position {
     return new Position(this.lineNumber, index);
   }
+
   private getRange(from: number, to: number): Range {
     return new Range(new Position(this.lineNumber, from), new Position(this.lineNumber, to));
   }
+
   private matchSymbol(text: string): RegExpMatchArray {
     return text.match(/([a-z._][a-z0-9.$_@]*)/i);
   }
+
   private matchLineComment(text: string): RegExpMatchArray {
     const match = text.match(/(?:^\s*)[*](?:\s|[*])(.*)/);
     if (match) {
@@ -80,18 +85,23 @@ export class AssemblyLine {
     }
     return text.match(/(?:^\s*)[;](.*)/);
   }
+
   private matchSelectPseudoOps(text: string): RegExpMatchArray {
     return text.match(/^[ \t]+(nam|ttl|use|include(?:bin)?|error|warning)[ \t]+(.*)/);
   }
+
   private matchLabelAndComment(text: string): RegExpMatchArray {
     return text.match(/^([^ \t*;]*)(?:[ \t]+(?:[*]\s|;)(.*))/);
   }
+
   private matchLabelOpcodeAndComment(text: string): RegExpMatchArray {
     return text.match(/^([^ \t*;]*)(?:[ \t]+(abx|as[lr][abd]|clr[abdefw]|com[abdefw]|daa|dec[abdefw]|inc[abdefw]|ls[lr][abdw]|mul|neg[abd]|nop|psh[su]w|pul[su]w|ro[lr][abdw]|rt[is]|sexw?|swi[23]?|tst[abdefw]|macro|struct))(?:[ \t]+(.*))/i);
   }
+
   private matchLabelOpcodeOperandAndComment(text: string): RegExpMatchArray {
     return text.match(/^([^ \t*;]*)(?:[ \t]+([^ \t]+))?(?:[ \t]+((?:"[^"]*"|\/[^\/]*\/|'[^']*'|[^ \t]*)))?(?:[ \t]+(.*))?/i);
   }
+
   private fillLabel(text: string, pos = 0): number {
     if (text && text.length > 0) {
       this.label = text;
@@ -101,6 +111,7 @@ export class AssemblyLine {
     }
     return pos;
   }
+
   private fillOpcode(text: string, pos = 0): number {
     if (text && text.length > 0) {
       this.opcode = text;
@@ -110,6 +121,7 @@ export class AssemblyLine {
     }
     return pos;
   }
+
   private fillOperand(text: string, pos = 0): number {
     if (text && text.length > 0) {
       this.operand = text;
@@ -128,7 +140,7 @@ export class AssemblyLine {
     }
     return pos;
   }
-  
+
   private fillComment(text: string, pos = 0): number {
     if (text && text.length > 0) {
       this.comment = text.trim();
@@ -143,7 +155,7 @@ export class AssemblyLine {
     const symbols: FoundSymbol[] = [];
     const findMatch = (s: string): [RegExpMatchArray, boolean] => {
       let isSymbol = false;
-      let match = s.match(/^[._a-z][a-z0-9.$_]*/i); // symbol
+      let match = s.match(/^[._a-z][a-z0-9.$_@]*/i); // symbol
       if (match) {
         isSymbol = true;
       }
@@ -163,14 +175,14 @@ export class AssemblyLine {
         match = s.match(/^[0-9]+&?/i); // decimal number
       }
       return [match, isSymbol];
-    }
-  
+    };
+
     let pos = 0;
     while (expression.length > 0) {
       const match = findMatch(expression);
       if (match[0]) {
         if (match[1] && registers.findIndex(r => r === match[0][0].toString().toLocaleLowerCase()) < 0) {
-          symbols.push({name: match[0][0].toString(), start: pos} as FoundSymbol);
+          symbols.push({ name: match[0][0].toString(), start: pos } as FoundSymbol);
         }
         expression = expression.substring(match[0][0].length);
         pos += match[0][0].length;
@@ -178,7 +190,7 @@ export class AssemblyLine {
         expression = expression.substr(1);
         pos += 1;
       }
-    };
+    }
     return symbols;
   }
 }
