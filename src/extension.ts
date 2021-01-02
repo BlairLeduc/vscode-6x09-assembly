@@ -71,15 +71,15 @@ export function activate(context: vscode.ExtensionContext): void {
   ));
 
   // debug
-  disposables.push(vscode.debug.registerDebugConfigurationProvider(
-    ASM6X09_DEBUG_TYPE,
-    new DebugConfigurationProvider()
-  ));
+  // disposables.push(vscode.debug.registerDebugConfigurationProvider(
+  //   ASM6X09_DEBUG_TYPE,
+  //   new DebugConfigurationProvider()
+  // ));
 
-  disposables.push(vscode.debug.registerDebugAdapterDescriptorFactory(
-    ASM6X09_DEBUG_TYPE,
-    new DebugAdapterDescriptorFactory()
-  ));
+  // disposables.push(vscode.debug.registerDebugAdapterDescriptorFactory(
+  //   ASM6X09_DEBUG_TYPE,
+  //   new DebugAdapterDescriptorFactory()
+  // ));
 
   // Workspace
 

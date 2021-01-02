@@ -28,7 +28,7 @@
 		"theme": "light"
 	},
 	"engines": {
-		"vscode": "^1.48.0"
+		"vscode": "^1.52.0"
 	},
 	"activationEvents": [
 		"onLanguage:asm6x09",
@@ -152,63 +152,6 @@
 				"editor.codeLens": true
 			}
 		},
-		"debuggers": [
-			{
-				"type": "asm6x09",
-				"label": "6x09 Assembly",
-				"configurationAttributes": {
-					"launch": {
-						"required": [
-							"sourceFile"
-						],
-						"properties": {
-							"trace": {
-								"type": "boolean",
-								"description": "Enable logging of the Debug Adapter Protocol.",
-								"default": true
-							},
-							"sourceFile": {
-								"type": "string",
-								"description": "Absolute path to the main (root) assembly file.",
-								"default": "${relativeFile}"
-							},
-							"sourceFileMap": {
-								"type": "string",
-								"description": "Optional source file mappings passed to the debug engine.",
-								"default": "${workspaceFolder}/${fileBasenameNoExtension}.map"
-							},
-							"emulatorOptions": {
-								"type": "string",
-								"description": "Emulator options",
-								"default": "-gdb -machine coco2bus"
-							}
-						}
-					}
-				},
-				"initialConfigurations": [
-					{
-						"type": "asm6x09",
-						"request": "launch",
-						"name": "6x09 Debug Current File",
-						"sourceFile": "${relativeFile}",
-						"sourceFileMap": "${workspaceFolder}/out/${fileBasenameNoExtension}.map"
-					}
-				],
-				"configurationSnippets": [
-					{
-						"type": "asm6x09",
-						"request": "launch",
-						"name": "6x09 Debug Current File",
-						"sourceFile": "${relativeFile}",
-						"sourceFileMap": "${workspaceFolder}/out/${fileBasenameNoExtension}.map"
-					}
-				],
-				"variables": {},
-				"languages": [
-					"asm6x09"
-				]
-			}
-		],
 		"grammars": [
 			{
 				"language": "asm6x09",
@@ -303,23 +246,23 @@
 	"devDependencies": {
 		"@types/glob": "^7.1.3",
 		"@types/line-reader": "^0.0.30",
-		"@types/mocha": "^8.0.3",
-		"@types/node": "^14.0.27",
-		"@types/vscode": "^1.48.0",
+		"@types/mocha": "^8.2.0",
+		"@types/node": "^14.14.19",
+		"@types/vscode": "^1.52.0",
 		"@typescript-eslint/eslint-plugin": "^3.10.1",
 		"@typescript-eslint/parser": "^3.10.1",
-		"eslint": "^7.6.0",
+		"eslint": "^7.17.0",
 		"glob": "^7.1.6",
-		"mocha": "^8.1.1",
+		"mocha": "^8.2.1",
 		"typescript": "3.9.6",
-		"vsce": "^1.79.3",
-		"vscode-debugadapter-testsupport": "1.41.0",
-		"vscode-test": "^1.4.0"
+		"vsce": "^1.83.0",
+		"vscode-debugadapter-testsupport": "^1.43.0",
+		"vscode-test": "^1.4.1"
 	},
 	"dependencies": {
 		"await-notify": "^1.0.1",
 		"file-url": "^3.0.0",
 		"line-reader": "^0.4.0",
-		"vscode-debugadapter": "^1.41.1"
+		"vscode-debugadapter": "^1.43.0"
 	}
 }
