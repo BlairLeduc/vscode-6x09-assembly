@@ -150,7 +150,7 @@
 				"editor.insertSpaces": false,
 				"editor.hover.enabled": true,
 				"editor.codeLens": true,
-				"editor.wordSeparators": "`~!#$%^&*()-=+[{]}\\|;:'\",.<>/?"
+				"editor.wordSeparators": "`~!#$%^&*()-=+[{]}\\|;:'\",.<>/"
 			}
 		},
 		"grammars": [
@@ -255,7 +255,7 @@
 		"eslint": "^7.17.0",
 		"glob": "^7.1.6",
 		"mocha": "^8.2.1",
-		"typescript": "4.1.3",
+		"typescript": "4.1.2",
 		"vsce": "^1.83.0",
 		"vscode-debugadapter-testsupport": "^1.43.0",
 		"vscode-test": "^1.4.1"

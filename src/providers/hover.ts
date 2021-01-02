@@ -40,16 +40,29 @@ export class HoverProvider implements vscode.HoverProvider {
               }
             }
 
-            if (assemblyLine.reference && range.intersection(assemblyLine.referenceRange)) {
-              const definitions = symbolManager.findDefinitionsByName(assemblyLine.reference);
+            if (assemblyLine.label && range.intersection(assemblyLine.labelRange)) {
+              const definitions = symbolManager.findDefinitionsByName(assemblyLine.label);
               if (definitions.length > 0) {
                 const definition = definitions[0]; // more than one, pick first
                 const help = new vscode.MarkdownString();
-                help.appendCodeblock(`(symbol) ${definition.name}`);
-                help.appendMarkdown(`---\n${definition.documentation}`);
-                resolve(new vscode.Hover(help, assemblyLine.referenceRange));
+                help.appendCodeblock(`(${vscode.CompletionItemKind[definition.kind]}) ${definition.name}`);
+                resolve(new vscode.Hover(help, assemblyLine.labelRange));
                 return;
               }
+            }
+
+            if (assemblyLine.references.length > 0) {
+              assemblyLine.references.filter(r => range.intersection(r.range)).forEach(reference => {
+                const references = symbolManager.findDefinitionsByName(reference.name);
+                if (references.length > 0) {
+                  const reference = references[0]; // more than one, pick first
+                  const help = new vscode.MarkdownString();
+                  help.appendCodeblock(`(${vscode.CompletionItemKind[reference.kind]}) ${reference.name}`);
+                  help.appendMarkdown(`---\n${reference.documentation}`);
+                  resolve(new vscode.Hover(help, range));
+                  return;
+                }
+              });
             }
           }
         }

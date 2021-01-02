@@ -99,8 +99,11 @@ repository:
         match: '(^|\s+)[;].*'
   symbol:
     patterns:
+      - name: entity.name.function.asm6x09
+        match: '(?i)[a-z._][a-z0-9._]*$'
+
       - name: variable.name.asm6x09
-        match: '(?i)[a-z._][a-z0-9.$_@]*'
+        match: '(?i)[a-z._][a-z0-9.$_@?]*$'
   opcode:
     patterns:
       - name: keyword.other.opcode.logical.asm6x09

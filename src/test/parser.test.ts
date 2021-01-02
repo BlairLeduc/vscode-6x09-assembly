@@ -57,9 +57,9 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.comment, expected, 'Comment not captured correctly');
-    assert.equal(line.commentRange.start.character, expectedStart, 'Comment Range start incorrect');
-    assert.equal(line.commentRange.end.character, expectedEnd, 'Comment Range end incorrect');
+    assert.strictEqual(line.comment, expected, 'Comment not captured correctly');
+    assert.strictEqual(line.commentRange.start.character, expectedStart, 'Comment Range start incorrect');
+    assert.strictEqual(line.commentRange.end.character, expectedEnd, 'Comment Range end incorrect');
   });
 
   test('See comment line from start (semicolon)', () => {
@@ -70,9 +70,9 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.comment, expected, 'Comment not captured correctly');
-    assert.equal(line.commentRange.start.character, expectedStart, 'Comment Range start incorrect');
-    assert.equal(line.commentRange.end.character, expectedEnd, 'Comment Range end incorrect');
+    assert.strictEqual(line.comment, expected, 'Comment not captured correctly');
+    assert.strictEqual(line.commentRange.start.character, expectedStart, 'Comment Range start incorrect');
+    assert.strictEqual(line.commentRange.end.character, expectedEnd, 'Comment Range end incorrect');
   });
 
   test('See comment line from anywhere (asterisk)', () => {
@@ -83,9 +83,9 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.comment, expected, 'Comment not captured correctly');
-    assert.equal(line.commentRange.start.character, expectedStart, 'Comment Range start incorrect');
-    assert.equal(line.commentRange.end.character, expectedEnd, 'Comment Range end incorrect');
+    assert.strictEqual(line.comment, expected, 'Comment not captured correctly');
+    assert.strictEqual(line.commentRange.start.character, expectedStart, 'Comment Range start incorrect');
+    assert.strictEqual(line.commentRange.end.character, expectedEnd, 'Comment Range end incorrect');
   });
 
   test('See comment line from anywhere (semicolon)', () => {
@@ -96,9 +96,9 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.comment, expected, 'Comment not captured correctly');
-    assert.equal(line.commentRange.start.character, expectedStart, 'Comment Range start incorrect');
-    assert.equal(line.commentRange.end.character, expectedEnd, 'Comment Range end incorrect');
+    assert.strictEqual(line.comment, expected, 'Comment not captured correctly');
+    assert.strictEqual(line.commentRange.start.character, expectedStart, 'Comment Range start incorrect');
+    assert.strictEqual(line.commentRange.end.character, expectedEnd, 'Comment Range end incorrect');
   });
 
   test('Find label with no label on line', () => {
@@ -109,9 +109,9 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.label, expected);
-    assert.equal(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
-    assert.equal(line.labelRange.end.character, expectedEnd, 'Label Range end incorrect');
+    assert.strictEqual(line.label, expected);
+    assert.strictEqual(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
+    assert.strictEqual(line.labelRange.end.character, expectedEnd, 'Label Range end incorrect');
   });
 
   test('Find label alone on line', () => {
@@ -122,9 +122,9 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.label, expected);
-    assert.equal(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
-    assert.equal(line.labelRange.end.character, expectedEnd, 'Label Range end incorrect');
+    assert.strictEqual(line.label, expected);
+    assert.strictEqual(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
+    assert.strictEqual(line.labelRange.end.character, expectedEnd, 'Label Range end incorrect');
   });
 
   test('Find label on line with opcode', () => {
@@ -135,9 +135,9 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.label, expected);
-    assert.equal(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
-    assert.equal(line.labelRange.end.character, expectedEnd, 'Label Range end incorrect');
+    assert.strictEqual(line.label, expected);
+    assert.strictEqual(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
+    assert.strictEqual(line.labelRange.end.character, expectedEnd, 'Label Range end incorrect');
   });
 
   test('Find label on line with opcode and operand', () => {
@@ -148,9 +148,9 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.label, expected);
-    assert.equal(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
-    assert.equal(line.labelRange.end.character, expectedEnd, 'Label Range end incorrect');
+    assert.strictEqual(line.label, expected);
+    assert.strictEqual(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
+    assert.strictEqual(line.labelRange.end.character, expectedEnd, 'Label Range end incorrect');
   });
 
   test('Find label on line with opcode and operand and comment', () => {
@@ -161,9 +161,9 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.label, expected);
-    assert.equal(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
-    assert.equal(line.labelRange.end.character, expectedEnd, 'Label Range end incorrect');
+    assert.strictEqual(line.label, expected);
+    assert.strictEqual(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
+    assert.strictEqual(line.labelRange.end.character, expectedEnd, 'Label Range end incorrect');
   });
 
   test('Find label on line with label and comment (asterisk)', () => {
@@ -174,9 +174,9 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.label, expected);
-    assert.equal(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
-    assert.equal(line.labelRange.end.character, expectedEnd, 'Label Range end incorrect');
+    assert.strictEqual(line.label, expected);
+    assert.strictEqual(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
+    assert.strictEqual(line.labelRange.end.character, expectedEnd, 'Label Range end incorrect');
   });
 
   test('Find label on line with label and comment (semicolon)', () => {
@@ -187,9 +187,9 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.label, expected);
-    assert.equal(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
-    assert.equal(line.labelRange.end.character, expectedEnd, 'Label Range end incorrect');
+    assert.strictEqual(line.label, expected);
+    assert.strictEqual(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
+    assert.strictEqual(line.labelRange.end.character, expectedEnd, 'Label Range end incorrect');
   });
 
   test('Find opcode on line with opcode', () => {
@@ -200,9 +200,9 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.opcode, expected);
-    assert.equal(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
-    assert.equal(line.opcodeRange.end.character, expectedEnd, 'Range end incorrect');
+    assert.strictEqual(line.opcode, expected);
+    assert.strictEqual(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
+    assert.strictEqual(line.opcodeRange.end.character, expectedEnd, 'Range end incorrect');
   });
 
   test('Find opcode on line with opcode and label', () => {
@@ -213,9 +213,9 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.opcode, expected);
-    assert.equal(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
-    assert.equal(line.opcodeRange.end.character, expectedEnd, 'Range end incorrect');
+    assert.strictEqual(line.opcode, expected);
+    assert.strictEqual(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
+    assert.strictEqual(line.opcodeRange.end.character, expectedEnd, 'Range end incorrect');
   });
 
   test('Find opcode on line with label and operand', () => {
@@ -226,9 +226,9 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.opcode, expected);
-    assert.equal(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
-    assert.equal(line.opcodeRange.end.character, expectedEnd, 'Range end incorrect');
+    assert.strictEqual(line.opcode, expected);
+    assert.strictEqual(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
+    assert.strictEqual(line.opcodeRange.end.character, expectedEnd, 'Range end incorrect');
   });
 
   test('Find opcode on line with label and operand and comment', () => {
@@ -239,9 +239,9 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.opcode, expected);
-    assert.equal(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
-    assert.equal(line.opcodeRange.end.character, expectedEnd, 'Range end incorrect');
+    assert.strictEqual(line.opcode, expected);
+    assert.strictEqual(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
+    assert.strictEqual(line.opcodeRange.end.character, expectedEnd, 'Range end incorrect');
   });
 
   test('Find operand on line with opcode', () => {
@@ -252,9 +252,9 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.operand, expected);
-    assert.equal(line.operandRange.start.character, expectedStart, 'Range start incorrect');
-    assert.equal(line.operandRange.end.character, expectedEnd, 'Range end incorrect');
+    assert.strictEqual(line.operand, expected);
+    assert.strictEqual(line.operandRange.start.character, expectedStart, 'Range start incorrect');
+    assert.strictEqual(line.operandRange.end.character, expectedEnd, 'Range end incorrect');
   });
 
   test('Find operand on line with opcode', () => {
@@ -265,31 +265,64 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.operand, expected);
-    assert.equal(line.operandRange.start.character, expectedStart, 'Range start incorrect');
-    assert.equal(line.operandRange.end.character, expectedEnd, 'Range end incorrect');
+    assert.strictEqual(line.operand, expected);
+    assert.strictEqual(line.operandRange.start.character, expectedStart, 'Range start incorrect');
+    assert.strictEqual(line.operandRange.end.character, expectedEnd, 'Range end incorrect');
   });
 
-  test('Find symbol in operand', () => {
+  test('Find reference in operand', () => {
     const text = ' ldb #screen';
-    const expected = 'screen';
+    const expectedLength = 1;
+    const expectedName = 'screen';
     const expectedStart = 6;
-    const expectedEnd = expectedStart + expected.length;
+    const expectedEnd = expectedStart + expectedName.length;
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.reference, expected);
-    assert.equal(line.referenceRange.start.character, expectedStart, 'Range start incorrect');
-    assert.equal(line.referenceRange.end.character, expectedEnd, 'Range end incorrect');
+    assert.strictEqual(line.references.length, expectedLength);
+    assert.strictEqual(line.references[0].name, expectedName);
+    assert.strictEqual(line.references[0].range.start.character, expectedStart, 'Range start incorrect');
+    assert.strictEqual(line.references[0].range.end.character, expectedEnd, 'Range end incorrect');
+  });
+
+  test('Find multiple references in operand', () => {
+    const text = ' ldx   #screen+start+one';
+    const expectedLength = 3;
+    const expected = [
+      {
+        name: 'screen',
+        start: 8,
+        end: 8 + 6
+      },
+      {
+        name: 'start',
+        start: 15,
+        end: 15 + 5
+      },
+      {
+        name: 'one',
+        start: 21,
+        end:  21 + 3
+      }
+    ];
+
+    const line = new AssemblyLine(text);
+
+    assert.strictEqual(line.references.length, expectedLength);
+    line.references.forEach((r, i) => {
+      assert.strictEqual(r.name, expected[i].name);
+      assert.strictEqual(r.range.start.character, expected[i].start, 'Range start incorrect');
+      assert.strictEqual(r.range.end.character, expected[i].end, 'Range end incorrect');
+    });
   });
 
   test('Should not find symbol in operand', () => {
     const text = ' org $3f00';
-    const expected = '';
+    const expected = 0;
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.reference, expected);
+    assert.strictEqual(line.references.length, expected);
   });
 
   test('Find all columns on a line', () => {
@@ -309,18 +342,18 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.label, expectedLabel, 'Label not captured');
-    assert.equal(line.labelRange.start.character, expectedLabelStart, 'Label Range start incorrect');
-    assert.equal(line.labelRange.end.character, expectedLabelEnd, 'Label Range end incorrect');
-    assert.equal(line.opcode, expectedOpcode, 'Opcode not captured');
-    assert.equal(line.opcodeRange.start.character, expectedOpcodeStart, 'Opcode Range start incorrect');
-    assert.equal(line.opcodeRange.end.character, expectedOpcodeEnd, 'Opcode Range end incorrect');
-    assert.equal(line.operand, expectedOperand, 'Operand not captured');
-    assert.equal(line.operandRange.start.character, expectedOperandStart, 'Operand Range start incorrect');
-    assert.equal(line.operandRange.end.character, expectedOperandEnd, 'Operand Range end incorrect');
-    assert.equal(line.comment, expectedComment, 'Comment not captured');
-    assert.equal(line.commentRange.start.character, expectedCommentStart, 'Comment Range start incorrect');
-    assert.equal(line.commentRange.end.character, expectedCommentEnd, 'Comment Range end incorrect');
+    assert.strictEqual(line.label, expectedLabel, 'Label not captured');
+    assert.strictEqual(line.labelRange.start.character, expectedLabelStart, 'Label Range start incorrect');
+    assert.strictEqual(line.labelRange.end.character, expectedLabelEnd, 'Label Range end incorrect');
+    assert.strictEqual(line.opcode, expectedOpcode, 'Opcode not captured');
+    assert.strictEqual(line.opcodeRange.start.character, expectedOpcodeStart, 'Opcode Range start incorrect');
+    assert.strictEqual(line.opcodeRange.end.character, expectedOpcodeEnd, 'Opcode Range end incorrect');
+    assert.strictEqual(line.operand, expectedOperand, 'Operand not captured');
+    assert.strictEqual(line.operandRange.start.character, expectedOperandStart, 'Operand Range start incorrect');
+    assert.strictEqual(line.operandRange.end.character, expectedOperandEnd, 'Operand Range end incorrect');
+    assert.strictEqual(line.comment, expectedComment, 'Comment not captured');
+    assert.strictEqual(line.commentRange.start.character, expectedCommentStart, 'Comment Range start incorrect');
+    assert.strictEqual(line.commentRange.end.character, expectedCommentEnd, 'Comment Range end incorrect');
   });
 
   test('Find opcode with label named same', () => {
@@ -331,22 +364,55 @@ suite('Parser Tests', () => {
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.opcode, expected);
-    assert.equal(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
-    assert.equal(line.opcodeRange.end.character, expectedEnd, 'Range end incorrect');
+    assert.strictEqual(line.opcode, expected);
+    assert.strictEqual(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
+    assert.strictEqual(line.opcodeRange.end.character, expectedEnd, 'Range end incorrect');
   });
 
   test('Find reference in operand on line with label and opcode', () => {
     const text = 'hello   ldx   #screen';
-    const expected = 'screen';
+    const expectedLength = 1;
+    const expectedName = 'screen';
     const expectedStart = 15;
-    const expectedEnd = expectedStart + expected.length;
+    const expectedEnd = expectedStart + expectedName.length;
 
     const line = new AssemblyLine(text);
 
-    assert.equal(line.reference, expected);
-    assert.equal(line.referenceRange.start.character, expectedStart, 'Range start incorrect');
-    assert.equal(line.referenceRange.end.character, expectedEnd, 'Range end incorrect');
+    assert.strictEqual(line.references.length, expectedLength);
+    assert.strictEqual(line.references[0].name, expectedName);
+    assert.strictEqual(line.references[0].range.start.character, expectedStart, 'Range start incorrect');
+    assert.strictEqual(line.references[0].range.end.character, expectedEnd, 'Range end incorrect');
+  });
+
+  test('Find multiple references in operand on line with label and opcode', () => {
+    const text = 'hello   ldx   #screen+start+one';
+    const expectedLength = 3;
+    const expected = [
+      {
+        name: 'screen',
+        start: 15,
+        end: 15 + 6
+      },
+      {
+        name: 'start',
+        start: 22,
+        end: 22 + 5
+      },
+      {
+        name: 'one',
+        start: 28,
+        end:  28 + 3
+      }
+    ];
+
+    const line = new AssemblyLine(text);
+
+    assert.strictEqual(line.references.length, expectedLength);
+    line.references.forEach((r, i) => {
+      assert.strictEqual(r.name, expected[i].name);
+      assert.strictEqual(r.range.start.character, expected[i].start, 'Range start incorrect');
+      assert.strictEqual(r.range.end.character, expected[i].end, 'Range end incorrect');
+    });
   });
 
   test('Load document', async () => {
@@ -376,7 +442,7 @@ suite('Parser Tests', () => {
     const symbolManager = new SymbolManager();
     const document = new parser.AssemblyDocument(symbolManager, content);
 
-    assert.equal(document.lines.length, expectedNumberOfLines, 'Expected number of lines do not match');
+    assert.strictEqual(document.lines.length, expectedNumberOfLines, 'Expected number of lines do not match');
     assert.ok(compareSymbolsOrReferences(symbolManager.definitions, expectedDefinitions), 'Symbols do not match');
     assert.ok(compareSymbolsOrReferences(symbolManager.references, expectedReferences), 'References do not match');
   });
@@ -391,11 +457,11 @@ suite('Parser Tests', () => {
 
     const line = new ListingLine(text);
 
-    assert.equal(line.address, expectedAddress, 'address not captured correctly');
-    assert.equal(line.file, expectedFile, 'file not captured correctly');
-    assert.equal(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
-    assert.equal(line.value, expectedValue, 'value not captured correctly');
-    assert.equal(line.continuation, expectedConinuation, 'continuation not set correctly');
+    assert.strictEqual(line.address, expectedAddress, 'address not captured correctly');
+    assert.strictEqual(line.file, expectedFile, 'file not captured correctly');
+    assert.strictEqual(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
+    assert.strictEqual(line.value, expectedValue, 'value not captured correctly');
+    assert.strictEqual(line.continuation, expectedConinuation, 'continuation not set correctly');
   });
 
   test('Line with value, file and line number', () => {
@@ -408,11 +474,11 @@ suite('Parser Tests', () => {
 
     const line = new ListingLine(text);
 
-    assert.equal(line.address, expectedAddress, 'address not captured correctly');
-    assert.equal(line.file, expectedFile, 'file not captured correctly');
-    assert.equal(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
-    assert.equal(line.value, expectedValue, 'value not captured correctly');
-    assert.equal(line.continuation, expectedConinuation, 'continuation not set correctly');
+    assert.strictEqual(line.address, expectedAddress, 'address not captured correctly');
+    assert.strictEqual(line.file, expectedFile, 'file not captured correctly');
+    assert.strictEqual(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
+    assert.strictEqual(line.value, expectedValue, 'value not captured correctly');
+    assert.strictEqual(line.continuation, expectedConinuation, 'continuation not set correctly');
   });
 
   test('Line with address, value, file and line number', () => {
@@ -425,11 +491,11 @@ suite('Parser Tests', () => {
 
     const line = new ListingLine(text);
 
-    assert.equal(line.address, expectedAddress, 'address not captured correctly');
-    assert.equal(line.file, expectedFile, 'file not captured correctly');
-    assert.equal(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
-    assert.equal(line.value, expectedValue, 'value not captured correctly');
-    assert.equal(line.continuation, expectedConinuation, 'continuation not set correctly');
+    assert.strictEqual(line.address, expectedAddress, 'address not captured correctly');
+    assert.strictEqual(line.file, expectedFile, 'file not captured correctly');
+    assert.strictEqual(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
+    assert.strictEqual(line.value, expectedValue, 'value not captured correctly');
+    assert.strictEqual(line.continuation, expectedConinuation, 'continuation not set correctly');
   });
 
   test('Line with data continuation', () => {
@@ -442,11 +508,11 @@ suite('Parser Tests', () => {
 
     const line = new ListingLine(text);
 
-    assert.equal(line.address, expectedAddress, 'address not captured correctly');
-    assert.equal(line.file, expectedFile, 'file not captured correctly');
-    assert.equal(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
-    assert.equal(line.value, expectedValue, 'value not captured correctly');
-    assert.equal(line.continuation, expectedConinuation, 'continuation not set correctly');
+    assert.strictEqual(line.address, expectedAddress, 'address not captured correctly');
+    assert.strictEqual(line.file, expectedFile, 'file not captured correctly');
+    assert.strictEqual(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
+    assert.strictEqual(line.value, expectedValue, 'value not captured correctly');
+    assert.strictEqual(line.continuation, expectedConinuation, 'continuation not set correctly');
   });
 
   test('Line with macro usage', () => {
@@ -459,11 +525,11 @@ suite('Parser Tests', () => {
 
     const line = new ListingLine(text);
 
-    assert.equal(line.address, expectedAddress, 'address not captured correctly');
-    assert.equal(line.file, expectedFile, 'file not captured correctly');
-    assert.equal(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
-    assert.equal(line.value, expectedValue, 'value not captured correctly');
-    assert.equal(line.continuation, expectedConinuation, 'continuation not set correctly');
+    assert.strictEqual(line.address, expectedAddress, 'address not captured correctly');
+    assert.strictEqual(line.file, expectedFile, 'file not captured correctly');
+    assert.strictEqual(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
+    assert.strictEqual(line.value, expectedValue, 'value not captured correctly');
+    assert.strictEqual(line.continuation, expectedConinuation, 'continuation not set correctly');
   });
 
   test('Blank line', () => {
@@ -476,10 +542,10 @@ suite('Parser Tests', () => {
 
     const line = new ListingLine(text);
 
-    assert.equal(line.address, expectedAddress, 'address not captured correctly');
-    assert.equal(line.file, expectedFile, 'file not captured correctly');
-    assert.equal(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
-    assert.equal(line.value, expectedValue, 'value not captured correctly');
-    assert.equal(line.continuation, expectedConinuation, 'continuation not set correctly');
+    assert.strictEqual(line.address, expectedAddress, 'address not captured correctly');
+    assert.strictEqual(line.file, expectedFile, 'file not captured correctly');
+    assert.strictEqual(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
+    assert.strictEqual(line.value, expectedValue, 'value not captured correctly');
+    assert.strictEqual(line.continuation, expectedConinuation, 'continuation not set correctly');
   });
 });

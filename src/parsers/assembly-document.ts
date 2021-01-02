@@ -48,8 +48,10 @@ export class AssemblyDocument {
       } else if (asmLine.label) {
         this.symbolManager.addDefinition(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Method, asmLine.lineRange, this.uri));
       }
-      if (asmLine.reference) {
-        this.symbolManager.addReference(new AssemblySymbol(asmLine.reference, asmLine.referenceRange, '', CompletionItemKind.Reference, asmLine.lineRange, this.uri));
+      if (asmLine.references.length > 0) {
+        asmLine.references.forEach(reference => 
+          this.symbolManager.addReference(new AssemblySymbol(reference.name, reference.range, '', CompletionItemKind.Reference, asmLine.lineRange, this.uri))
+        );
       }
     }
 

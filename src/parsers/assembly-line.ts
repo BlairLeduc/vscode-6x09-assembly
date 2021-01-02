@@ -7,6 +7,10 @@ interface FoundSymbol {
   start: number;
 }
 
+export class SymbolReference {
+  name: string;
+  range: Range;
+}
 export class AssemblyLine {
   public label = '';
   public labelRange: Range;
@@ -16,8 +20,7 @@ export class AssemblyLine {
   public operandRange: Range;
   public comment = '';
   public commentRange: Range;
-  public reference = '';
-  public referenceRange: Range;
+  public references: SymbolReference[];
   public startOfLine: Position;
   public endOfLine: Position;
   public lineRange: Range;
@@ -34,7 +37,7 @@ export class AssemblyLine {
     this.opcodeRange = this.getRange(0, 0);
     this.operandRange = this.getRange(0, 0);
     this.commentRange = this.getRange(0, 0);
-    this.referenceRange = this.getRange(0, 0);
+    this.references = [];
     this.parse();
   }
 
@@ -75,7 +78,7 @@ export class AssemblyLine {
   }
 
   private matchSymbol(text: string): RegExpMatchArray {
-    return text.match(/([a-z._][a-z0-9.$_@]*)/i);
+    return text.match(/([a-z._][a-z0-9.$_@?]*)/i);
   }
 
   private matchLineComment(text: string): RegExpMatchArray {
@@ -132,9 +135,11 @@ export class AssemblyLine {
       if (!/"[^"]*"|\/[^/]*\//.exec(this.operand)) {
         // not a string
         this.getSymbolsFromExpression(this.operand).forEach(foundSymbol => {
-          this.reference = foundSymbol.name;
           const refStart = start + foundSymbol.start;
-          this.referenceRange = this.getRange(refStart, refStart + this.reference.length);
+          this.references.push({
+            name: foundSymbol.name,
+            range: this.getRange(refStart, refStart + foundSymbol.name.length)
+          } as SymbolReference);
         });
       }
     }
@@ -155,7 +160,7 @@ export class AssemblyLine {
     const symbols: FoundSymbol[] = [];
     const findMatch = (s: string): [RegExpMatchArray, boolean] => {
       let isSymbol = false;
-      let match = s.match(/^[._a-z][a-z0-9.$_@]*/i); // symbol
+      let match = s.match(/^[._a-z][a-z0-9.$_@?]*/i); // symbol
       if (match) {
         isSymbol = true;
       }
