@@ -19,8 +19,10 @@ export interface ParserState {
 }
 
 export class AssemblyLine {
-  private opcodeRegExp: RegExp;
-  private pseudoRegExp: RegExp;
+  private static constantRegExp: RegExp;
+  private static opcodeRegExp: RegExp;
+  private static pseudoRegExp: RegExp;
+  private static storageRegExp: RegExp;
 
   public lineNumber = 0;
   public lineRange: Range;
@@ -50,19 +52,33 @@ export class AssemblyLine {
     this.tokens = [];
     this.references = [];
 
-    const ob = 'c[cs]|eq|g[et]|h[is]|l[eost]|mi|ne|pl|r[an]|sr|v[cs]';
-    const o1 = 'a(bx|dc[abdr]|dd[abdefrw]|im|nd([abdr]|cc)|s[lr][abd]?)|b(' + ob + '|i?and|i?eor|i?or|it([abd]|md))';
-    const o2 = '|clr[abdefw]?|cmp[abefdwxyrsu]|com[abdefw]?|cwia|daa|dec[abdefw]?|div[dq]|e(im|or[abdr]|xg)|inc[abdefw]?';
-    const o3 = '|j(mp|sr)|lb(' + ob + ')|ld([abdrfwxyusuq]|bt|md)|lea[xysu]|ls[lr][abdw]?|muld?|neg[abd]?|nop';
-    const o4 = '|o(im|r([abdr]|cc))|psh[su]w?|pul[su]w?|ro[lr][abdw]?|rt[is]';
-    const o5 = '|sbc[abdr]|sexw?|st([abefdwxysuq]|bt)|sub[abdr]|swi[23]?|sync|t(fm|fr|im|st[abdefw]?)';
-    this.opcodeRegExp = new RegExp('^(' + o1 + o2 + o3 + o4 + o5 + ')$', 'i');
+    if (!AssemblyLine.constantRegExp) {
+      AssemblyLine.constantRegExp = new RegExp(/equ|set/i);
+    }
 
-    const p1 = '([.](4byte|asci[isz]|area|blkb|byte|d[bsw]|globl|module|quad|rs|str[sz]?|word))|([*]?pragma(push|pop)?)|align';
-    const p2 = '|e(lse|mod|nd([cms]|sect(ion)?|struct)?|qu|rror|xport|xtdep|xtern(al)?)|fc[bcns]|fdb|f(ill|qb)';
-    const p3 = '|if(def|eq|g[et]|l[et]|ndef|ne|pragma)|import|include(bin)?|m(acro|od)|nam|o(rg|s9)|pragma|rm[bdq]|set(dp)?';
-    const p4 = "|struct|use|warning|zm[bdq]";
-    this.pseudoRegExp = new RegExp('^(' + p1 + p2 + p3 + p4 + ')$', 'i');
+    if (!AssemblyLine.opcodeRegExp) {
+      const ob = 'c[cs]|eq|g[et]|h[is]|l[eost]|mi|ne|pl|r[an]|sr|v[cs]';
+      const o1 = 'a(bx|dc[abdr]|dd[abdefrw]|im|nd([abdr]|cc)|s[lr][abd]?)|b(' + ob + '|i?and|i?eor|i?or|it([abd]|md))';
+      const o2 = '|clr[abdefw]?|cmp[abefdwxyrsu]|com[abdefw]?|cwia|daa|dec[abdefw]?|div[dq]|e(im|or[abdr]|xg)|inc[abdefw]?';
+      const o3 = '|j(mp|sr)|lb(' + ob + ')|ld([abdrfwxyusuq]|bt|md)|lea[xysu]|ls[lr][abdw]?|muld?|neg[abd]?|nop';
+      const o4 = '|o(im|r([abdr]|cc))|psh[su]w?|pul[su]w?|ro[lr][abdw]?|rt[is]';
+      const o5 = '|sbc[abdr]|sexw?|st([abefdwxysuq]|bt)|sub[abdr]|swi[23]?|sync|t(fm|fr|im|st[abdefw]?)';
+      AssemblyLine.opcodeRegExp = new RegExp('^(' + o1 + o2 + o3 + o4 + o5 + ')$', 'i');
+    }
+
+    if (!AssemblyLine.pseudoRegExp) {
+      const p1 = '([.](4byte|asci[isz]|area|blkb|byte|d[bsw]|globl|module|quad|rs|str[sz]?|word))|([*]?pragma(push|pop)?)|align';
+      const p2 = '|e(lse|mod|nd([cms]|sect(ion)?|struct)?|qu|rror|xport|xtdep|xtern(al)?)|fc[bcns]|fdb|f(ill|qb)';
+      const p3 = '|if(def|eq|g[et]|l[et]|ndef|ne|pragma)|import|include(bin)?|m(acro|od)|nam|o(rg|s9)|pragma|rm[bdq]|set(dp)?';
+      const p4 = "|struct|use|warning|zm[bdq]";
+      AssemblyLine.pseudoRegExp = new RegExp('^(' + p1 + p2 + p3 + p4 + ')$', 'i');
+    }
+
+    if(!AssemblyLine.storageRegExp) {
+      const s1 = '[.](4byte|asci[isz]|blkb|byte|d[bsw]|globl|quad|rs|str[sz]?|word)|f[dq]b|fc[bcns]|import|export|[zr]m[dbq]';
+      const s2 = '|includebin|fill';
+      AssemblyLine.storageRegExp = new RegExp('^(' + s1 + s2 + ')$', 'i');
+    }
   }
 
   public parse(state: ParserState): ParserState {
@@ -124,11 +140,11 @@ export class AssemblyLine {
 
   private updateLabelTokenFromOpcode(labelToken: AssemblyToken, text: string) {
     if (labelToken) {
-      if (text.match(/equ|set/i)) { // constant
+      if (AssemblyLine.constantRegExp.test(text)) {
         labelToken.tokenType = 'variable';
         labelToken.tokenModifiers = ['readonly', 'definition'];
         labelToken.kind = CompletionItemKind.Constant;
-      } else if (text.match(/f[dq]b|fc[bcns]|[zr]m[dbq]|includebin|fill/i)) { // storage
+      } else if (AssemblyLine.storageRegExp.test(text)) {
         labelToken.tokenType = 'variable';
         labelToken.tokenModifiers = ['definition'];
         labelToken.kind = CompletionItemKind.Variable;
@@ -214,7 +230,7 @@ export class AssemblyLine {
       // Create and add token
       let token = null;
 
-      if (this.opcodeRegExp.test(text) || this.pseudoRegExp.test(text)) {
+      if (AssemblyLine.opcodeRegExp.test(text) || AssemblyLine.pseudoRegExp.test(text)) {
         token = new AssemblyToken(text, range, this.lineRange, CompletionItemKind.Keyword, 'keyword');
       } else {
         token = new AssemblyToken(text, range, this.lineRange, CompletionItemKind.Method, 'macro'); 
@@ -341,29 +357,4 @@ export class AssemblyLine {
     }
     return tokens;
   }
-
-  public isMacroDeclaration(): boolean {
-    return this.label && this.opcode && this.opcode.toUpperCase() === 'MACRO';
-  }
-
-  public isStructDeclaration(): boolean {
-    return this.label && this.opcode && this.opcode.toUpperCase() === 'STRUCT';
-  }
-
-  public isStorageDefinition(): boolean {
-    return this.label && this.opcode && (this.opcode.match(/f[cdq]b|fc[cns]|[zr]m[dbq]|includebin|fill/i) !== null);
-  }
-
-  public isConstantDefinition(): boolean {
-    return this.label && this.opcode && (this.opcode.match(/equ|set/i) !== null);
-  }
-
-  public isFileReference(): boolean {
-    return this.opcode && (this.opcode.match(/use|include/i) !== null);
-  }
-
-  public isLocalSymbol(): boolean {
-    return this.label && (this.label.match(/.*[@$?].*/).length > 0);
-  }
-
 }
