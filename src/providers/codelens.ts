@@ -30,15 +30,19 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
         if (!token.isCancellationRequested) {
           const lenses = new Array<vscode.CodeLens>();
           symbolManager.findSymbolsInDocument(document.uri).forEach(symbol => {
-            const referenceCount = symbol.token.children.length;
+            let references = symbol.children;
+            if (symbol.text.match(/.*[@$?].*/)) {
+              // Local symbol, filter references to this block
+              references = references.filter(r => r.blockNumber == symbol.blockNumber);
+            }
             const command: vscode.Command = {
               command: 'editor.action.showReferences',
-              title: `${referenceCount} reference${referenceCount !== 1 ? 's' : ''}`,
-              arguments: [document.uri, symbol.token.range.start, symbol.token.children.map(r => new vscode.Location(r.uri, r.range))],
+              title: `${references.length} reference${references.length !== 1 ? 's' : ''}`,
+              arguments: [document.uri, symbol.range.start, references.map(r => new vscode.Location(r.uri, r.range))],
             };
             lenses.push({
               command,
-              range: symbol.token.range,
+              range: symbol.range,
               isResolved: true,
             });
           });

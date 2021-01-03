@@ -34,7 +34,7 @@ export class AssemblyDocument {
           token.uri = uri;
           this.definitions.push(token);
           if (processReferences) {
-            const unknownReferences = this.unknownReferences.filter(r => r.text == token.text);
+            const unknownReferences = this.unknownReferences.filter(r => r.text == token.text && r.blockNumber == token.blockNumber);
             unknownReferences.forEach(r => {
               r.parent = token;
               token.children.push(r);
@@ -45,7 +45,7 @@ export class AssemblyDocument {
             });
           }
           this.symbolManager.addDefinition(new AssemblySymbol(token.text, token.range, line.comment, token.kind, line.lineRange, uri, token.value));
-          this.symbolManager.addToken(token, uri);
+          this.symbolManager.addToken(token);
           break;
         case CompletionItemKind.File:
           const filename = path.join(path.dirname(this.uri.fsPath), token.text.trim());
@@ -58,7 +58,7 @@ export class AssemblyDocument {
           if (processReferences) {
             if (Registers.findIndex(r => r === token.text.toLocaleLowerCase()) < 0) {
               token.uri = uri;
-              const definition = this.definitions.find(d => d.text === token.text);
+              const definition = this.definitions.find(d => d.text === token.text && d.blockNumber == token.blockNumber);
               if (definition) {
                 definition.children.push(token);
                 token.parent = definition;

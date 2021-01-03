@@ -18,6 +18,7 @@ export class AssemblyToken {
     public tokenModifiers: string[] = [],
     public value: string = '',
   ) {
+    this.blockNumber = 0;
     this.children = [];
   }
 }

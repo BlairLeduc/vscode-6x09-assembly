@@ -203,7 +203,7 @@ export class AssemblyLine {
       this.labelRange = range;
 
       // Create and add token
-      const isLocal = text.match(/.*[@$?].*/);
+      const isLocal = this.isLocal(text);
       const token = new AssemblyToken(text, range, this.lineRange,
         isLocal ? CompletionItemKind.Function : CompletionItemKind.Class,
         isLocal ? 'function' : 'class',
@@ -214,6 +214,10 @@ export class AssemblyLine {
       return [pos, token, null];
     }
     return [0, null, null];
+  }
+
+  private isLocal(text: string) {
+    return text.match(/.*[@$?].*/);
   }
 
   private fillOpcode(text: string, last: [number, AssemblyToken, AssemblyToken] = [0, null, null]): [number, AssemblyToken, AssemblyToken] {
@@ -280,6 +284,9 @@ export class AssemblyLine {
                         : operandToken.type === 'number' ? CompletionItemKind.Value
                         : CompletionItemKind.Operator;
           const token = new AssemblyToken(operandToken.name, refRange, this.lineRange, kind, operandToken.type);
+          if (this.isLocal(token.text)) {
+            token.blockNumber = this.blockNumber;
+          }
 
           if (kind === CompletionItemKind.Reference && Registers.findIndex(r => r === operandToken.name.toLocaleLowerCase()) < 0) {
             this.references.push({
