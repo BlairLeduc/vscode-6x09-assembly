@@ -7,6 +7,7 @@ export class AssemblyToken {
   public parent: AssemblyToken;
   public children: AssemblyToken[];
   public documentation: string;
+  public uri: vscode.Uri;
 
   constructor(
     public text: string,

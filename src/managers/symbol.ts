@@ -2,9 +2,14 @@ import { CompletionItemKind, Disposable, Uri } from 'vscode';
 import { AssemblySymbol, AssemblyToken } from '../common';
 
 
+class AssemblyTokenSymbol {
+  constructor(public token: AssemblyToken, public uri: Uri) {}
+}
+
 export class SymbolManager implements Disposable {
   public definitions = new Array<AssemblySymbol>();
   public references = new Array<AssemblySymbol>();
+  public tokens = new Array<AssemblyTokenSymbol>();
 
   public dispose(): void {
     //TODO
@@ -13,6 +18,7 @@ export class SymbolManager implements Disposable {
   public clearDocument(uri: Uri): void {
     this.definitions = this.definitions.filter(d => d.uri !== uri);
     this.references = this.references.filter(r => r.uri !== uri);
+    this.tokens = this.tokens.filter(t => t.uri !== uri);
   }
 
   public addDefinition(symbol: AssemblySymbol): AssemblySymbol {
@@ -20,11 +26,8 @@ export class SymbolManager implements Disposable {
     return symbol;
   }
 
-  public addDefinitionFromToken(token: AssemblyToken, documentation: string, uri: Uri): void {
-    this.definitions.push(new AssemblySymbol(token.text, token.range, documentation, token.kind, token.lineRange, uri, token.value));
-    token.children.forEach(ref => {
-      this.references.push(new AssemblySymbol(ref.text, ref.range, documentation, ref.kind, ref.lineRange, uri, token.value))
-    });
+  public addToken(token: AssemblyToken, uri: Uri): void {
+    this.tokens.push(new AssemblyTokenSymbol(token, uri));
   }
 
   public addReference(symbol: AssemblySymbol): AssemblySymbol {
@@ -32,6 +35,9 @@ export class SymbolManager implements Disposable {
     return symbol;
   }
 
+  public findLabelSymbol(startsWith: string): AssemblyTokenSymbol[] {
+    return this.tokens.filter(t => (t.token.kind === CompletionItemKind.Class || t.token.kind === CompletionItemKind.Function) && t.token.text.startsWith(startsWith));
+  }
 
   public findLabel(startsWith: string): AssemblySymbol[] {
     return this.definitions.filter(d => (d.kind === CompletionItemKind.Class ||  d.kind === CompletionItemKind.Function) && d.name.startsWith(startsWith));
@@ -51,6 +57,10 @@ export class SymbolManager implements Disposable {
 
   public findDefinitionsInDocument(uri: Uri): AssemblySymbol[] {
     return this.definitions.filter(d => d.uri === uri);
+  }
+
+  public findSymbolsInDocument(uri: Uri): AssemblyTokenSymbol[] {
+    return this.tokens.filter(t => t.uri === uri);
   }
 
   public findReferencesByName(name: string, includeLabel: boolean): AssemblySymbol[] {
