@@ -13,7 +13,7 @@ import { ReferenceProvider } from './providers/reference';
 import { RenameProvider } from './providers/rename';
 import { State } from './state';
 import { TaskProvider } from './providers/task';
-// import { DocumentSemanticTokensLegend, DocumentSemanticTokensProvider } from './providers/documentSemanticTokens';
+import { DocumentSemanticTokensLegend, DocumentSemanticTokensProvider } from './providers/documentSemanticTokens';
 
 const ASM6X09_LANGUAGE = 'asm6x09';
 const ASM6X09_CONFIG_SECTION = '6x09Assembly';
@@ -56,11 +56,11 @@ export function activate(context: vscode.ExtensionContext): void {
     new DocumentSymbolProvider(workspaceManager)
   ));
 
-  // disposables.push(vscode.languages.registerDocumentSemanticTokensProvider(
-  //   ASM6X09_MODE,
-  //   new DocumentSemanticTokensProvider(workspaceManager),
-  //   DocumentSemanticTokensLegend
-  // ));
+  disposables.push(vscode.languages.registerDocumentSemanticTokensProvider(
+    ASM6X09_MODE,
+    new DocumentSemanticTokensProvider(workspaceManager),
+    DocumentSemanticTokensLegend
+  ));
 
   disposables.push(vscode.languages.registerHoverProvider(
     ASM6X09_MODE,

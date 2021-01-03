@@ -5,8 +5,13 @@ module.exports = {
     rules: {
         "@typescript-eslint/no-unused-vars": ["error", {
             "vars": "all",
-            "args": "none",
+            "varsIgnorePattern": "^_",
+            "args": "all",
+            "argsIgnorePattern": "^_",
             "ignoreRestSiblings": false
-          }]
+        }],
+        "prefer-const": ["error", {
+            "destructuring": "all"
+        }]
     }
-}
+};

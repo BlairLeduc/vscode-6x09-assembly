@@ -1,13 +1,18 @@
 import { CancellationToken, CompletionItemKind, Position, Range, TextDocument, Uri } from 'vscode';
-import { AssemblyLine } from './assembly-line';
-import { AssemblySymbol } from '../common';
+import { AssemblyLine, ParserState } from './assembly-line';
+import { AssemblySymbol, AssemblyToken, Registers } from '../common';
 import * as path from 'path';
 import * as lineReader from 'line-reader';
 import * as fileUrl from 'file-url';
 import * as fs from 'fs';
 import { SymbolManager } from '../managers/symbol';
+import { Queue } from '../queue';
 
 export class AssemblyDocument {
+  private processDocumentsQueue: Queue<string> = new Queue<string>();
+  private definitions: AssemblyToken[] = new Array<AssemblyToken>();
+  private unknownReferences: AssemblyToken[] = new Array<AssemblyToken>();
+
   public uri: Uri;
   public lines: AssemblyLine[] = new Array<AssemblyLine>();
   public referencedDocuments: string[] = new Array<string>();
@@ -15,6 +20,55 @@ export class AssemblyDocument {
   constructor(private symbolManager: SymbolManager, document: TextDocument, range?: Range, cancelationToken?: CancellationToken) {
     this.uri = document.uri;
     this.parse(document, range, cancelationToken);
+  }
+
+  private processTokens(uri: Uri, line: AssemblyLine, processReferences = true): void {
+    line.tokens.forEach(token => {
+      switch(token.kind) {
+        case CompletionItemKind.Method:
+        case CompletionItemKind.Struct:
+        case CompletionItemKind.Constant:
+        case CompletionItemKind.Variable:
+        case CompletionItemKind.Class:
+        case CompletionItemKind.Function:
+          this.definitions.push(token);
+          if (processReferences) {
+            const unknownReferences = this.unknownReferences.filter(r => r.text == token.text);
+            unknownReferences.forEach(r => {
+              r.parent = token;
+              token.children.push(r);
+              const index = this.unknownReferences.indexOf(r);
+              if (index > -1) {
+                this.unknownReferences.splice(index, 1);
+              }
+            });
+          }
+          this.symbolManager.addDefinition(new AssemblySymbol(token.text, token.range, line.comment, token.kind, line.lineRange, uri, token.value));
+          break;
+        case CompletionItemKind.File:
+          const filename = path.join(path.dirname(this.uri.fsPath), token.text.trim());
+          if (this.referencedDocuments.indexOf(filename) < 0) {
+            this.referencedDocuments.push(filename);
+            this.processDocumentsQueue.enqueue(filename);
+          }
+          break;
+        case CompletionItemKind.Reference:
+          if (processReferences) {
+            if (Registers.findIndex(r => r === token.text.toLocaleLowerCase()) < 0) {
+              const definition = this.definitions.find(d => d.text === token.text);
+              if (definition) {
+                definition.children.push(token);
+                token.parent = definition;
+              } else {
+                this.unknownReferences.push(token);
+              }
+            }
+
+            this.symbolManager.addReference(new AssemblySymbol(token.text, token.range, '', token.kind, line.lineRange, uri));
+          }
+          break;
+      }
+    });
   }
 
   private parse(document: TextDocument, range?: Range, cancelationToken?: CancellationToken): void {
@@ -27,6 +81,7 @@ export class AssemblyDocument {
     }
 
     this.symbolManager.clearDocument(document.uri);
+    let state: ParserState;
     for (let i = range.start.line; i <= range.end.line; i++) {
       if (cancelationToken && cancelationToken.isCancellationRequested) {
         return;
@@ -34,42 +89,30 @@ export class AssemblyDocument {
 
       const line = document.lineAt(i);
       const asmLine = new AssemblyLine(line.text, line.lineNumber);
+      state = asmLine.parse(state);
       this.lines.push(asmLine);
-      if (this.isMacroDefinition(asmLine)) {
-        this.symbolManager.addDefinition(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Function, asmLine.lineRange, this.uri));
-      } else if (this.isStructDefintion(asmLine)) {
-        this.symbolManager.addDefinition(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Struct, asmLine.lineRange, this.uri));
-      } else if (this.isStorageDefinition(asmLine)) {
-        this.symbolManager.addDefinition(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Variable, asmLine.lineRange, this.uri));
-      } else if (this.isConstantDefinition(asmLine)) {
-        this.symbolManager.addDefinition(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Constant, asmLine.lineRange, this.uri));
-      } else if (this.isFileReference(asmLine)) {
-        this.referencedDocuments.push(path.join(path.dirname(this.uri.fsPath), asmLine.operand.trim()));
-      } else if (asmLine.label) {
-        this.symbolManager.addDefinition(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Method, asmLine.lineRange, this.uri));
-      }
-      if (asmLine.references.length > 0) {
-        asmLine.references.forEach(reference => 
-          this.symbolManager.addReference(new AssemblySymbol(reference.name, reference.range, '', CompletionItemKind.Reference, asmLine.lineRange, this.uri))
-        );
-      }
+      this.processTokens(this.uri, asmLine);
     }
 
+    // Post process references
+    
+
     // Post process referenced documents
-    this.referencedDocuments.forEach(filePath => {
+    let filePath = '';
+    while(filePath = this.processDocumentsQueue.dequeue()) {
       try {
-        // Only process files that exist and are files
+        // Only process files that exist and are files and we have not seen before
         const stats = fs.statSync(filePath);
         if (stats && stats.isFile()) {
           fs.accessSync(filePath, fs.constants.R_OK);
           const uri = Uri.parse(fileUrl(filePath, {resolve: false}));
           this.symbolManager.clearDocument(uri);
           let lineNumber = 0;
+          let state:ParserState;
           lineReader.eachLine(filePath, line => {
             const asmLine = new AssemblyLine(line, lineNumber++);
-            if (asmLine.label) {
-              this.symbolManager.addDefinition(new AssemblySymbol(asmLine.label, asmLine.labelRange, asmLine.comment, CompletionItemKind.Method, asmLine.lineRange, uri));
-            }
+            state = asmLine.parse(state);
+            this.processTokens(uri, asmLine, false); // ignore references
           });
         }
       } catch(e) {
@@ -80,36 +123,6 @@ export class AssemblyDocument {
           console.log(JSON.stringify(e));
         }
       }
-    });
-
-    // Post process macros, find macros
-    this.lines.forEach(line => {
-      if (line.opcode) {
-        const macro = this.symbolManager.getMacro(line.opcode);
-        if (macro) {
-          this.symbolManager.addReference(new AssemblySymbol(line.opcode, line.opcodeRange, macro.documentation, macro.kind, line.lineRange, this.uri));
-        }
-      }
-    });
-  }
-
-  private isMacroDefinition(line: AssemblyLine): boolean {
-    return line.label && line.opcode && line.opcode.toUpperCase() === 'MACRO';
-  }
-
-  private isStructDefintion(line: AssemblyLine): boolean {
-    return line.label && line.opcode && line.opcode.toUpperCase() === 'STRUCT';
-  }
-
-  private isStorageDefinition(line: AssemblyLine): boolean {
-    return line.label && line.opcode && (line.opcode.match(/f[cdq]b|fc[cns]|[zr]m[dbq]|includebin|fill/i) !== null);
-  }
-
-  private isConstantDefinition(line: AssemblyLine): boolean {
-    return line.label && line.opcode && (line.opcode.match(/equ|set/i) !== null);
-  }
-
-  private isFileReference(line: AssemblyLine): boolean {
-    return line.opcode && (line.opcode.match(/use|include/i) !== null);
+    }
   }
 }

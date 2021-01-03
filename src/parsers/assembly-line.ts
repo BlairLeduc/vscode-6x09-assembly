@@ -1,17 +1,31 @@
-import { Position, Range } from 'vscode';
+import { CompletionItemKind, Position, Range } from 'vscode';
+import { AssemblyToken, Registers } from '../common';
 
-const registers = ['a', 'b', 'd', 'e', 'f', 'x', 'y', 'w', 'q', 'u', 's', 'v', 'pc', 'dp', 'cc', 'pcr'];
-
-interface FoundSymbol {
+interface FoundToken {
+  type: string;
   name: string;
   start: number;
 }
 
-export class SymbolReference {
+export interface SymbolReference {
   name: string;
   range: Range;
+  token: AssemblyToken;
 }
+
+export interface ParserState {
+  lonelyLabels: AssemblyToken[];
+  blockNumber: number;
+}
+
 export class AssemblyLine {
+  private opcodeRegExp: RegExp;
+  private pseudoRegExp: RegExp;
+
+  public lineNumber = 0;
+  public lineRange: Range;
+  public blockNumber = 0;
+
   public label = '';
   public labelRange: Range;
   public opcode = '';
@@ -19,70 +33,127 @@ export class AssemblyLine {
   public operand = '';
   public operandRange: Range;
   public comment = '';
-  public commentRange: Range;
+
+  public tokens: AssemblyToken[];
   public references: SymbolReference[];
-  public startOfLine: Position;
-  public endOfLine: Position;
-  public lineRange: Range;
-  public lineNumber = 0;
 
   constructor(private rawLine: string, rawLineNumber?: number) {
     if (rawLineNumber) {
       this.lineNumber = rawLineNumber;
     }
-    this.startOfLine = this.getPositon(0);
-    this.endOfLine = this.getPositon(this.rawLine.length);
     this.lineRange = this.getRange(0, this.rawLine.length);
+
     this.labelRange = this.getRange(0, 0);
     this.opcodeRange = this.getRange(0, 0);
     this.operandRange = this.getRange(0, 0);
-    this.commentRange = this.getRange(0, 0);
+
+    this.tokens = [];
     this.references = [];
-    this.parse();
+
+    const ob = 'c[cs]|eq|g[et]|h[is]|l[eost]|mi|ne|pl|r[an]|sr|v[cs]';
+    const o1 = 'a(bx|dc[abdr]|dd[abdefrw]|im|nd([abdr]|cc)|s[lr][abd]?)|b(' + ob + '|i?and|i?eor|i?or|it([abd]|md))';
+    const o2 = '|clr[abdefw]?|cmp[abefdwxyrsu]|com[abdefw]?|cwia|daa|dec[abdefw]?|div[dq]|e(im|or[abdr]|xg)|inc[abdefw]?';
+    const o3 = '|j(mp|sr)|lb(' + ob + ')|ld([abdrfwxyusuq]|bt|md)|lea[xysu]|ls[lr][abdw]?|muld?|neg[abd]?|nop';
+    const o4 = '|o(im|r([abdr]|cc))|psh[su]w?|pul[su]w?|ro[lr][abdw]?|rt[is]';
+    const o5 = '|sbc[abdr]|sexw?|st([abefdwxysuq]|bt)|sub[abdr]|swi[23]?|sync|t(fm|fr|im|st[abdefw]?)';
+    this.opcodeRegExp = new RegExp('^(' + o1 + o2 + o3 + o4 + o5 + ')$', 'i');
+
+    const p1 = '([.](4byte|asci[isz]|area|blkb|byte|d[bsw]|globl|module|quad|rs|str[sz]?|word))|([*]?pragma(push|pop)?)|align';
+    const p2 = '|e(lse|mod|nd([cms]|sect(ion)?|struct)?|qu|rror|xport|xtdep|xtern(al)?)|fc[bcns]|fdb|f(ill|qb)';
+    const p3 = '|if(def|eq|g[et]|l[et]|ndef|ne|pragma)|import|include(bin)?|m(acro|od)|nam|o(rg|s9)|pragma|rm[bdq]|set(dp)?';
+    const p4 = "|struct|use|warning|zm[bdq]";
+    this.pseudoRegExp = new RegExp('^(' + p1 + p2 + p3 + p4 + ')$', 'i');
   }
 
-  private parse(): void {
+  public parse(state: ParserState): ParserState {
+    if (!state) {
+      state = { lonelyLabels: [], blockNumber: 1 } as ParserState;
+    }
+
+    if (this.rawLine.trim() === '') {
+      state.blockNumber++;
+      return state;
+    }
+
+    this.blockNumber = state.blockNumber;
+
     let match = this.matchLineComment(this.rawLine);
     if (match !== null) {
       this.fillComment(match[1]);
-      return;
+      return state;
     }
     match = this.matchSelectPseudoOps(this.rawLine);
     if (match) {
       this.fillOperand(match[2], this.fillOpcode(match[1]));
-      return;
+      return state;
     }
     match = this.matchLabelAndComment(this.rawLine);
     if (match) {
-      this.fillComment(match[2], this.fillLabel(match[1]));
-      return;
+      const [_, labelToken] = this.fillComment(match[2], this.fillLabel(match[1], state.blockNumber));
+      if (labelToken) {
+        state.lonelyLabels.push(labelToken);
+      }
+      return state;
     }
     match = this.matchLabelOpcodeAndComment(this.rawLine);
     if (match) {
-      this.fillComment(match[3], this.fillOpcode(match[2], this.fillLabel(match[1])));
-      return;
+      const [_1, _2, opCodeToken] = this.fillComment(match[3], this.fillOpcode(match[2], this.fillLabel(match[1], state.blockNumber)));
+      this.updateLonelyLabelsFromOpcode(state, opCodeToken);
+      return state;
     }
     match = this.matchLabelOpcodeOperandAndComment(this.rawLine);
     if (match) {
-      this.fillComment(match[4], this.fillOperand(match[3], this.fillOpcode(match[2], this.fillLabel(match[1]))));
-      return;
+      const [_, labelToken, opCodeToken] = this.fillComment(match[4], this.fillOperand(match[3], this.fillOpcode(match[2], this.fillLabel(match[1], state.blockNumber))));
+      if (labelToken && !opCodeToken) {
+        state.lonelyLabels.push(labelToken);
+      }
+      if (opCodeToken) {
+        this.updateLonelyLabelsFromOpcode(state, opCodeToken);
+      }
+      return state;
     }
+    return state;
   }
 
-  private getPositon(index: number): Position {
-    return new Position(this.lineNumber, index);
+  private updateLonelyLabelsFromOpcode(state: ParserState, opCodeToken: AssemblyToken) {
+    state.lonelyLabels.forEach(label => {
+      this.updateLabelTokenFromOpcode(label, opCodeToken.text);
+    });
+    state.lonelyLabels = [];
+  }
+
+  private updateLabelTokenFromOpcode(labelToken: AssemblyToken, text: string) {
+    if (labelToken) {
+      if (text.match(/equ|set/i)) { // constant
+        labelToken.tokenType = 'variable';
+        labelToken.tokenModifiers = ['readonly', 'definition'];
+        labelToken.kind = CompletionItemKind.Constant;
+      } else if (text.match(/f[dq]b|fc[bcns]|[zr]m[dbq]|includebin|fill/i)) { // storage
+        labelToken.tokenType = 'variable';
+        labelToken.tokenModifiers = ['definition'];
+        labelToken.kind = CompletionItemKind.Variable;
+      } else if (text.toLowerCase() === 'macro') {
+        labelToken.tokenType = 'macro';
+        labelToken.tokenModifiers = ['declaration'];
+        labelToken.kind = CompletionItemKind.Method;
+      } else if (text.toLowerCase() === 'struct') {
+        labelToken.tokenType = 'struct';
+        labelToken.tokenModifiers = ['declaration'];
+        labelToken.kind = CompletionItemKind.Struct;
+      }
+    }
   }
 
   private getRange(from: number, to: number): Range {
     return new Range(new Position(this.lineNumber, from), new Position(this.lineNumber, to));
   }
 
-  private matchSymbol(text: string): RegExpMatchArray {
-    return text.match(/([a-z._][a-z0-9.$_@?]*)/i);
-  }
-
   private matchLineComment(text: string): RegExpMatchArray {
-    const match = text.match(/(?:^\s*)[*](?:\s|[*])(.*)/);
+    let match = text.match(/(?:^\s*)[*](?:\s|[*])(.*)/);
+    if (match) {
+      return match;
+    }
+    match = text.match(/^[*]\s?(.*)/)
     if (match) {
       return match;
     }
@@ -105,65 +176,138 @@ export class AssemblyLine {
     return text.match(/^([^ \t*;]*)(?:[ \t]+([^ \t]+))?(?:[ \t]+((?:"[^"]*"|\/[^\/]*\/|'[^']*'|[^ \t]*)))?(?:[ \t]+(.*))?/i);
   }
 
-  private fillLabel(text: string, pos = 0): number {
+  private fillLabel(text: string, blockNumber: number): [number, AssemblyToken, AssemblyToken] {
     if (text && text.length > 0) {
+      const start = this.rawLine.indexOf(text, 0);
+      const pos = start + text.length;
+      const range = this.getRange(start, pos);
+
+      // Populate variables
       this.label = text;
-      const start = this.rawLine.indexOf(this.label, pos);
-      pos = start + this.label.length;
-      this.labelRange = this.getRange(start, pos);
+      this.labelRange = range;
+
+      // Create and add token
+      const isLocal = text.match(/.*[@$?].*/);
+      const token = new AssemblyToken(text, range, this.lineRange,
+        isLocal ? CompletionItemKind.Function : CompletionItemKind.Class,
+        isLocal ? 'function' : 'class',
+        [ 'definition' ]);
+      token.blockNumber = isLocal ? blockNumber : 0;
+
+      this.tokens.push(token);
+      return [pos, token, null];
     }
-    return pos;
+    return [0, null, null];
   }
 
-  private fillOpcode(text: string, pos = 0): number {
+  private fillOpcode(text: string, last: [number, AssemblyToken, AssemblyToken] = [0, null, null]): [number, AssemblyToken, AssemblyToken] {
     if (text && text.length > 0) {
+      let [pos, labelToken] = last;
+      const start = this.rawLine.indexOf(text, pos);
+      pos = start + text.length;
+      const range = this.getRange(start, pos);
+
+      // Populate variables
       this.opcode = text;
-      const start = this.rawLine.indexOf(this.opcode, pos);
-      pos = start + this.opcode.length;
-      this.opcodeRange = this.getRange(start, pos);
+      this.opcodeRange = range;
+
+      // Create and add token
+      let token = null;
+
+      if (this.opcodeRegExp.test(text) || this.pseudoRegExp.test(text)) {
+        token = new AssemblyToken(text, range, this.lineRange, CompletionItemKind.Keyword, 'keyword');
+      } else {
+        token = new AssemblyToken(text, range, this.lineRange, CompletionItemKind.Method, 'macro'); 
+      }
+
+      this.tokens.push(token);
+      
+      // Update label token (if there is one) based on the opcode
+      this.updateLabelTokenFromOpcode(labelToken, text);
+
+      return [pos, labelToken, token];
     }
-    return pos;
+    return last;
   }
 
-  private fillOperand(text: string, pos = 0): number {
+  private fillOperand(text: string, last: [number, AssemblyToken, AssemblyToken] = [0, null, null]): [number, AssemblyToken, AssemblyToken] {
     if (text && text.length > 0) {
+      let [pos, labelToken, opCodeToken] = last;
+
+      const start = this.rawLine.indexOf(text, pos);
+      pos = start + text.length;
+      const range = this.getRange(start, pos);
+
+      // Populate variables
       this.operand = text;
-      const start = this.rawLine.indexOf(this.operand, pos);
-      pos = start + this.operand.length;
-      this.operandRange = this.getRange(start, pos);
-      // Reference?
-      if (!/"[^"]*"|\/[^/]*\//.exec(this.operand)) {
-        // not a string
-        this.getSymbolsFromExpression(this.operand).forEach(foundSymbol => {
-          const refStart = start + foundSymbol.start;
-          this.references.push({
-            name: foundSymbol.name,
-            range: this.getRange(refStart, refStart + foundSymbol.name.length)
-          } as SymbolReference);
-        });
+      this.operandRange = range;
+
+      // Create and add tokens
+      if (opCodeToken && opCodeToken.text.match(/use|include/i)) {
+        // File references
+        this.tokens.push(new AssemblyToken(text, range, this.lineRange, CompletionItemKind.File, 'string'));
+      } else if (text.match(/"[^"]*"|'[^']*'|\/[^/]*\//)) { // Is this a string?
+        // String
+        this.tokens.push(new AssemblyToken(text, range, this.lineRange, CompletionItemKind.Value, 'string'));
+      } else if (opCodeToken && opCodeToken.text.match(/error|warning|fail|opt|nam|ttl|pag|spc/i)) {
+        // psuedo op with operand
+        this.tokens.push(new AssemblyToken(text, range, this.lineRange, CompletionItemKind.Value, 'string'));
+      } else {
+        if (labelToken && labelToken.kind === CompletionItemKind.Constant) {
+          labelToken.value = text;
+        }
+
+        this.getTokensFromExpression(text).forEach(operandToken => {
+          const refStart = start + operandToken.start;
+          const refRange = this.getRange(refStart, refStart + operandToken.name.length);
+          const kind = operandToken.type === 'variable' ? CompletionItemKind.Reference 
+                        : operandToken.type === 'number' ? CompletionItemKind.Value
+                        : CompletionItemKind.Operator;
+          const token = new AssemblyToken(operandToken.name, refRange, this.lineRange, kind, operandToken.type);
+
+          if (kind === CompletionItemKind.Reference && Registers.findIndex(r => r === operandToken.name.toLocaleLowerCase()) < 0) {
+            this.references.push({
+              name: operandToken.name,
+              range: refRange,
+              token: token,
+            } as SymbolReference);
+          }
+
+          this.tokens.push(token);
+        });        
       }
+      return [pos, labelToken, opCodeToken];
     }
-    return pos;
+    return last;
   }
 
-  private fillComment(text: string, pos = 0): number {
+  private fillComment(text: string, last: [number, AssemblyToken, AssemblyToken] = [0, null, null]): [number, AssemblyToken, AssemblyToken] {
     if (text && text.length > 0) {
-      this.comment = text.trim();
-      const start = this.rawLine.indexOf(this.comment, pos);
-      pos = start + this.comment.length;
-      this.commentRange = this.getRange(start, pos);
+      let [pos, labelToken] = last;
+      text = text.trim();
+      const start = this.rawLine.indexOf(text, pos);
+      pos = start + text.length;
+      const range = this.getRange(start, pos);
+
+      // Populate variables
+      this.comment = text;
+
+      // Create and add token
+      this.tokens.push(new AssemblyToken(text, range, this.lineRange, CompletionItemKind.Text, 'comment'));
+      if (labelToken) {
+        labelToken.documentation = text;
+      }
     }
-    return pos;
+    return last;
   }
 
-  private getSymbolsFromExpression(expression: string): FoundSymbol[] {
-    const symbols: FoundSymbol[] = [];
-    const findMatch = (s: string): [RegExpMatchArray, boolean] => {
-      let isSymbol = false;
+
+
+  private getTokensFromExpression(expression: string): FoundToken[] {
+    const tokens: FoundToken[] = [];
+    const findMatch = (s: string): [RegExpMatchArray, string] => {
       let match = s.match(/^[._a-z][a-z0-9.$_@?]*/i); // symbol
-      if (match) {
-        isSymbol = true;
-      }
+      const tokenType = match ? 'variable' : 'number';
       if (!match) {
         match = s.match(/^('.)|("..)/); // character constant
       }
@@ -179,23 +323,47 @@ export class AssemblyLine {
       if (!match) {
         match = s.match(/^[0-9]+&?/i); // decimal number
       }
-      return [match, isSymbol];
+      return [match, tokenType];
     };
 
     let pos = 0;
     while (expression.length > 0) {
       const match = findMatch(expression);
       if (match[0]) {
-        if (match[1] && registers.findIndex(r => r === match[0][0].toString().toLocaleLowerCase()) < 0) {
-          symbols.push({ name: match[0][0].toString(), start: pos } as FoundSymbol);
-        }
+        tokens.push({ type: match[1], name: match[0][0].toString(), start: pos } as FoundToken);
         expression = expression.substring(match[0][0].length);
         pos += match[0][0].length;
       } else {
+        tokens.push({ type: 'operator', name: expression[0], start: pos } as FoundToken);
         expression = expression.substr(1);
         pos += 1;
       }
     }
-    return symbols;
+    return tokens;
   }
+
+  public isMacroDeclaration(): boolean {
+    return this.label && this.opcode && this.opcode.toUpperCase() === 'MACRO';
+  }
+
+  public isStructDeclaration(): boolean {
+    return this.label && this.opcode && this.opcode.toUpperCase() === 'STRUCT';
+  }
+
+  public isStorageDefinition(): boolean {
+    return this.label && this.opcode && (this.opcode.match(/f[cdq]b|fc[cns]|[zr]m[dbq]|includebin|fill/i) !== null);
+  }
+
+  public isConstantDefinition(): boolean {
+    return this.label && this.opcode && (this.opcode.match(/equ|set/i) !== null);
+  }
+
+  public isFileReference(): boolean {
+    return this.opcode && (this.opcode.match(/use|include/i) !== null);
+  }
+
+  public isLocalSymbol(): boolean {
+    return this.label && (this.label.match(/.*[@$?].*/).length > 0);
+  }
+
 }

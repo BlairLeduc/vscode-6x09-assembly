@@ -57,7 +57,11 @@ export class HoverProvider implements vscode.HoverProvider {
                 if (references.length > 0) {
                   const reference = references[0]; // more than one, pick first
                   const help = new vscode.MarkdownString();
-                  help.appendCodeblock(`(${vscode.CompletionItemKind[reference.kind]}) ${reference.name}`);
+                  let summary = `(${vscode.CompletionItemKind[reference.kind]}) ${reference.name}`;
+                  if (reference.kind==vscode.CompletionItemKind.Constant) {
+                    summary += ` [${reference.value}]`;
+                  }
+                  help.appendCodeblock(summary);
                   help.appendMarkdown(`---\n${reference.documentation}`);
                   resolve(new vscode.Hover(help, range));
                   return;

@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { WorkspaceManager } from '../managers/workspace';
 
-const tokenTypes = ['function', 'struct', 'variable', 'method', 'macro', 'string', 'comment', 'keyword'];
-const tokenModifiers = ['declaration', 'readonly'];
+const tokenTypes = [ 'class', 'function', 'struct', 'variable', 'label', 'macro', 'string', 'comment', 'keyword', 'number', 'operator'];
+const tokenModifiers = ['definition', 'declaration', 'readonly'];
 export const DocumentSemanticTokensLegend = new vscode.SemanticTokensLegend(tokenTypes, tokenModifiers);
 
 export class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensProvider {
@@ -10,16 +10,24 @@ export class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTo
   constructor(private workspaceManager: WorkspaceManager) {
   }
   
-  provideDocumentSemanticTokens(document: vscode.TextDocument): vscode.ProviderResult<vscode.SemanticTokens> {
-    // analyze the document and return semantic tokens
+  provideDocumentSemanticTokens(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.ProviderResult<vscode.SemanticTokens> {
+    return new Promise(resolve => {
+      if (!token.isCancellationRequested) {
+        const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
+        const tokensBuilder = new vscode.SemanticTokensBuilder(DocumentSemanticTokensLegend);
 
-    const tokensBuilder = new vscode.SemanticTokensBuilder(DocumentSemanticTokensLegend);
-    // on line 1, characters 1-5 are a class declaration
-    tokensBuilder.push(
-      new vscode.Range(new vscode.Position(1, 1), new vscode.Position(1, 5)),
-      'class',
-      ['declaration']
-    );
-    return tokensBuilder.build();
+        assemblyDocument.lines.forEach(asmLine => {
+          asmLine.tokens.forEach(token => {
+            tokensBuilder.push(
+              token.range,
+              token.parent ? token.parent.tokenType : token.tokenType,
+              token.parent && token.parent.tokenModifiers.indexOf('readonly') >= 0 ? [ 'readonly' ] : token.tokenModifiers
+            );
+          })
+        });
+
+        resolve(tokensBuilder.build());
+      }
+    });
   }
 }

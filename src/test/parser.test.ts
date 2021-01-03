@@ -52,53 +52,37 @@ suite('Parser Tests', () => {
   test('See comment line from start (asterisk)', () => {
     const text = '* This is a comment';
     const expected = 'This is a comment';
-    const expectedStart = 2;
-    const expectedEnd = expectedStart + expected.length;
 
     const line = new AssemblyLine(text);
 
     assert.strictEqual(line.comment, expected, 'Comment not captured correctly');
-    assert.strictEqual(line.commentRange.start.character, expectedStart, 'Comment Range start incorrect');
-    assert.strictEqual(line.commentRange.end.character, expectedEnd, 'Comment Range end incorrect');
   });
 
   test('See comment line from start (semicolon)', () => {
     const text = '; This is a comment';
     const expected = 'This is a comment';
-    const expectedStart = 2;
-    const expectedEnd = expectedStart + expected.length;
 
     const line = new AssemblyLine(text);
 
     assert.strictEqual(line.comment, expected, 'Comment not captured correctly');
-    assert.strictEqual(line.commentRange.start.character, expectedStart, 'Comment Range start incorrect');
-    assert.strictEqual(line.commentRange.end.character, expectedEnd, 'Comment Range end incorrect');
   });
 
   test('See comment line from anywhere (asterisk)', () => {
     const text = '\t\t* This is a comment';
     const expected = 'This is a comment';
-    const expectedStart = 4;
-    const expectedEnd = expectedStart + expected.length;
 
     const line = new AssemblyLine(text);
 
     assert.strictEqual(line.comment, expected, 'Comment not captured correctly');
-    assert.strictEqual(line.commentRange.start.character, expectedStart, 'Comment Range start incorrect');
-    assert.strictEqual(line.commentRange.end.character, expectedEnd, 'Comment Range end incorrect');
   });
 
   test('See comment line from anywhere (semicolon)', () => {
     const text = '        ; This is a comment';
     const expected = 'This is a comment';
-    const expectedStart = 10;
-    const expectedEnd = expectedStart + expected.length;
 
     const line = new AssemblyLine(text);
 
     assert.strictEqual(line.comment, expected, 'Comment not captured correctly');
-    assert.strictEqual(line.commentRange.start.character, expectedStart, 'Comment Range start incorrect');
-    assert.strictEqual(line.commentRange.end.character, expectedEnd, 'Comment Range end incorrect');
   });
 
   test('Find label with no label on line', () => {
@@ -337,8 +321,6 @@ suite('Parser Tests', () => {
     const expectedOperandStart = 17;
     const expectedOperandEnd = expectedOperandStart + expectedOperand.length;
     const expectedComment = 'Test of all';
-    const expectedCommentStart = 24;
-    const expectedCommentEnd = expectedCommentStart + expectedComment.length;
 
     const line = new AssemblyLine(text);
 
@@ -352,8 +334,6 @@ suite('Parser Tests', () => {
     assert.strictEqual(line.operandRange.start.character, expectedOperandStart, 'Operand Range start incorrect');
     assert.strictEqual(line.operandRange.end.character, expectedOperandEnd, 'Operand Range end incorrect');
     assert.strictEqual(line.comment, expectedComment, 'Comment not captured');
-    assert.strictEqual(line.commentRange.start.character, expectedCommentStart, 'Comment Range start incorrect');
-    assert.strictEqual(line.commentRange.end.character, expectedCommentEnd, 'Comment Range end incorrect');
   });
 
   test('Find opcode with label named same', () => {
