@@ -62,9 +62,9 @@ export class AssemblyDocument {
               } else {
                 this.unknownReferences.push(token);
               }
-            }
 
-            this.symbolManager.addReference(new AssemblySymbol(token.text, token.range, '', token.kind, line.lineRange, uri));
+              this.symbolManager.addReference(new AssemblySymbol(token.text, token.range, '', token.kind, line.lineRange, uri));
+            }
           }
           break;
       }

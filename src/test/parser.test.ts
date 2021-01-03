@@ -54,6 +54,7 @@ suite('Parser Tests', () => {
     const expected = 'This is a comment';
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.comment, expected, 'Comment not captured correctly');
   });
@@ -63,6 +64,7 @@ suite('Parser Tests', () => {
     const expected = 'This is a comment';
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.comment, expected, 'Comment not captured correctly');
   });
@@ -72,6 +74,7 @@ suite('Parser Tests', () => {
     const expected = 'This is a comment';
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.comment, expected, 'Comment not captured correctly');
   });
@@ -81,6 +84,7 @@ suite('Parser Tests', () => {
     const expected = 'This is a comment';
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.comment, expected, 'Comment not captured correctly');
   });
@@ -92,6 +96,7 @@ suite('Parser Tests', () => {
     const expectedEnd = 0;
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.label, expected);
     assert.strictEqual(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
@@ -105,6 +110,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expected.length;
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.label, expected);
     assert.strictEqual(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
@@ -118,6 +124,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expected.length;
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.label, expected);
     assert.strictEqual(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
@@ -131,6 +138,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expected.length;
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.label, expected);
     assert.strictEqual(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
@@ -144,6 +152,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expected.length;
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.label, expected);
     assert.strictEqual(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
@@ -157,6 +166,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expectedStart + expected.length;
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.label, expected);
     assert.strictEqual(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
@@ -170,6 +180,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expected.length;
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.label, expected);
     assert.strictEqual(line.labelRange.start.character, expectedStart, 'Label Range start incorrect');
@@ -183,6 +194,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expectedStart + expected.length;
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.opcode, expected);
     assert.strictEqual(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
@@ -196,6 +208,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expectedStart + expected.length;
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.opcode, expected);
     assert.strictEqual(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
@@ -209,6 +222,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expectedStart + expected.length;
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.opcode, expected);
     assert.strictEqual(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
@@ -222,6 +236,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expectedStart + expected.length;
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.opcode, expected);
     assert.strictEqual(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
@@ -235,6 +250,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expectedStart + expected.length;
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.operand, expected);
     assert.strictEqual(line.operandRange.start.character, expectedStart, 'Range start incorrect');
@@ -248,6 +264,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expectedStart + expected.length;
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.operand, expected);
     assert.strictEqual(line.operandRange.start.character, expectedStart, 'Range start incorrect');
@@ -262,6 +279,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expectedStart + expectedName.length;
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.references.length, expectedLength);
     assert.strictEqual(line.references[0].name, expectedName);
@@ -291,6 +309,7 @@ suite('Parser Tests', () => {
     ];
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.references.length, expectedLength);
     line.references.forEach((r, i) => {
@@ -305,6 +324,7 @@ suite('Parser Tests', () => {
     const expected = 0;
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.references.length, expected);
   });
@@ -323,6 +343,7 @@ suite('Parser Tests', () => {
     const expectedComment = 'Test of all';
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.label, expectedLabel, 'Label not captured');
     assert.strictEqual(line.labelRange.start.character, expectedLabelStart, 'Label Range start incorrect');
@@ -343,6 +364,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expectedStart + expected.length;
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.opcode, expected);
     assert.strictEqual(line.opcodeRange.start.character, expectedStart, 'Range start incorrect');
@@ -357,6 +379,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expectedStart + expectedName.length;
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.references.length, expectedLength);
     assert.strictEqual(line.references[0].name, expectedName);
@@ -386,6 +409,7 @@ suite('Parser Tests', () => {
     ];
 
     const line = new AssemblyLine(text);
+    line.parse(null);
 
     assert.strictEqual(line.references.length, expectedLength);
     line.references.forEach((r, i) => {
@@ -402,10 +426,10 @@ suite('Parser Tests', () => {
     const content = await vscode.workspace.openTextDocument(uri);
     const expectedDefinitions: SymbolOrReferenceDefinition[] = [
       { range: createRange(2, 0, 6), name: 'screen', documentation: '', kind: vscode.CompletionItemKind.Constant, lineRange: createRange(2, 0, 15) },
-      { range: createRange(3, 0, 5), name: 'hello', documentation: '', kind: vscode.CompletionItemKind.Method, lineRange: createRange(3, 0, 17) },
-      { range: createRange(5, 0, 6), name: 'hel010', documentation: '', kind: vscode.CompletionItemKind.Method, lineRange: createRange(5, 0, 14)  },
-      { range: createRange(10, 0, 6), name: 'hel020', documentation: '', kind: vscode.CompletionItemKind.Method, lineRange: createRange(10, 0, 14) },
-      { range: createRange(14, 0, 4), name: 'loop', documentation: '', kind: vscode.CompletionItemKind.Method, lineRange: createRange(14, 0, 13) },
+      { range: createRange(3, 0, 5), name: 'hello', documentation: '', kind: vscode.CompletionItemKind.Class, lineRange: createRange(3, 0, 17) },
+      { range: createRange(5, 0, 6), name: 'hel010', documentation: '', kind: vscode.CompletionItemKind.Class, lineRange: createRange(5, 0, 14)  },
+      { range: createRange(10, 0, 6), name: 'hel020', documentation: '', kind: vscode.CompletionItemKind.Class, lineRange: createRange(10, 0, 14) },
+      { range: createRange(14, 0, 4), name: 'loop', documentation: '', kind: vscode.CompletionItemKind.Class, lineRange: createRange(14, 0, 13) },
       { range: createRange(15, 0, 4), name: 'text', documentation: '', kind: vscode.CompletionItemKind.Variable, lineRange: createRange(15, 0, 24) },
     ];
     const expectedReferences: SymbolOrReferenceDefinition[] = [
