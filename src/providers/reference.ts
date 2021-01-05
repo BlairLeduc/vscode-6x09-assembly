@@ -1,47 +1,37 @@
 import * as vscode from 'vscode';
+import { referencableKinds } from '../common';
 import { WorkspaceManager } from '../managers/workspace';
-import { SymbolManager } from '../managers/symbol';
+
 
 export class ReferenceProvider implements vscode.ReferenceProvider {
 
   constructor(private workspaceManager: WorkspaceManager) {
   }
 
-  public provideReferences(document: vscode.TextDocument, position: vscode.Position, context: vscode.ReferenceContext, token: vscode.CancellationToken): vscode.ProviderResult<vscode.Location[]> {
+  public provideReferences(document: vscode.TextDocument, position: vscode.Position, context: vscode.ReferenceContext, cancelationToken: vscode.CancellationToken): vscode.ProviderResult<vscode.Location[]> {
     return new Promise((resolve, reject) => {
-      const range = document.getWordRangeAtPosition(position);
+      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, cancelationToken);
 
-      if (range) {
-        const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
+      if (!cancelationToken.isCancellationRequested) {
+        const assemblyLine = assemblyDocument.lines[position.line];
 
-        if (!token.isCancellationRequested) {
-          const word = document.getText(range);
-          const assemblyLine = assemblyDocument.lines[position.line];
-          const symbolManager = this.workspaceManager.getSymbolManager(document);
+        let token = assemblyLine.tokens.find(t => t.range.contains(position));
 
-          if (assemblyLine.labelRange && range.intersection(assemblyLine.labelRange)) {
-            resolve(this.findReferences(symbolManager, word, context.includeDeclaration));
-            return;
-          }
-
-          if (assemblyLine.opcodeRange && range.intersection(assemblyLine.opcodeRange)) {
-            resolve(this.findReferences(symbolManager, word, context.includeDeclaration));
-            return;
-          }
-
-          if (assemblyLine.operandRange && range.intersection(assemblyLine.operandRange)) {
-            resolve(this.findReferences(symbolManager, word, context.includeDeclaration));
-            return;
-          }
+        if (token.kind === vscode.CompletionItemKind.Reference && token.parent) {
+          token = token.parent;
         }
 
+        if (referencableKinds.indexOf(token.kind) >= 0) {
+          const references = token.children.map(s => new vscode.Location(s.uri, s.range));
+          if (context.includeDeclaration) {
+            resolve([new vscode.Location(token.uri, token.range), ...references]);
+          } else {
+            resolve(references);
+          }
+        }
+      } else {
         reject();
       }
     });
   }
-
-  private findReferences(symbolsManager: SymbolManager, word: string, includeDeclaration: boolean): vscode.Location[] {
-    return symbolsManager.findReferencesByName(word, includeDeclaration).map(s => new vscode.Location(s.uri, s.range));
-  }
-
 }

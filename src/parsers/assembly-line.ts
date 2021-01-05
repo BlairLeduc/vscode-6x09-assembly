@@ -245,10 +245,10 @@ export class AssemblyLine {
       // Update label token (if there is one) based on the opcode
       this.updateLabelTokenFromOpcode(labelToken, [labelToken, token]);
 
-      return [pos, tokens.concat([ token ])];
+      return [pos, [...tokens, token ]];
     }
 
-    return [pos, tokens.concat([null])];
+    return [pos, [...tokens, null]];
   }
 
   private fillOperand(text: string, last: [number, AssemblyToken[]] = [0, [null, null]]): [number, AssemblyToken[]] {
@@ -304,9 +304,9 @@ export class AssemblyLine {
         });        
       }
       // Fake token at end for lonely labels
-      return [pos, tokens.concat([fakeToken])];
+      return [pos, [...tokens, fakeToken]];
     }
-    return [pos, tokens.concat([null])];
+    return [pos, [...tokens, null]];
   }
 
   private fillComment(text: string, last: [number, AssemblyToken[]] = [0, [null, null, null]]): [number, AssemblyToken[]] {
@@ -325,9 +325,9 @@ export class AssemblyLine {
       if (labelToken) {
         labelToken.documentation = text;
       }
-      return [pos, tokens.concat([token])];
+      return [pos, [...tokens, token]];
     }
-    return [pos, tokens.concat([null])];
+    return [pos, [...tokens, null]];
   }
 
   private getTokensFromExpression(expression: string): FoundToken[] {

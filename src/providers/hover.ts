@@ -64,8 +64,9 @@ export class HoverProvider implements HoverProvider {
               }
             }  
           }
+        } else {
+          reject();
         }
-        reject();
       }
     });
   }

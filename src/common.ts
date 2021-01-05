@@ -1,7 +1,13 @@
 import * as vscode from 'vscode';
 
 export const Registers = ['a', 'b', 'd', 'e', 'f', 'x', 'y', 'w', 'q', 'u', 's', 'v', 'pc', 'dp', 'cc', 'pcr'];
-
+export const referencableKinds = [
+  vscode.CompletionItemKind.Class,
+  vscode.CompletionItemKind.Function,
+  vscode.CompletionItemKind.Method,
+  vscode.CompletionItemKind.Constant,
+  vscode.CompletionItemKind.Variable,
+];
 export class AssemblyToken {
   public blockNumber: number;
   public parent: AssemblyToken;
