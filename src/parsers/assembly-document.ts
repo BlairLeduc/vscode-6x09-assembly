@@ -44,7 +44,7 @@ export class AssemblyDocument {
               }
             });
           }
-          this.symbolManager.addDefinition(new AssemblySymbol(token.text, token.range, line.comment, token.kind, line.lineRange, uri, token.value));
+          this.symbolManager.addDefinition(new AssemblySymbol(token.text, token.range, token.documentation, token.kind, token.lineRange, token.uri, token.value));
           this.symbolManager.addToken(token);
           break;
         case CompletionItemKind.File:

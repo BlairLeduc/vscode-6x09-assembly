@@ -20,6 +20,7 @@ export class AssemblyToken {
   ) {
     this.blockNumber = 0;
     this.children = [];
+    this.documentation = '';
   }
 }
 

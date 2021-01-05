@@ -1,13 +1,24 @@
-import * as vscode from 'vscode';
+import { CancellationToken, CompletionItemKind, Hover, MarkdownString, Position, ProviderResult, TextDocument } from 'vscode';
 import { ConfigurationManager, HoverVerbosity } from '../managers/configuration';
 import { WorkspaceManager } from '../managers/workspace';
 import { DocOpcodeType } from '../parsers/docs';
 
-export class HoverProvider implements vscode.HoverProvider {
+const kindMap = new Map<CompletionItemKind, string>([
+  [ CompletionItemKind.Class, 'routine' ],
+  [ CompletionItemKind.Function, 'label' ],
+  [ CompletionItemKind.Method, 'macro' ],
+  [ CompletionItemKind.Constant, 'constant' ],
+  [ CompletionItemKind.Variable, 'variable' ],
+  [ CompletionItemKind.Struct, 'struct' ],
+  [ CompletionItemKind.File, 'file' ],
+  [ CompletionItemKind.Value, 'value'],
+]);
+export class HoverProvider implements HoverProvider {
 
   constructor(private workspaceManager: WorkspaceManager, private configurationManager: ConfigurationManager) {
   }
-  public provideHover(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.ProviderResult<vscode.Hover> {
+
+  public provideHover(document: TextDocument, position: Position, token: CancellationToken): ProviderResult<Hover> {
     return new Promise((resolve, reject) => {
       if (this.configurationManager.hoverVerbosity !== HoverVerbosity.none) {
         const range = document.getWordRangeAtPosition(position);
@@ -17,62 +28,52 @@ export class HoverProvider implements vscode.HoverProvider {
 
           if (!token.isCancellationRequested) {
             const assemblyLine = assemblyDocument.lines[position.line];
-            const symbolManager = this.workspaceManager.getSymbolManager(document);
-
-            if (assemblyLine.opcode && range.intersection(assemblyLine.opcodeRange)) {
-              const opcode = this.workspaceManager.opcodeDocs.getOpcode(assemblyLine.opcode);
-              if (opcode) {
-                const help = new vscode.MarkdownString();
-                help.appendCodeblock(`(${DocOpcodeType[opcode.type]}) ${opcode.name} (${opcode.processor === '6809' ? '6809/6309' : '6309'}) ${opcode.summary}`);
-                if (this.configurationManager.hoverVerbosity === HoverVerbosity.full) {
-                  help.appendMarkdown(`---\n${opcode.documentation}`);
+            const token = assemblyLine.tokens.find(t => range.intersection(t.range) && t.kind != CompletionItemKind.Operator);
+            
+            if (token.kind === CompletionItemKind.Keyword) {
+              const opcodeDocs = this.workspaceManager.opcodeDocs.getOpcode(token.text);
+              if (opcodeDocs) {
+                const help = new MarkdownString();
+                let processorSpec = ' -';
+                if (opcodeDocs.type === DocOpcodeType.opcode) {
+                  processorSpec = opcodeDocs.processor === '6809' ? ' (6809/6309)' : ' (6309)';
                 }
-                resolve(new vscode.Hover(help, assemblyLine.opcodeRange));
-                return;
-              }
-              const macro = symbolManager.getMacro(assemblyLine.opcode);
-              if (macro) {
-                const help = new vscode.MarkdownString();
-                help.appendCodeblock(`(macro) ${macro.name}`);
-                help.appendMarkdown(`---\n${macro.documentation}`);
-                resolve(new vscode.Hover(help, assemblyLine.opcodeRange));
-                return;
-              }
-            }
-
-            if (assemblyLine.label && range.intersection(assemblyLine.labelRange)) {
-              const definitions = symbolManager.findDefinitionsByName(assemblyLine.label);
-              if (definitions.length > 0) {
-                const definition = definitions[0]; // more than one, pick first
-                const help = new vscode.MarkdownString();
-                help.appendCodeblock(`(${vscode.CompletionItemKind[definition.kind]}) ${definition.name}`);
-                resolve(new vscode.Hover(help, assemblyLine.labelRange));
-                return;
-              }
-            }
-
-            if (assemblyLine.references.length > 0) {
-              assemblyLine.references.filter(r => range.intersection(r.range)).forEach(reference => {
-                const references = symbolManager.findDefinitionsByName(reference.name);
-                if (references.length > 0) {
-                  const reference = references[0]; // more than one, pick first
-                  const help = new vscode.MarkdownString();
-                  let summary = `(${vscode.CompletionItemKind[reference.kind]}) ${reference.name}`;
-                  if (reference.kind==vscode.CompletionItemKind.Constant) {
-                    summary += ` [${reference.value}]`;
-                  }
-                  help.appendCodeblock(summary);
-                  help.appendMarkdown(`---\n${reference.documentation}`);
-                  resolve(new vscode.Hover(help, range));
-                  return;
+                help.appendCodeblock(`(${DocOpcodeType[opcodeDocs.type]}) ${token.text}${processorSpec} ${opcodeDocs.summary}`);
+                if (this.configurationManager.hoverVerbosity === HoverVerbosity.full && opcodeDocs.documentation) {
+                  help.appendMarkdown(`---\n${opcodeDocs.documentation}`);
                 }
-              });
-            }
+                resolve(new Hover(help, assemblyLine.opcodeRange));
+              }
+            } else {
+              const kind = token.parent ? token.parent.kind : token.kind;
+              const kindName = this.kindToString(kind);
+              if (kindName) { // Only show if it is a kind we want to show
+                const documentation = token.parent ? token.parent.documentation : token.documentation;
+                const value = token.parent ? token.parent.value : token.value;
+                let header = `(${kindName}) ${token.text}`;
+                if (value) {
+                  header += ` ${value}`;
+                }
+                const help = new MarkdownString();
+
+                help.appendCodeblock(header);
+                if (documentation) {
+                  help.appendMarkdown(`---\n${documentation}`);
+                }
+                resolve(new Hover(help, token.range));
+              }
+            }  
           }
         }
-
         reject();
       }
     });
+  }
+
+  private kindToString(kind: CompletionItemKind): string {
+    if (kindMap.has(kind)) {
+      return kindMap.get(kind);
+    }
+    return null;
   }
 }

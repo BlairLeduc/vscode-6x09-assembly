@@ -19,18 +19,18 @@ export class ReferenceProvider implements vscode.ReferenceProvider {
           const assemblyLine = assemblyDocument.lines[position.line];
           const symbolManager = this.workspaceManager.getSymbolManager(document);
 
-          if (assemblyLine.label && range.intersection(assemblyLine.labelRange)) {
-            resolve(this.findReferences(symbolManager, word, context.includeDeclaration, document.uri));
+          if (assemblyLine.labelRange && range.intersection(assemblyLine.labelRange)) {
+            resolve(this.findReferences(symbolManager, word, context.includeDeclaration));
             return;
           }
 
-          if (assemblyLine.opcode && range.intersection(assemblyLine.opcodeRange)) {
-            resolve(this.findReferences(symbolManager, word, context.includeDeclaration, document.uri));
+          if (assemblyLine.opcodeRange && range.intersection(assemblyLine.opcodeRange)) {
+            resolve(this.findReferences(symbolManager, word, context.includeDeclaration));
             return;
           }
 
-          if (assemblyLine.operand && range.intersection(assemblyLine.operandRange)) {
-            resolve(this.findReferences(symbolManager, word, context.includeDeclaration, document.uri));
+          if (assemblyLine.operandRange && range.intersection(assemblyLine.operandRange)) {
+            resolve(this.findReferences(symbolManager, word, context.includeDeclaration));
             return;
           }
         }
@@ -40,7 +40,7 @@ export class ReferenceProvider implements vscode.ReferenceProvider {
     });
   }
 
-  private findReferences(symbolsManager: SymbolManager, word: string, includeDeclaration: boolean, uri: vscode.Uri): vscode.Location[] {
+  private findReferences(symbolsManager: SymbolManager, word: string, includeDeclaration: boolean): vscode.Location[] {
     return symbolsManager.findReferencesByName(word, includeDeclaration).map(s => new vscode.Location(s.uri, s.range));
   }
 

@@ -18,13 +18,13 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
           const word = document.getText(range);
           const assemblyLine = assemblyDocument.lines[position.line];
 
-          if ((assemblyLine.operand && range.intersection(assemblyLine.operandRange))
-            || (assemblyLine.label && range.intersection(assemblyLine.labelRange))) {
+          if ((assemblyLine.operandRange && range.intersection(assemblyLine.operandRange))
+            || (assemblyLine.labelRange && range.intersection(assemblyLine.labelRange))) {
             resolve(symbolManager.findDefinitionsByName(word).map(s => new vscode.Location(s.uri, s.range)));
             return;
           }
 
-          if (assemblyLine.opcode && range.intersection(assemblyLine.opcodeRange)) {
+          if (assemblyLine.opcodeRange && range.intersection(assemblyLine.opcodeRange)) {
             resolve(symbolManager.findMacro(word).map(s => new vscode.Location(s.uri, s.range)));
             return;
           }

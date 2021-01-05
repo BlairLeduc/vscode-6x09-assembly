@@ -1,4 +1,4 @@
-import { TextEditor, TextEditorEdit } from 'vscode';
+import { CompletionItemKind, TextEditor, TextEditorEdit } from 'vscode';
 import { OpcodeCase } from './managers/configuration';
 import { WorkspaceManager } from './managers/workspace';
 import { AssemblyLine } from './parsers/assembly-line';
@@ -10,11 +10,11 @@ export class ChangeCaseOpcodeCommand {
 
   public handler(textEditor: TextEditor, edit: TextEditorEdit): void {
     const assemblyDocument = this.workspaceManager.getAssemblyDocument(textEditor.document, undefined);
-    const symbolsManager = this.workspaceManager.getSymbolManager(textEditor.document);
 
     assemblyDocument.lines.forEach((line: AssemblyLine) => {
-      if (line.opcode && !symbolsManager.findMacro(line.opcode).length) {
-        edit.replace(line.opcodeRange, convertToCase(line.opcode, this.casing));
+      const opcodeToken = line.tokens.find(t => t.kind === CompletionItemKind.Keyword);
+      if (opcodeToken) {
+        edit.replace(opcodeToken.range, convertToCase(opcodeToken.text, this.casing));
       }
     });
   }

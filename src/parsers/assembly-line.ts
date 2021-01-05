@@ -28,13 +28,9 @@ export class AssemblyLine {
   public lineRange: Range;
   public blockNumber = 0;
 
-  public label = '';
   public labelRange: Range;
-  public opcode = '';
   public opcodeRange: Range;
-  public operand = '';
   public operandRange: Range;
-  public comment = '';
 
   public tokens: AssemblyToken[];
   public references: SymbolReference[];
@@ -44,10 +40,6 @@ export class AssemblyLine {
       this.lineNumber = rawLineNumber;
     }
     this.lineRange = this.getRange(0, this.rawLine.length);
-
-    this.labelRange = this.getRange(0, 0);
-    this.opcodeRange = this.getRange(0, 0);
-    this.operandRange = this.getRange(0, 0);
 
     this.tokens = [];
     this.references = [];
@@ -94,8 +86,11 @@ export class AssemblyLine {
     this.blockNumber = state.blockNumber;
 
     let match = this.matchLineComment(this.rawLine);
-    if (match !== null) {
+    if (match) {
       this.fillComment(match[1]);
+      state.lonelyLabels.forEach(t => {
+        t.documentation += '  \n' + match[1];
+      });
       return state;
     }
     match = this.matchSelectPseudoOps(this.rawLine);
@@ -105,54 +100,59 @@ export class AssemblyLine {
     }
     match = this.matchLabelAndComment(this.rawLine);
     if (match) {
-      const [_, labelToken] = this.fillComment(match[2], this.fillLabel(match[1], state.blockNumber));
-      if (labelToken) {
-        state.lonelyLabels.push(labelToken);
+      const [_, tokens] = this.fillComment(match[2], this.fillLabel(match[1], state.blockNumber));
+      if (tokens.length > 0) {
+        state.lonelyLabels.push(tokens[0]);
       }
       return state;
     }
-    match = this.matchLabelOpcodeAndComment(this.rawLine);
+    match = this.matcOpcodeAndComment(this.rawLine);
     if (match) {
-      const [_1, _2, opCodeToken] = this.fillComment(match[3], this.fillOpcode(match[2], this.fillLabel(match[1], state.blockNumber)));
-      this.updateLonelyLabelsFromOpcode(state, opCodeToken);
+      const [_1, tokens] = this.fillComment(match[3], this.fillOpcode(match[2], this.fillLabel(match[1], state.blockNumber)));
+      this.updateLonelyLabelsFromOpcode(state, tokens);
       return state;
     }
     match = this.matchLabelOpcodeOperandAndComment(this.rawLine);
     if (match) {
-      const [_, labelToken, opCodeToken] = this.fillComment(match[4], this.fillOperand(match[3], this.fillOpcode(match[2], this.fillLabel(match[1], state.blockNumber))));
+      const [_, tokens] = this.fillComment(match[4], this.fillOperand(match[3], this.fillOpcode(match[2], this.fillLabel(match[1], state.blockNumber))));
+      const labelToken = tokens[0];
+      const opCodeToken = tokens[1];
       if (labelToken && !opCodeToken) {
         state.lonelyLabels.push(labelToken);
       }
       if (opCodeToken) {
-        this.updateLonelyLabelsFromOpcode(state, opCodeToken);
+        this.updateLonelyLabelsFromOpcode(state, tokens);
       }
       return state;
     }
     return state;
   }
 
-  private updateLonelyLabelsFromOpcode(state: ParserState, opCodeToken: AssemblyToken) {
+  private updateLonelyLabelsFromOpcode(state: ParserState, tokens: AssemblyToken[]) {
     state.lonelyLabels.forEach(label => {
-      this.updateLabelTokenFromOpcode(label, opCodeToken.text);
+      this.updateLabelTokenFromOpcode(label, tokens);
     });
     state.lonelyLabels = [];
   }
 
-  private updateLabelTokenFromOpcode(labelToken: AssemblyToken, text: string) {
-    if (labelToken) {
-      if (AssemblyLine.constantRegExp.test(text)) {
+  private updateLabelTokenFromOpcode(labelToken: AssemblyToken, tokens: AssemblyToken[]) {
+    const opcode = tokens[1]?.text;
+    const operand = tokens[2]?.text;
+    if (labelToken && opcode) {
+      if (AssemblyLine.constantRegExp.test(opcode)) {
         labelToken.tokenType = 'variable';
         labelToken.tokenModifiers = ['readonly', 'definition'];
         labelToken.kind = CompletionItemKind.Constant;
-      } else if (AssemblyLine.storageRegExp.test(text)) {
+        labelToken.value = operand;
+      } else if (AssemblyLine.storageRegExp.test(opcode)) {
         labelToken.tokenType = 'variable';
         labelToken.tokenModifiers = ['definition'];
         labelToken.kind = CompletionItemKind.Variable;
-      } else if (text.toLowerCase() === 'macro') {
+      } else if (opcode.toLowerCase() === 'macro') {
         labelToken.tokenType = 'macro';
         labelToken.tokenModifiers = ['declaration'];
         labelToken.kind = CompletionItemKind.Method;
-      } else if (text.toLowerCase() === 'struct') {
+      } else if (opcode.toLowerCase() === 'struct') {
         labelToken.tokenType = 'struct';
         labelToken.tokenModifiers = ['declaration'];
         labelToken.kind = CompletionItemKind.Struct;
@@ -184,7 +184,7 @@ export class AssemblyLine {
     return text.match(/^([^ \t*;]*)(?:[ \t]+(?:[*]\s|;)(.*))/);
   }
 
-  private matchLabelOpcodeAndComment(text: string): RegExpMatchArray {
+  private matcOpcodeAndComment(text: string): RegExpMatchArray {
     return text.match(/^([^ \t*;]*)(?:[ \t]+(abx|as[lr][abd]|clr[abdefw]|com[abdefw]|daa|dec[abdefw]|inc[abdefw]|ls[lr][abdw]|mul|neg[abd]|nop|psh[su]w|pul[su]w|ro[lr][abdw]|rt[is]|sexw?|swi[23]?|tst[abdefw]|macro|struct))(?:[ \t]+(.*))/i);
   }
 
@@ -192,14 +192,13 @@ export class AssemblyLine {
     return text.match(/^([^ \t*;]*)(?:[ \t]+([^ \t]+))?(?:[ \t]+((?:"[^"]*"|\/[^\/]*\/|'[^']*'|[^ \t]*)))?(?:[ \t]+(.*))?/i);
   }
 
-  private fillLabel(text: string, blockNumber: number): [number, AssemblyToken, AssemblyToken] {
+  private fillLabel(text: string, blockNumber: number): [number, AssemblyToken[]] {
     if (text && text.length > 0) {
       const start = this.rawLine.indexOf(text, 0);
       const pos = start + text.length;
       const range = this.getRange(start, pos);
 
       // Populate variables
-      this.label = text;
       this.labelRange = range;
 
       // Create and add token
@@ -211,24 +210,25 @@ export class AssemblyLine {
       token.blockNumber = isLocal ? blockNumber : 0;
 
       this.tokens.push(token);
-      return [pos, token, null];
+      return [pos, [token]];
     }
-    return [0, null, null];
+    return [0, [null]];
   }
 
   private isLocal(text: string) {
     return text.match(/.*[@$?].*/);
   }
 
-  private fillOpcode(text: string, last: [number, AssemblyToken, AssemblyToken] = [0, null, null]): [number, AssemblyToken, AssemblyToken] {
+  private fillOpcode(text: string, last: [number, AssemblyToken[]] = [0, [null]]): [number, AssemblyToken[]] {
+    let [pos, tokens] = last;
+
     if (text && text.length > 0) {
-      let [pos, labelToken] = last;
+      const labelToken = tokens[0];
       const start = this.rawLine.indexOf(text, pos);
       pos = start + text.length;
       const range = this.getRange(start, pos);
 
       // Populate variables
-      this.opcode = text;
       this.opcodeRange = range;
 
       // Create and add token
@@ -243,24 +243,29 @@ export class AssemblyLine {
       this.tokens.push(token);
       
       // Update label token (if there is one) based on the opcode
-      this.updateLabelTokenFromOpcode(labelToken, text);
+      this.updateLabelTokenFromOpcode(labelToken, [labelToken, token]);
 
-      return [pos, labelToken, token];
+      return [pos, tokens.concat([ token ])];
     }
-    return last;
+
+    return [pos, tokens.concat([null])];
   }
 
-  private fillOperand(text: string, last: [number, AssemblyToken, AssemblyToken] = [0, null, null]): [number, AssemblyToken, AssemblyToken] {
+  private fillOperand(text: string, last: [number, AssemblyToken[]] = [0, [null, null]]): [number, AssemblyToken[]] {
+    let [pos, tokens] = last;
+    
     if (text && text.length > 0) {
-      let [pos, labelToken, opCodeToken] = last;
-
+      const labelToken = tokens[0];
+      const opCodeToken = tokens[1];
       const start = this.rawLine.indexOf(text, pos);
       pos = start + text.length;
       const range = this.getRange(start, pos);
 
       // Populate variables
-      this.operand = text;
       this.operandRange = range;
+
+      // Create a fake token for updating the (lonely)? label token (not pushed onto this.tokens) 
+      const fakeToken = new AssemblyToken(text, range, this.lineRange, CompletionItemKind.Snippet, 'fake');
 
       // Create and add tokens
       if (opCodeToken && opCodeToken.text.match(/use|include/i)) {
@@ -273,9 +278,8 @@ export class AssemblyLine {
         // psuedo op with operand
         this.tokens.push(new AssemblyToken(text, range, this.lineRange, CompletionItemKind.Value, 'string'));
       } else {
-        if (labelToken && labelToken.kind === CompletionItemKind.Constant) {
-          labelToken.value = text;
-        }
+        // Update constant label token (if there is one) based on the opcode and operand
+        this.updateLabelTokenFromOpcode(labelToken, [labelToken, opCodeToken, fakeToken]);
 
         this.getTokensFromExpression(text).forEach(operandToken => {
           const refStart = start + operandToken.start;
@@ -299,32 +303,32 @@ export class AssemblyLine {
           this.tokens.push(token);
         });        
       }
-      return [pos, labelToken, opCodeToken];
+      // Fake token at end for lonely labels
+      return [pos, tokens.concat([fakeToken])];
     }
-    return last;
+    return [pos, tokens.concat([null])];
   }
 
-  private fillComment(text: string, last: [number, AssemblyToken, AssemblyToken] = [0, null, null]): [number, AssemblyToken, AssemblyToken] {
+  private fillComment(text: string, last: [number, AssemblyToken[]] = [0, [null, null, null]]): [number, AssemblyToken[]] {
+    let [pos, tokens] = last;
+    
     if (text && text.length > 0) {
-      let [pos, labelToken] = last;
+      const labelToken = tokens[0];
       text = text.trim();
       const start = this.rawLine.indexOf(text, pos);
       pos = start + text.length;
       const range = this.getRange(start, pos);
 
-      // Populate variables
-      this.comment = text;
-
       // Create and add token
-      this.tokens.push(new AssemblyToken(text, range, this.lineRange, CompletionItemKind.Text, 'comment'));
+      const token = new AssemblyToken(text, range, this.lineRange, CompletionItemKind.Text, 'comment');
+      this.tokens.push(token);
       if (labelToken) {
         labelToken.documentation = text;
       }
+      return [pos, tokens.concat([token])];
     }
-    return last;
+    return [pos, tokens.concat([null])];
   }
-
-
 
   private getTokensFromExpression(expression: string): FoundToken[] {
     const tokens: FoundToken[] = [];
