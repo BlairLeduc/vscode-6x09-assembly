@@ -6,30 +6,21 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
   constructor(private workspaceManager: WorkspaceManager) {
   }
 
-  public provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.ProviderResult<vscode.Location[]> {
+  public provideDefinition(document: vscode.TextDocument, position: vscode.Position, cancelationToken: vscode.CancellationToken): vscode.ProviderResult<vscode.Location[]> {
     return new Promise((resolve, reject) => {
-      const range = document.getWordRangeAtPosition(position);
+      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, cancelationToken);
 
-      if (range) {
-        const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
-        const symbolManager = this.workspaceManager.getSymbolManager(document);
+      if (!cancelationToken.isCancellationRequested) {
+        const assemblyLine = assemblyDocument.lines[position.line];
 
-        if (!token.isCancellationRequested) {
-          const word = document.getText(range);
-          const assemblyLine = assemblyDocument.lines[position.line];
+        let token = assemblyLine.tokens.find(t => t.range.contains(position));
 
-          if ((assemblyLine.operandRange && range.intersection(assemblyLine.operandRange))
-            || (assemblyLine.labelRange && range.intersection(assemblyLine.labelRange))) {
-            resolve(symbolManager.findDefinitionsByName(word).map(s => new vscode.Location(s.uri, s.range)));
-            return;
-          }
-
-          if (assemblyLine.opcodeRange && range.intersection(assemblyLine.opcodeRange)) {
-            resolve(symbolManager.findMacro(word).map(s => new vscode.Location(s.uri, s.range)));
-            return;
-          }
+        if (token.kind === vscode.CompletionItemKind.Reference && token.parent) {
+          token = token.parent;
         }
 
+        resolve([new vscode.Location(token.uri, token.range)]);
+      } else {
         reject();
       }
     });

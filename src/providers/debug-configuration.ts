@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 export class DebugConfigurationProvider implements vscode.DebugConfigurationProvider {
   
-  public resolveDebugConfiguration?(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration> {
+  public resolveDebugConfiguration?(_folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, _token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration> {
     return new Promise(resolve => {
       // if launch.json is missing or empty
       if (!config.type && !config.request && !config.name) {
