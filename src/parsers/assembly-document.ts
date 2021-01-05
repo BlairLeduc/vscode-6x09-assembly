@@ -10,19 +10,19 @@ import { Queue } from '../queue';
 
 export class AssemblyDocument {
   private processDocumentsQueue: Queue<string> = new Queue<string>();
-  private definitions: AssemblyToken[] = new Array<AssemblyToken>();
   private unknownReferences: AssemblyToken[] = new Array<AssemblyToken>();
 
   public uri: Uri;
   public lines: AssemblyLine[] = new Array<AssemblyLine>();
   public referencedDocuments: string[] = new Array<string>();
+  public symbols: AssemblyToken[] = new Array<AssemblyToken>();
 
   constructor(private symbolManager: SymbolManager, document: TextDocument, range?: Range, cancelationToken?: CancellationToken) {
     this.uri = document.uri;
     this.parse(document, range, cancelationToken);
   }
 
-  private processTokens(uri: Uri, line: AssemblyLine, processReferences = true): void {
+  private processTokens(uri: Uri, line: AssemblyLine): void {
     line.tokens.forEach(token => {
       switch(token.kind) {
         case CompletionItemKind.Method:
@@ -32,18 +32,18 @@ export class AssemblyDocument {
         case CompletionItemKind.Class:
         case CompletionItemKind.Function:
           token.uri = uri;
-          this.definitions.push(token);
-          if (processReferences) {
-            const unknownReferences = this.unknownReferences.filter(r => r.text == token.text && r.blockNumber == token.blockNumber);
-            unknownReferences.forEach(r => {
-              r.parent = token;
-              token.children.push(r);
-              const index = this.unknownReferences.indexOf(r);
-              if (index > -1) {
-                this.unknownReferences.splice(index, 1);
-              }
-            });
-          }
+          this.symbols.push(token);
+
+          const unknownReferences = this.unknownReferences.filter(r => r.text == token.text && r.blockNumber == token.blockNumber);
+          unknownReferences.forEach(r => {
+            r.parent = token;
+            token.children.push(r);
+            const index = this.unknownReferences.indexOf(r);
+            if (index > -1) {
+              this.unknownReferences.splice(index, 1);
+            }
+          });
+
           this.symbolManager.addDefinition(new AssemblySymbol(token.text, token.range, token.documentation, token.kind, token.lineRange, token.uri, token.value));
           this.symbolManager.addToken(token);
           break;
@@ -55,19 +55,17 @@ export class AssemblyDocument {
           }
           break;
         case CompletionItemKind.Reference:
-          if (processReferences) {
-            if (Registers.findIndex(r => r === token.text.toLocaleLowerCase()) < 0) {
-              token.uri = uri;
-              const definition = this.definitions.find(d => d.text === token.text && d.blockNumber == token.blockNumber);
-              if (definition) {
-                definition.children.push(token);
-                token.parent = definition;
-              } else {
-                this.unknownReferences.push(token);
-              }
-
-              this.symbolManager.addReference(new AssemblySymbol(token.text, token.range, '', token.kind, line.lineRange, uri));
+          if (Registers.findIndex(r => r === token.text.toLocaleLowerCase()) < 0) {
+            token.uri = uri;
+            const definition = this.symbols.find(d => d.text === token.text && d.blockNumber == token.blockNumber);
+            if (definition) {
+              definition.children.push(token);
+              token.parent = definition;
+            } else {
+              this.unknownReferences.push(token);
             }
+
+            this.symbolManager.addReference(new AssemblySymbol(token.text, token.range, '', token.kind, line.lineRange, uri));
           }
           break;
       }
@@ -115,7 +113,7 @@ export class AssemblyDocument {
           lineReader.eachLine(filePath, line => {
             const asmLine = new AssemblyLine(line, lineNumber++);
             state = asmLine.parse(state);
-            this.processTokens(uri, asmLine, false); // ignore references
+            this.processTokens(uri, asmLine); // ignore references
           });
         }
       } catch(e) {
