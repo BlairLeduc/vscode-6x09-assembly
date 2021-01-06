@@ -99,11 +99,8 @@ export class AssemblyDocument {
       this.processTokens(this.uri, asmLine);
     }
 
-    // Post process references
-    
-
     // Post process referenced documents
-    let filePath = '';
+    let filePath:string;
     while(filePath = this.processDocumentsQueue.dequeue()) {
       try {
         // Only process files that exist and are files and we have not seen before
