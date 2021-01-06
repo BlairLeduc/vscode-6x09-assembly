@@ -15,8 +15,9 @@ import { State } from './state';
 import { TaskProvider } from './providers/task';
 import { DocumentSemanticTokensLegend, DocumentSemanticTokensProvider } from './providers/documentSemanticTokens';
 import { ImplementationProvider } from './providers/implementation';
-import { SelectionRangeProvider } from './providers/selection-range';
+import { SelectionRangeProvider } from './providers/selection-ranges';
 import { WorkspaceSymbolProvider } from './providers/workspace-symbol';
+import { FoldingRangeProvider } from './providers/folding-range';
 
 const ASM6X09_LANGUAGE = 'asm6x09';
 const ASM6X09_CONFIG_SECTION = '6x09Assembly';
@@ -59,6 +60,11 @@ export function activate(context: vscode.ExtensionContext): void {
     new SelectionRangeProvider(workspaceManager)
   ));
 
+  disposables.push(vscode.languages.registerFoldingRangeProvider(
+    ASM6X09_MODE,
+    new FoldingRangeProvider(workspaceManager)
+  ));
+  
   disposables.push(vscode.languages.registerWorkspaceSymbolProvider(
     new WorkspaceSymbolProvider(workspaceManager)
   ));

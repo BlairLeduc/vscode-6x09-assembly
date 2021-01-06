@@ -23,7 +23,7 @@ export class AssemblyDocument {
     this.parse(document, range, cancelationToken);
   }
 
-  private processTokens(uri: Uri, line: AssemblyLine): void {
+  private processTokens(uri: Uri, line: AssemblyLine, block?: AssemblyBlock): void {
     line.tokens.forEach(token => {
       switch(token.kind) {
         case CompletionItemKind.Method:
@@ -34,17 +34,17 @@ export class AssemblyDocument {
         case CompletionItemKind.Function:
           token.uri = uri;
           this.symbols.push(token);
-          if (!this.blocks.has(token.blockNumber)) {
-            this.blocks.set(token.blockNumber, new AssemblyBlock(token.blockNumber));
+          if (block) {
+            block.tokens.push(token);
           }
-          const block = this.blocks.get(token.blockNumber);
-          block.tokens.push(token);
 
           const unknownReferences = this.unknownReferences.filter(r => r.text == token.text && r.blockNumber == token.blockNumber);
           unknownReferences.forEach(r => {
             r.parent = token;
             token.children.push(r);
-            block.tokens.push(r);
+            if (block) {
+              block.tokens.push(r);
+            }
             const index = this.unknownReferences.indexOf(r);
             if (index > -1) {
               this.unknownReferences.splice(index, 1);
@@ -86,17 +86,28 @@ export class AssemblyDocument {
     }
 
     this.symbolManager.clearDocument(document.uri);
-    let state: ParserState;
+    let blockNumber = 1;
+    let block = new AssemblyBlock(blockNumber, 0);
+    this.blocks.set(blockNumber, block);
+
+    let state = { lonelyLabels: [], blockNumber: blockNumber } as ParserState;
+
     for (let i = range.start.line; i <= range.end.line; i++) {
       if (cancelationToken && cancelationToken.isCancellationRequested) {
         return;
       }
-
       const line = document.lineAt(i);
       const asmLine = new AssemblyLine(line.text, line.lineNumber);
       state = asmLine.parse(state);
       this.lines.push(asmLine);
-      this.processTokens(this.uri, asmLine);
+
+      if (state.blockNumber > blockNumber) {
+        block.endLineNumber = i-1;
+        this.blocks.set(blockNumber, block);
+        block = new AssemblyBlock(state.blockNumber, i+1);
+        blockNumber = state.blockNumber;
+      }
+      this.processTokens(this.uri, asmLine, block);
     }
 
     // Post process referenced documents
@@ -110,7 +121,7 @@ export class AssemblyDocument {
           const uri = Uri.parse(fileUrl(filePath, {resolve: false}));
           this.symbolManager.clearDocument(uri);
           let lineNumber = 0;
-          let state:ParserState;
+          let state = { lonelyLabels: [], blockNumber: 1 } as ParserState;
           lineReader.eachLine(filePath, line => {
             const asmLine = new AssemblyLine(line, lineNumber++);
             state = asmLine.parse(state);

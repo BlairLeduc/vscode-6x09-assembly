@@ -111,12 +111,19 @@ export class AssemblyToken {
 }
 
 export class AssemblyBlock {
+  public endLineNumber: number;
+  public foldingRangeKind: vscode.FoldingRangeKind;
+
   constructor(
-    public number: number, 
+    public number: number,
+    public startLineNumber: number,
     public label: AssemblyToken = null, 
     public tokens: AssemblyToken[] = [],
-    ) {}
+    ) {
+      this.endLineNumber = startLineNumber;
+    }
 }
+
 export class AssemblySymbol {
   
   constructor(

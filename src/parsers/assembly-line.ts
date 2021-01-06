@@ -72,10 +72,6 @@ export class AssemblyLine {
   }
 
   public parse(state: ParserState): ParserState {
-    if (!state) {
-      state = { lonelyLabels: [], blockNumber: 1 } as ParserState;
-    }
-
     if (this.rawLine.trim() === '') {
       state.blockNumber++;
       return state;
