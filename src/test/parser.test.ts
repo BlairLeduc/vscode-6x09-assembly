@@ -5,50 +5,14 @@
 
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
-import * as path from 'path';
 import * as vscode from 'vscode';
 
 // Classes under test
-import * as parser from '../parsers/assembly-document';
 import { AssemblyLine } from '../parsers/assembly-line';
 import { ListingLine } from '../parsers/listing-line';
-import { AssemblySymbol } from '../common';
-import { SymbolManager } from '../managers/symbol';
-
-interface SymbolOrReferenceDefinition {
-  range: vscode.Range;
-  name: string;
-  documentation: string;
-  kind: vscode.CompletionItemKind;
-  lineRange: vscode.Range;
-}
-
-function createRange(line: number, from: number, to: number): vscode.Range {
-  return new vscode.Range(new vscode.Position(line, from), new vscode.Position(line, to));
-}
-
-function compareSymbolsOrReferences(actual: AssemblySymbol[], expected: SymbolOrReferenceDefinition[]): boolean {
-  if (actual.length !== expected.length) {
-    return false;
-  }
-
-  let count = actual.length;
-  while (count--) {
-    if (actual[count].documentation !== expected[count].documentation
-      || actual[count].kind !== expected[count].kind
-      || actual[count].name !== expected[count].name
-      || !actual[count].range.isEqual(expected[count].range)
-      || !actual[count].lineRange.isEqual(expected[count].lineRange)) {
-        return false;
-      }
-  }
-  return true;
-}
 
 // Defines a Mocha test suite to group tests of similar kind together
 suite('Parser Tests', () => {
-  const testFolderLocation = '../../src/test/data';
-
   test('See comment line from start (asterisk)', () => {
     const text = '* This is a comment';
     const expected = 'This is a comment';
@@ -447,38 +411,6 @@ suite('Parser Tests', () => {
       assert.strictEqual(r.range.start.character, expected[i].start, 'Range start incorrect');
       assert.strictEqual(r.range.end.character, expected[i].end, 'Range end incorrect');
     });
-  });
-
-  test('Load document', async () => {
-    const uri = vscode.Uri.file(
-      path.join(__dirname, testFolderLocation, 'hello-clean.asm')
-    );
-    const content = await vscode.workspace.openTextDocument(uri);
-    const expectedDefinitions: SymbolOrReferenceDefinition[] = [
-      { range: createRange(2, 0, 6), name: 'screen', documentation: '', kind: vscode.CompletionItemKind.Constant, lineRange: createRange(2, 0, 15) },
-      { range: createRange(3, 0, 5), name: 'hello', documentation: '', kind: vscode.CompletionItemKind.Class, lineRange: createRange(3, 0, 17) },
-      { range: createRange(5, 0, 6), name: 'hel010', documentation: '', kind: vscode.CompletionItemKind.Class, lineRange: createRange(5, 0, 14)  },
-      { range: createRange(10, 0, 6), name: 'hel020', documentation: '', kind: vscode.CompletionItemKind.Class, lineRange: createRange(10, 0, 14) },
-      { range: createRange(14, 0, 4), name: 'loop', documentation: '', kind: vscode.CompletionItemKind.Class, lineRange: createRange(14, 0, 13) },
-      { range: createRange(15, 0, 4), name: 'text', documentation: '', kind: vscode.CompletionItemKind.Variable, lineRange: createRange(15, 0, 24) },
-    ];
-    const expectedReferences: SymbolOrReferenceDefinition[] = [
-      { name: 'screen', documentation: '', range: createRange(3, 11, 17), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(3, 0, 17) },
-      { name: 'screen', documentation: '', range: createRange(6, 7, 13), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(6, 0, 17) },
-      { name: 'hel010', documentation: '', range: createRange(7, 5, 11), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(7, 0, 11) },
-      { name: 'text', documentation: '', range: createRange(8, 6, 10), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(8, 0, 10) },
-      { name: 'screen', documentation: '', range: createRange(9, 6, 12), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(9, 0, 12) },
-      { name: 'loop', documentation: '', range: createRange(11, 5, 9), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(11, 0, 9) },
-      { name: 'hel020', documentation: '', range: createRange(13, 5, 11), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(13, 0, 11) },
-      { name: 'loop', documentation: '', range: createRange(14, 9, 13), kind: vscode.CompletionItemKind.Reference, lineRange: createRange(14, 0, 13) },
-    ];
-    const expectedNumberOfLines = 18;
-    const symbolManager = new SymbolManager();
-    const document = new parser.AssemblyDocument(symbolManager, content);
-
-    assert.strictEqual(document.lines.length, expectedNumberOfLines, 'Expected number of lines do not match');
-    assert.ok(compareSymbolsOrReferences(symbolManager.definitions, expectedDefinitions), 'Symbols do not match');
-    assert.ok(compareSymbolsOrReferences(symbolManager.references, expectedReferences), 'References do not match');
   });
 
   test('Line with only file and line number', () => {
