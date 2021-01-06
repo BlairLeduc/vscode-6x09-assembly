@@ -14,6 +14,9 @@ import { RenameProvider } from './providers/rename';
 import { State } from './state';
 import { TaskProvider } from './providers/task';
 import { DocumentSemanticTokensLegend, DocumentSemanticTokensProvider } from './providers/documentSemanticTokens';
+import { ImplementationProvider } from './providers/implementation';
+import { SelectionRangeProvider } from './providers/selection-range';
+import { WorkspaceSymbolProvider } from './providers/workspace-symbol';
 
 const ASM6X09_LANGUAGE = 'asm6x09';
 const ASM6X09_CONFIG_SECTION = '6x09Assembly';
@@ -44,6 +47,20 @@ export function activate(context: vscode.ExtensionContext): void {
   disposables.push(vscode.languages.registerDefinitionProvider(
     ASM6X09_MODE,
     new DefinitionProvider(workspaceManager)
+  ));
+
+  disposables.push(vscode.languages.registerImplementationProvider(
+    ASM6X09_MODE,
+    new ImplementationProvider(workspaceManager)
+  ));
+
+  disposables.push(vscode.languages.registerSelectionRangeProvider(
+    ASM6X09_MODE,
+    new SelectionRangeProvider(workspaceManager)
+  ));
+
+  disposables.push(vscode.languages.registerWorkspaceSymbolProvider(
+    new WorkspaceSymbolProvider(workspaceManager)
   ));
 
   disposables.push(vscode.languages.registerDocumentHighlightProvider(

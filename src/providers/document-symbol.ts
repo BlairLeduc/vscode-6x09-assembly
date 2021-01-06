@@ -12,7 +12,7 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
       const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
 
       if (!token.isCancellationRequested) {
-        resolve(assemblyDocument.symbols.filter(s => !s.isLocal).map(symbol => {
+        resolve(assemblyDocument.symbols.filter(s => !s.isLocal && s.uri == document.uri).map(symbol => {
           const documentSymbol = new vscode.DocumentSymbol(
             symbol.text,
             symbol.documentation,
