@@ -8,8 +8,12 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 
 // Classes under test
-import { AssemblyLine } from '../parsers/assembly-line';
+import { AssemblyLine, ParserState } from '../parsers/assembly-line';
 import { ListingLine } from '../parsers/listing-line';
+
+function getState(): ParserState {
+  return { lonelyLabels: [], blockNumber: 1 } as ParserState;
+}
 
 // Defines a Mocha test suite to group tests of similar kind together
 suite('Parser Tests', () => {
@@ -18,7 +22,7 @@ suite('Parser Tests', () => {
     const expected = 'This is a comment';
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[0]?.text, expected, 'Comment not captured correctly');
   });
@@ -28,7 +32,7 @@ suite('Parser Tests', () => {
     const expected = 'This is a comment';
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[0]?.text, expected, 'Comment not captured correctly');
   });
@@ -38,7 +42,7 @@ suite('Parser Tests', () => {
     const expected = 'This is a comment';
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[0]?.text, expected, 'Comment not captured correctly');
   });
@@ -48,7 +52,7 @@ suite('Parser Tests', () => {
     const expected = 'This is a comment';
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[0]?.text, expected, 'Comment not captured correctly');
   });
@@ -58,7 +62,7 @@ suite('Parser Tests', () => {
     const expected = vscode.CompletionItemKind.Keyword;
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[0]?.kind, expected);
   });
@@ -70,7 +74,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expected.length;
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[0]?.text, expected);
     assert.strictEqual(line.tokens[0]?.range.start.character, expectedStart, 'Label Range start incorrect');
@@ -84,7 +88,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expected.length;
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[0]?.text, expected);
     assert.strictEqual(line.tokens[0]?.range.start.character, expectedStart, 'Label Range start incorrect');
@@ -98,7 +102,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expected.length;
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[0]?.text, expected);
     assert.strictEqual(line.tokens[0]?.range.start.character, expectedStart, 'Label Range start incorrect');
@@ -112,7 +116,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expected.length;
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[0]?.text, expected);
     assert.strictEqual(line.tokens[0]?.range.start.character, expectedStart, 'Label Range start incorrect');
@@ -126,7 +130,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expectedStart + expected.length;
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[0]?.text, expected);
     assert.strictEqual(line.tokens[0]?.range.start.character, expectedStart, 'Label Range start incorrect');
@@ -140,7 +144,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expected.length;
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[0]?.text, expected);
     assert.strictEqual(line.tokens[0]?.range.start.character, expectedStart, 'Label Range start incorrect');
@@ -154,7 +158,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expectedStart + expected.length;
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[0]?.text, expected);
     assert.strictEqual(line.tokens[0]?.range.start.character, expectedStart, 'Range start incorrect');
@@ -168,7 +172,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expectedStart + expected.length;
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[1]?.text, expected);
     assert.strictEqual(line.tokens[1]?.range.start.character, expectedStart, 'Range start incorrect');
@@ -182,7 +186,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expectedStart + expected.length;
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[1]?.text, expected);
     assert.strictEqual(line.tokens[1]?.range.start.character, expectedStart, 'Range start incorrect');
@@ -196,7 +200,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expectedStart + expected.length;
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[1]?.text, expected);
     assert.strictEqual(line.tokens[1]?.range.start.character, expectedStart, 'Range start incorrect');
@@ -217,7 +221,7 @@ suite('Parser Tests', () => {
     const numExpectedEnd = numExpectedStart + numExpected.length;
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[1]?.text, opExpected);
     assert.strictEqual(line.tokens[1]?.kind, opExpectedKind, "operation kind incorrect");
@@ -241,7 +245,7 @@ suite('Parser Tests', () => {
     const numExpectedStart = 13;
     const numExpectedEnd = numExpectedStart + numExpected.length;
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[2]?.text, opExpected);
     assert.strictEqual(line.tokens[2]?.kind, opExpectedKind, "operation kind incorrect");
@@ -261,7 +265,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expectedStart + expectedName.length;
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.references.length, expectedLength);
     assert.strictEqual(line.references[0].name, expectedName);
@@ -291,7 +295,7 @@ suite('Parser Tests', () => {
     ];
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.references.length, expectedLength);
     line.references.forEach((r, i) => {
@@ -306,7 +310,7 @@ suite('Parser Tests', () => {
     const expected = 0;
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.references.length, expected);
   });
@@ -331,7 +335,7 @@ suite('Parser Tests', () => {
     const expectedComment = 'Test of all';
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[0]?.text, expectedLabel, 'Label not captured');
     assert.strictEqual(line.tokens[0]?.range.start.character, expectedLabelStart, 'Label Range start incorrect');
@@ -358,7 +362,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expectedStart + expected.length;
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.tokens[1]?.text, expected);
     assert.strictEqual(line.tokens[1]?.range.start.character, expectedStart, 'Range start incorrect');
@@ -373,7 +377,7 @@ suite('Parser Tests', () => {
     const expectedEnd = expectedStart + expectedName.length;
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.references.length, expectedLength);
     assert.strictEqual(line.references[0].name, expectedName);
@@ -403,7 +407,7 @@ suite('Parser Tests', () => {
     ];
 
     const line = new AssemblyLine(text);
-    line.parse(null);
+    line.parse(getState());
 
     assert.strictEqual(line.references.length, expectedLength);
     line.references.forEach((r, i) => {
