@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { ConfigurationManager, OpcodeCase } from '../managers/configuration';
 import { WorkspaceManager } from '../managers/workspace';
-import { AssemblySymbol } from '../common';
+import { AssemblyToken, Registers } from '../common';
 import { DocOpcode } from '../parsers/docs';
 import { convertToCase } from '../utilities';
 
@@ -12,35 +12,47 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
   public provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.ProviderResult<vscode.CompletionItem[]> {
     return new Promise((resolve, reject) => {
-      const range = document.getWordRangeAtPosition(position);
+      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
+      const symbolManager = this.workspaceManager.getSymbolManager(document);
 
-      if (range) {
-        const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
-        const symbolManager = this.workspaceManager.getSymbolManager(document);
+      if (!token.isCancellationRequested) {
+        const assemblyLine = assemblyDocument.lines[position.line];
+        const casing = this.configurationManager.opcodeCasing;
 
-        if (!token.isCancellationRequested) {
-          const word = document.getText(range);
-          const assemblyLine = assemblyDocument.lines[position.line];
-          const casing = this.configurationManager.opcodeCasing;
-
-          if (assemblyLine.opcodeRange && range.intersection(assemblyLine.opcodeRange)) {
-            const items = this.workspaceManager.opcodeDocs.findOpcode(word.toUpperCase()).map(opcode => this.createOpcodeCompletionItem(opcode, casing));
-            resolve(items.concat(symbolManager.findMacro(word).map(label => this.createSymbolCompletionItem(label))));
-          }
-
-          if (assemblyLine.operandRange && range.intersection(assemblyLine.operandRange)) {
-            resolve(symbolManager.findLabel(word).map(label => this.createSymbolCompletionItem(label)));
-            return;
-          }
+        const lineToken = assemblyLine.tokens.find(t => t.range.contains(position));
+        if (lineToken.kind === vscode.CompletionItemKind.Keyword || lineToken.kind === vscode.CompletionItemKind.Method) {
+          const items = this.workspaceManager.opcodeDocs
+                          .findOpcode(lineToken.text.toUpperCase())
+                          .map(opcode => this.createOpcodeCompletionItem(opcode, casing));
+          resolve([...items, ...symbolManager.tokens
+                                .filter(t => t.kind === vscode.CompletionItemKind.Method)
+                                .map(t => this.createSymbolCompletionItem(t))]);
+  
+        } else if (assemblyLine.operandRange && assemblyLine.operandRange.contains(position)) {
+          resolve([...Registers.map(r => this.createRegisterCompletionItem(r)),
+                   ...assemblyDocument.symbols
+                        .filter(s => s.blockNumber === 0 || s.blockNumber === assemblyLine.blockNumber)
+                        .map(s => this.createSymbolCompletionItem(s))]);
+        } else {
+          reject();
         }
-
+      } else {
         reject();
       }
     });
   }
 
-  private createSymbolCompletionItem(symbol: AssemblySymbol): vscode.CompletionItem {
-    const item = new vscode.CompletionItem(symbol.name, symbol.kind);
+  private createRegisterCompletionItem(register:string): vscode.CompletionItem {
+    const item = new vscode.CompletionItem(register, vscode.CompletionItemKind.Variable);
+    item.detail = "Register";
+    return item;
+  }
+
+  private createSymbolCompletionItem(symbol: AssemblyToken): vscode.CompletionItem {
+    const item = new vscode.CompletionItem(symbol.text, symbol.kind);
+    if (symbol.parent) {
+      symbol = symbol.parent;
+    }
     if (symbol.documentation) {
       item.detail = symbol.documentation;
     }

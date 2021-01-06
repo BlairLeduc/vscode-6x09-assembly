@@ -28,8 +28,6 @@ export class AssemblyLine {
   public lineRange: Range;
   public blockNumber = 0;
 
-  public labelRange: Range;
-  public opcodeRange: Range;
   public operandRange: Range;
 
   public tokens: AssemblyToken[];
@@ -198,9 +196,6 @@ export class AssemblyLine {
       const pos = start + text.length;
       const range = this.getRange(start, pos);
 
-      // Populate variables
-      this.labelRange = range;
-
       // Create and add token
       const isLocal = this.isLocal(text);
       const token = new AssemblyToken(text, range, this.lineRange,
@@ -208,6 +203,7 @@ export class AssemblyLine {
         isLocal ? 'function' : 'class',
         [ 'definition' ]);
       token.blockNumber = isLocal ? blockNumber : 0;
+      token.isLocal = isLocal;
 
       this.tokens.push(token);
       return [pos, [token]];
@@ -215,8 +211,8 @@ export class AssemblyLine {
     return [0, [null]];
   }
 
-  private isLocal(text: string) {
-    return text.match(/.*[@$?].*/);
+  private isLocal(text: string): boolean {
+    return /.*[@$?].*/.test(text);
   }
 
   private fillOpcode(text: string, last: [number, AssemblyToken[]] = [0, [null]]): [number, AssemblyToken[]] {
@@ -228,18 +224,8 @@ export class AssemblyLine {
       pos = start + text.length;
       const range = this.getRange(start, pos);
 
-      // Populate variables
-      this.opcodeRange = range;
-
       // Create and add token
-      let token = null;
-
-      if (AssemblyLine.opcodeRegExp.test(text) || AssemblyLine.pseudoRegExp.test(text)) {
-        token = new AssemblyToken(text, range, this.lineRange, CompletionItemKind.Keyword, 'keyword');
-      } else {
-        token = new AssemblyToken(text, range, this.lineRange, CompletionItemKind.Method, 'macro'); 
-      }
-
+      const token = new AssemblyToken(text, range, this.lineRange, CompletionItemKind.Keyword, 'keyword');
       this.tokens.push(token);
       
       // Update label token (if there is one) based on the opcode
@@ -323,7 +309,11 @@ export class AssemblyLine {
       const token = new AssemblyToken(text, range, this.lineRange, CompletionItemKind.Text, 'comment');
       this.tokens.push(token);
       if (labelToken) {
-        labelToken.documentation = text;
+        if (text.startsWith(';') || text.startsWith('*')) {
+          labelToken.documentation = text.substr(1).trim();
+        } else {
+          labelToken.documentation = text;
+        }
       }
       return [pos, [...tokens, token]];
     }
@@ -333,22 +323,22 @@ export class AssemblyLine {
   private getTokensFromExpression(expression: string): FoundToken[] {
     const tokens: FoundToken[] = [];
     const findMatch = (s: string): [RegExpMatchArray, string] => {
-      let match = s.match(/^[._a-z][a-z0-9.$_@?]*/i); // symbol
+      let match = s.match(/^([._a-z][a-z0-9.$_@?]*)/i); // symbol
       const tokenType = match ? 'variable' : 'number';
       if (!match) {
-        match = s.match(/^('.)|("..)/); // character constant
+        match = s.match(/^(('.)|("..))/); // character constant
       }
       if (!match) {
         match = s.match(/^((\$|(0x))[0-9a-f]*)|([0-9][0-9a-f]*h)/i); // hex number
       }
       if (!match) {
-        match = s.match(/^(@[0-7]+)|([0-7]+[qo])/i); // octal number
+        match = s.match(/^((@[0-7]+)|([0-7]+[qo]))/i); // octal number
       }
       if (!match) {
-        match = s.match(/^(%[01]+)|([01]+b)/i); // binary number
+        match = s.match(/^((%[01]+)|([01]+b))/i); // binary number
       }
       if (!match) {
-        match = s.match(/^[0-9]+&?/i); // decimal number
+        match = s.match(/^([0-9]+&?)/i); // decimal number
       }
       return [match, tokenType];
     };

@@ -1,6 +1,6 @@
 import { CancellationToken, CompletionItemKind, Position, Range, TextDocument, Uri } from 'vscode';
 import { AssemblyLine, ParserState } from './assembly-line';
-import { AssemblySymbol, AssemblyToken, Registers } from '../common';
+import { AssemblyBlock, AssemblyToken, Registers } from '../common';
 import * as path from 'path';
 import * as lineReader from 'line-reader';
 import * as fileUrl from 'file-url';
@@ -16,6 +16,7 @@ export class AssemblyDocument {
   public lines: AssemblyLine[] = new Array<AssemblyLine>();
   public referencedDocuments: string[] = new Array<string>();
   public symbols: AssemblyToken[] = new Array<AssemblyToken>();
+  public blocks: Map<number, AssemblyBlock> = new Map<number, AssemblyBlock>();
 
   constructor(private symbolManager: SymbolManager, document: TextDocument, range?: Range, cancelationToken?: CancellationToken) {
     this.uri = document.uri;
@@ -33,18 +34,23 @@ export class AssemblyDocument {
         case CompletionItemKind.Function:
           token.uri = uri;
           this.symbols.push(token);
+          if (!this.blocks.has(token.blockNumber)) {
+            this.blocks.set(token.blockNumber, new AssemblyBlock(token.blockNumber));
+          }
+          const block = this.blocks.get(token.blockNumber);
+          block.tokens.push(token);
 
           const unknownReferences = this.unknownReferences.filter(r => r.text == token.text && r.blockNumber == token.blockNumber);
           unknownReferences.forEach(r => {
             r.parent = token;
             token.children.push(r);
+            block.tokens.push(r);
             const index = this.unknownReferences.indexOf(r);
             if (index > -1) {
               this.unknownReferences.splice(index, 1);
             }
           });
 
-          this.symbolManager.addDefinition(new AssemblySymbol(token.text, token.range, token.documentation, token.kind, token.lineRange, token.uri, token.value));
           this.symbolManager.addToken(token);
           break;
         case CompletionItemKind.File:
@@ -64,8 +70,6 @@ export class AssemblyDocument {
             } else {
               this.unknownReferences.push(token);
             }
-
-            this.symbolManager.addReference(new AssemblySymbol(token.text, token.range, '', token.kind, line.lineRange, uri));
           }
           break;
       }

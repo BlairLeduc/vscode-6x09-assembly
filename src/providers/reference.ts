@@ -8,23 +8,23 @@ export class ReferenceProvider implements vscode.ReferenceProvider {
   constructor(private workspaceManager: WorkspaceManager) {
   }
 
-  public provideReferences(document: vscode.TextDocument, position: vscode.Position, context: vscode.ReferenceContext, cancelationToken: vscode.CancellationToken): vscode.ProviderResult<vscode.Location[]> {
+  public provideReferences(document: vscode.TextDocument, position: vscode.Position, context: vscode.ReferenceContext, token: vscode.CancellationToken): vscode.ProviderResult<vscode.Location[]> {
     return new Promise((resolve, reject) => {
-      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, cancelationToken);
+      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
 
-      if (!cancelationToken.isCancellationRequested) {
+      if (!token.isCancellationRequested) {
         const assemblyLine = assemblyDocument.lines[position.line];
 
-        let token = assemblyLine.tokens.find(t => t.range.contains(position));
+        let symbol = assemblyLine.tokens.find(t => t.range.contains(position));
 
-        if (token.kind === vscode.CompletionItemKind.Reference && token.parent) {
-          token = token.parent;
+        if (symbol.kind === vscode.CompletionItemKind.Reference && symbol.parent) {
+          symbol = symbol.parent;
         }
 
-        if (referencableKinds.indexOf(token.kind) >= 0) {
-          const references = token.children.map(s => new vscode.Location(s.uri, s.range));
+        if (referencableKinds.indexOf(symbol.kind) >= 0) {
+          const references = symbol.children.map(s => new vscode.Location(s.uri, s.range));
           if (context.includeDeclaration) {
-            resolve([new vscode.Location(token.uri, token.range), ...references]);
+            resolve([new vscode.Location(symbol.uri, symbol.range), ...references]);
           } else {
             resolve(references);
           }
