@@ -28,7 +28,7 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
         if (!token.isCancellationRequested) {
           const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
           const lenses = new Array<vscode.CodeLens>();
-          assemblyDocument.symbols.forEach(symbol => {
+          assemblyDocument.symbols.filter(s => s.uri === document.uri).forEach(symbol => {
             let references = symbol.children;
             if (symbol.text.match(/.*[@$?].*/)) {
               // Local symbol, filter references to this block

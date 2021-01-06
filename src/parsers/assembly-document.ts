@@ -103,7 +103,9 @@ export class AssemblyDocument {
 
       if (state.blockNumber > blockNumber) {
         block.endLineNumber = i-1;
-        this.blocks.set(blockNumber, block);
+        if (block.endLineNumber-block.startLineNumber > 0) {
+          this.blocks.set(blockNumber, block);
+        }
         block = new AssemblyBlock(state.blockNumber, i+1);
         blockNumber = state.blockNumber;
       }
