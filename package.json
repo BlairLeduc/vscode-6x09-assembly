@@ -4,7 +4,7 @@
 	"description": "Language support for 6x09 Assembly language.",
 	"author": "Blair Leduc",
 	"license": "MIT",
-	"version": "0.6.2",
+	"version": "0.6.3",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/BlairLeduc/vscode-6x09-assembly"
@@ -38,17 +38,6 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"colors": [
-			{
-				"id": "keyword.other.opcode.6309.asm6x09",
-				"description": "Color for 6309 opcodes.",
-				"defaults": {
-					"dark": "#5f56d6",
-					"light": "#8800ff",
-					"highContrast": "foreground"
-				}
-			}
-		],
 		"commands": [
 			{
 				"command": "asm6x09.opcodeLowercase",

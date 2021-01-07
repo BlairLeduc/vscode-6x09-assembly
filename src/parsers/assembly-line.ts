@@ -188,6 +188,12 @@ export class AssemblyLine {
 
   private fillLabel(text: string, blockNumber: number): [number, AssemblyToken[]] {
     if (text && text.length > 0) {
+      const hasColon = text.endsWith(':');
+
+      if (hasColon) {
+        text = text.substr(0, text.length - 1);
+      }
+
       const start = this.rawLine.indexOf(text, 0);
       const pos = start + text.length;
       const range = this.getRange(start, pos);
@@ -202,6 +208,10 @@ export class AssemblyLine {
       token.isLocal = isLocal;
 
       this.tokens.push(token);
+      if (hasColon) {
+        this.tokens.push(new AssemblyToken(':', this.getRange(start+pos, start+pos+1), this.lineRange, CompletionItemKind.Operator, 'operator'));
+      }
+
       return [pos, [token]];
     }
     return [0, [null]];
@@ -319,7 +329,7 @@ export class AssemblyLine {
   private getTokensFromExpression(expression: string): FoundToken[] {
     const tokens: FoundToken[] = [];
     const findMatch = (s: string): [RegExpMatchArray, string] => {
-      let match = s.match(/^([._a-z][a-z0-9.$_@?]*)/i); // symbol
+      let match = s.match(/^([a-z._@?$][a-z0-9.$_@?]*)/i); // symbol
       const tokenType = match ? 'variable' : 'number';
       if (!match) {
         match = s.match(/^(('.)|("..))/); // character constant
