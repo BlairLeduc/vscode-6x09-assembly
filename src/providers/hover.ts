@@ -19,7 +19,7 @@ export class HoverProvider implements HoverProvider {
   }
 
   public provideHover(document: TextDocument, position: Position, token: CancellationToken): ProviderResult<Hover> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       if (this.configurationManager.hoverVerbosity !== HoverVerbosity.none) {
         const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
 
@@ -37,9 +37,15 @@ export class HoverProvider implements HoverProvider {
               }
               help.appendCodeblock(`(${DocOpcodeType[opcodeDocs.type]}) ${symbol.text}${processorSpec} ${opcodeDocs.summary}`);
               if (this.configurationManager.hoverVerbosity === HoverVerbosity.full && opcodeDocs.documentation) {
-                help.appendMarkdown(`---\n${opcodeDocs.documentation}`);
+                let documentation = '---\n';
+                if (opcodeDocs.conditionCodes) {
+                  documentation += `${opcodeDocs.conditionCodes}  \n  \n`;
+                }
+                documentation += `${opcodeDocs.documentation}`;
+                help.appendMarkdown(documentation);
               }
               resolve(new Hover(help, symbol.range));
+              return;
             }
           } else if (symbol.kind !== CompletionItemKind.Operator) {
             const kind = symbol.parent ? symbol.parent.kind : symbol.kind;
@@ -58,14 +64,15 @@ export class HoverProvider implements HoverProvider {
                 help.appendMarkdown(`---\n${documentation}`);
               }
               resolve(new Hover(help, symbol.range));
+              return;
             }
-          } else {
-            resolve(null);
           }
         } else {
-          resolve(null);
+          reject(null);
+          return;
         }
       }
+      resolve(null); 
     });
   }
 

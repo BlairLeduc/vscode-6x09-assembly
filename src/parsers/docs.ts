@@ -4,26 +4,32 @@ import * as path from 'path';
 export enum DocOpcodeType { unknown, opcode, pseudo }
 
 export class DocOpcode {
-  public static parse(line: string): DocOpcode {
+  public name = '';
+  public processor = '';
+  public conditionCodes = '';
+  public summary = '';
+  public documentation = '';
+  public type = DocOpcodeType.unknown;
+
+  public static parse(line: string, type: DocOpcodeType): DocOpcode {
     const columns = line.replace(/\!/g, '\n').split(';');
     if (columns.length > 1) {
       const opcode = new DocOpcode();
-      opcode.name = columns[0];
-      opcode.processor = columns[1];
-      opcode.summary = columns[2];
-      if (columns.length > 3) {
-        opcode.documentation = columns[3];
+      if (type == DocOpcodeType.opcode) {
+        opcode.name = columns[0];
+        opcode.processor = columns[1];
+        opcode.conditionCodes = columns[2];
+        opcode.summary = columns[3];
+        opcode.documentation = columns[4];
+      } else {
+        opcode.name = columns[0];
+        opcode.summary = columns[1];
+        opcode.documentation = columns[2];
       }
       return opcode;
     }
     return null;
   }
-
-  public name = '';
-  public summary = '';
-  public documentation = '';
-  public processor = '';
-  public type = DocOpcodeType.unknown;
 }
 
 export class Docs {
@@ -54,7 +60,7 @@ export class Docs {
     let lineNumber = 0;
     for (const line of lines) {
       if (line.length > 0) {
-        const opcode = DocOpcode.parse(line);
+        const opcode = DocOpcode.parse(line, type);
         if (opcode) {
           opcode.type = type;
           const key = opcode.name.toUpperCase();

@@ -81,7 +81,7 @@ export class AssemblyLine {
 
     let match = this.matchLineComment(this.rawLine);
     if (match) {
-      this.fillComment(match[1]);
+      this.fillComment(match[0]);
       state.lonelyLabels.forEach(t => {
         t.documentation += '  \n' + match[1];
       });
@@ -159,15 +159,7 @@ export class AssemblyLine {
   }
 
   private matchLineComment(text: string): RegExpMatchArray {
-    let match = text.match(/(?:^\s*)[*](?:\s|[*])(.*)/);
-    if (match) {
-      return match;
-    }
-    match = text.match(/^[*]\s?(.*)/)
-    if (match) {
-      return match;
-    }
-    return text.match(/(?:^\s*)[;](.*)/);
+    return text.match(/(?:^\s*)[*#;]\s*(.*)/);
   }
 
   private matchSelectPseudoOps(text: string): RegExpMatchArray {
@@ -311,15 +303,16 @@ export class AssemblyLine {
       pos = start + text.length;
       const range = this.getRange(start, pos);
 
+      const match = this.matchLineComment(text); 
+      if (match) {
+        text = match[1].trim();
+      }
+
       // Create and add token
       const token = new AssemblyToken(text, range, this.lineRange, CompletionItemKind.Text, 'comment');
       this.tokens.push(token);
       if (labelToken) {
-        if (text.startsWith(';') || text.startsWith('*')) {
-          labelToken.documentation = text.substr(1).trim();
-        } else {
-          labelToken.documentation = text;
-        }
+        labelToken.documentation = text;
       }
       return [pos, [...tokens, token]];
     }
