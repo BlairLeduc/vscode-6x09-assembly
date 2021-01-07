@@ -52,7 +52,7 @@ export class AssemblyLine {
       const o2 = '|clr[abdefw]?|cmp[abefdwxyrsu]|com[abdefw]?|cwia|daa|dec[abdefw]?|div[dq]|e(im|or[abdr]|xg)|inc[abdefw]?';
       const o3 = '|j(mp|sr)|lb(' + ob + ')|ld([abdrfwxyusuq]|bt|md)|lea[xysu]|ls[lr][abdw]?|muld?|neg[abd]?|nop';
       const o4 = '|o(im|r([abdr]|cc))|psh[su]w?|pul[su]w?|ro[lr][abdw]?|rt[is]';
-      const o5 = '|sbc[abdr]|sexw?|st([abefdwxysuq]|bt)|sub[abdr]|swi[23]?|sync|t(fm|fr|im|st[abdefw]?)';
+      const o5 = '|sbc[abdr]|sexw?|st([abefdwxysuq]|bt)|sub[abdefr]|swi[23]?|sync|t(fm|fr|im|st[abdefw]?)';
       AssemblyLine.opcodeRegExp = new RegExp('^(' + o1 + o2 + o3 + o4 + o5 + ')$', 'i');
     }
 
