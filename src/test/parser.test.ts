@@ -96,7 +96,7 @@ suite('Parser Tests', () => {
   });
 
   test('Find label on line with opcode and operand', () => {
-    const text = 'Sta_rt   lda     #$40';
+    const text = 'Sta_rt   lda     #@72';
     const expected = 'Sta_rt';
     const expectedStart = 0;
     const expectedEnd = expected.length;
@@ -110,7 +110,7 @@ suite('Parser Tests', () => {
   });
 
   test('Find label on line with opcode and operand and comment', () => {
-    const text = 'Sta.rt   lda     #$40    load *';
+    const text = 'Sta.rt   lda     #%11001010    load *';
     const expected = 'Sta.rt';
     const expectedStart = 0;
     const expectedEnd = expected.length;
@@ -180,7 +180,7 @@ suite('Parser Tests', () => {
   });
 
   test('Find opcode on line with label and operand', () => {
-    const text = 'Sta_rt   lda     #$40';
+    const text = 'Sta_rt   lda     #$42';
     const expected = 'lda';
     const expectedStart = 9;
     const expectedEnd = expectedStart + expected.length;
@@ -194,7 +194,7 @@ suite('Parser Tests', () => {
   });
 
   test('Find opcode on line with label and operand and comment', () => {
-    const text = 'Sta.rt   lda     #$40    load *';
+    const text = 'Sta.rt   lda     #$ef    load *';
     const expected = 'lda';
     const expectedStart = 9;
     const expectedEnd = expectedStart + expected.length;
@@ -208,13 +208,13 @@ suite('Parser Tests', () => {
   });
 
   test('Find operand on line with opcode and operand', () => {
-    const text = '   ldb #$40';
+    const text = '   ldb #$c5';
 
     const opExpected = '#';
     const opExpectedKind = vscode.CompletionItemKind.Operator;
     const opExpectedStart = 7;
     const opExpectedEnd = opExpectedStart + opExpected.length;
-    const numExpected = '$40';
+    const numExpected = '$c5';
 
     const numExpectedKind = vscode.CompletionItemKind.Value;
     const numExpectedStart = 8;

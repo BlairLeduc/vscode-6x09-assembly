@@ -11,6 +11,10 @@ This extension supports files with the extensions `.s`, `.asm`, `.d` and `.defs`
 This extension is build to work closely with the `lwasm` assembler, part of LWTOOLS,
 available at [http://www.lwtools.ca](http://www.lwtools.ca).
 
+## Acknowledgements
+
+- Lee as beta tester
+
 ## Feature examples
 
 ### Problem metching with `lwasm`

@@ -329,11 +329,8 @@ export class AssemblyLine {
   private getTokensFromExpression(expression: string): FoundToken[] {
     const tokens: FoundToken[] = [];
     const findMatch = (s: string): [RegExpMatchArray, string] => {
-      let match = s.match(/^([a-z._@?$][a-z0-9.$_@?]*)/i); // symbol
-      const tokenType = match ? 'variable' : 'number';
-      if (!match) {
-        match = s.match(/^(('.)|("..))/); // character constant
-      }
+      let tokenType = 'number';
+      let match = s.match(/^(('.)|("..))/); // character constant
       if (!match) {
         match = s.match(/^((\$|(0x))[0-9a-f]*)|([0-9][0-9a-f]*h)/i); // hex number
       }
@@ -345,6 +342,12 @@ export class AssemblyLine {
       }
       if (!match) {
         match = s.match(/^([0-9]+&?)/i); // decimal number
+      }
+      if (!match) {
+        match = s.match(/^(([a-z._]|[@?$][a-z.$_@?])[a-z0-9.$_@?]*)/i); // symbol
+        if (match) {
+          tokenType = 'variable';
+        }
       }
       return [match, tokenType];
     };

@@ -9,10 +9,10 @@ export class DocOpcode {
     if (columns.length > 1) {
       const opcode = new DocOpcode();
       opcode.name = columns[0];
-      opcode.summary = columns[1];
-      if (columns.length > 2) {
-        opcode.documentation = columns[2];
-        opcode.processor = columns[3];
+      opcode.processor = columns[1];
+      opcode.summary = columns[2];
+      if (columns.length > 3) {
+        opcode.documentation = columns[3];
       }
       return opcode;
     }
