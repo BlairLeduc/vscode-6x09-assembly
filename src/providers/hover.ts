@@ -1,5 +1,5 @@
 import { CancellationToken, CompletionItemKind, Hover, MarkdownString, Position, ProviderResult, TextDocument } from 'vscode';
-import { ConfigurationManager, HoverVerbosity } from '../managers/configuration';
+import { ConfigurationManager, HelpVerbosity } from '../managers/configuration';
 import { WorkspaceManager } from '../managers/workspace';
 import { DocOpcodeType } from '../parsers/docs';
 
@@ -20,7 +20,7 @@ export class HoverProvider implements HoverProvider {
 
   public provideHover(document: TextDocument, position: Position, token: CancellationToken): ProviderResult<Hover> {
     return new Promise((resolve, reject) => {
-      if (this.configurationManager.hoverVerbosity !== HoverVerbosity.none) {
+      if (this.configurationManager.helpVerbosity !== HelpVerbosity.none) {
         const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
 
         if (!token.isCancellationRequested) {
@@ -36,13 +36,15 @@ export class HoverProvider implements HoverProvider {
                 processorSpec = opcodeDocs.processor === '6809' ? ' (6809/6309)' : ' (6309)';
               }
               help.appendCodeblock(`(${DocOpcodeType[opcodeDocs.type]}) ${symbol.text}${processorSpec} ${opcodeDocs.summary}`);
-              if (this.configurationManager.hoverVerbosity === HoverVerbosity.full && opcodeDocs.documentation) {
-                let documentation = '---\n';
+              let documentation = opcodeDocs.conditionCodes;
+              if (this.configurationManager.helpVerbosity === HelpVerbosity.full && opcodeDocs.documentation) {
                 if (opcodeDocs.conditionCodes) {
-                  documentation += `${opcodeDocs.conditionCodes}  \n  \n`;
+                  documentation += '  \n  \n';
                 }
-                documentation += `${opcodeDocs.documentation}`;
-                help.appendMarkdown(documentation);
+                documentation += opcodeDocs.documentation;
+              }
+              if (documentation) {
+                help.appendMarkdown('---\n' + documentation);
               }
               resolve(new Hover(help, symbol.range));
               return;

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ConfigurationManager, OpcodeCase } from '../managers/configuration';
+import { ConfigurationManager, HelpVerbosity as HelpVerbosity, OpcodeCase } from '../managers/configuration';
 import { WorkspaceManager } from '../managers/workspace';
 import { AssemblyToken, Registers } from '../common';
 import { DocOpcode } from '../parsers/docs';
@@ -49,7 +49,8 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
   }
 
   private createSymbolCompletionItem(symbol: AssemblyToken): vscode.CompletionItem {
-    const item = new vscode.CompletionItem(symbol.text, symbol.kind);
+    const item = new vscode.CompletionItem(symbol.text, this.getItemKindFromKind(symbol.kind));
+  
     if (symbol.parent) {
       symbol = symbol.parent;
     }
@@ -60,13 +61,40 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
     return item;
   }
 
+  private getItemKindFromKind(kind: vscode.CompletionItemKind): vscode.CompletionItemKind {
+    switch(kind) {
+      case vscode.CompletionItemKind.Method:
+      case vscode.CompletionItemKind.Class:
+        return vscode.CompletionItemKind.Function;
+      case vscode.CompletionItemKind.Variable:
+        return vscode.CompletionItemKind.Field;
+      default:
+        return kind;
+    }
+  }
+
   private createOpcodeCompletionItem(opcode: DocOpcode, casing: OpcodeCase): vscode.CompletionItem {
     const item = new vscode.CompletionItem(convertToCase(opcode.name, casing), vscode.CompletionItemKind.Keyword);
+    
     item.detail = opcode.summary;
     if (opcode.processor === '6309') {
-      item.detail = '(6309) ' + item.detail;
+      item.detail += ' (6309)';
     }
-    item.documentation = new vscode.MarkdownString(opcode.documentation);
+    if (opcode.conditionCodes) {
+      item.detail += `\n\n${opcode.conditionCodes}`;
+    }
+
+    let documentation = '';//opcode.conditionCodes;
+    if (this.configurationManager.helpVerbosity === HelpVerbosity.full && opcode.documentation) {
+      if (documentation) {
+        documentation += '  \n  \n';
+      }
+      documentation += opcode.documentation;
+    }
+    if (documentation) {
+      item.documentation = new vscode.MarkdownString(documentation);
+    }
+
     return item;
   }
 }

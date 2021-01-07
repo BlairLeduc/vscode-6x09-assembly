@@ -14,8 +14,8 @@ interface ExtensionWorkspaceConfiguration extends vscode.WorkspaceConfiguration 
     /** the casing of the opcodes */
     casing: string,
 
-    /** the level of detail when hovering over opcodes */
-    hover: string,
+    /** the level of detail when providing help */
+    help: string,
   };
 
   /** whether Codelens is enabled */
@@ -48,7 +48,7 @@ export enum OpcodeCase {
   capitalised,
 }
 
-export enum HoverVerbosity {
+export enum HelpVerbosity {
   none,
   light,
   full,
@@ -83,8 +83,8 @@ export class ConfigurationManager implements vscode.Disposable {
     return this.config.enableCodeLens;
   }
 
-  public get hoverVerbosity(): HoverVerbosity {
-    return HoverVerbosity[this.config.opcode.hover];
+  public get helpVerbosity(): HelpVerbosity {
+    return HelpVerbosity[this.config.opcode.help];
   }
 
   public getPath(command: Command, platform: OSPlatform): string {

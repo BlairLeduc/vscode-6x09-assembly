@@ -66,16 +66,16 @@
 						"uppercase",
 						"capitalised"
 					],
-					"description": "The case used in opcode Intellisense."
+					"description": "The case used in op code Intellisense."
 				},
-				"6x09Assembly.opcode.hover": {
+				"6x09Assembly.opcode.help": {
 					"type": "string",
 					"default": "full",
 					"enum": [
 						"light",
 						"full"
 					],
-					"description": "The amount of documentation to provide when hovering over an opcode."
+					"description": "The level of op code documentation when providing help."
 				},
 				"6x09Assembly.enableCodeLens": {
 					"type": "boolean",
