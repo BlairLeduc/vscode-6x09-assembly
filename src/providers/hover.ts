@@ -36,12 +36,9 @@ export class HoverProvider implements HoverProvider {
                 processorSpec = opcodeDocs.processor === '6809' ? ' (6809/6309)' : ' (6309)';
               }
               help.appendCodeblock(`(${DocOpcodeType[opcodeDocs.type]}) ${symbol.text}${processorSpec} ${opcodeDocs.summary}`);
-              let documentation = opcodeDocs.conditionCodes;
+              let documentation = `${opcodeDocs.arithmetic}　⸺　${opcodeDocs.conditionCodes}`;
               if (this.configurationManager.helpVerbosity === HelpVerbosity.full && opcodeDocs.documentation) {
-                if (opcodeDocs.conditionCodes) {
-                  documentation += '  \n  \n';
-                }
-                documentation += opcodeDocs.documentation;
+                documentation += `  \n  \n${opcodeDocs.documentation}`;
               }
               if (documentation) {
                 help.appendMarkdown('---\n' + documentation);

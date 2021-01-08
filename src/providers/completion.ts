@@ -80,19 +80,9 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
     if (opcode.processor === '6309') {
       item.detail += ' (6309)';
     }
-    if (opcode.conditionCodes) {
-      item.detail += `\n\n${opcode.conditionCodes}`;
-    }
 
-    let documentation = '';//opcode.conditionCodes;
     if (this.configurationManager.helpVerbosity === HelpVerbosity.full && opcode.documentation) {
-      if (documentation) {
-        documentation += '  \n  \n';
-      }
-      documentation += opcode.documentation;
-    }
-    if (documentation) {
-      item.documentation = new vscode.MarkdownString(documentation);
+      item.documentation = new vscode.MarkdownString(opcode.documentation);
     }
 
     return item;

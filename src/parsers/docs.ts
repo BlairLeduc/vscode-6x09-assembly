@@ -8,6 +8,7 @@ export class DocOpcode {
   public processor = '';
   public conditionCodes = '';
   public summary = '';
+  public arithmetic = '';
   public documentation = '';
   public type = DocOpcodeType.unknown;
 
@@ -20,7 +21,8 @@ export class DocOpcode {
         opcode.processor = columns[1];
         opcode.conditionCodes = columns[2];
         opcode.summary = columns[3];
-        opcode.documentation = columns[4];
+        opcode.arithmetic = columns[4];
+        opcode.documentation = columns[5];
       } else {
         opcode.name = columns[0];
         opcode.summary = columns[1];
