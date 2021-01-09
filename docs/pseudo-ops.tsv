@@ -1,4 +1,4 @@
-Name	Summary	Documentation
+Name	Summary
 .4BYTE	Include One or More Double Words
 .AREA	Begins a New Section
 .ASCII	Include String
