@@ -1,3 +1,4 @@
+Name	Processor	Condition Codes	Summary	Notation	Documentation
 ABX	6809	H=• N=• Z=• V=• C=•	Add B into X (Unsigned)	X' ← X + B	Add the unsigned value in B into X.
 ADCA	6809	H=↕ N=↕ Z=↕ V=↕ C=↕	Add Memory Byte with Carry into A	A' ← A + M + C	Add A, the C (carry) bit and the memory byte into A.
 ADCB	6809	H=↕ N=↕ Z=↕ V=↕ C=↕	Add Memory Byte with Carry into B	B' ← B + M + C	Add B, the C (carry) bit and the memory byte into B.
