@@ -65,7 +65,7 @@ export class AssemblyLine {
     }
 
     if(!AssemblyLine.storageRegExp) {
-      const s1 = '[.](4byte|asci[isz]|blkb|byte|d[bsw]|globl|quad|rs|str[sz]?|word)|f[dq]b|fc[bcns]|import|export|[zr]m[dbq]';
+      const s1 = '[.](4byte|asci[isz]|blkb|byte|d[bsw]|globl|quad|rs|str[sz]?|word)|f[dq]b|fc[bcns]|import|[zr]m[dbq]';
       const s2 = '|includebin|fill';
       AssemblyLine.storageRegExp = new RegExp('^(' + s1 + s2 + ')$', 'i');
     }
@@ -100,7 +100,7 @@ export class AssemblyLine {
       }
       return state;
     }
-    match = this.matcOpcodeAndComment(this.rawLine);
+    match = this.matchOpcodeAndComment(this.rawLine);
     if (match) {
       const [_1, tokens] = this.fillComment(match[3], this.fillOpcode(match[2], this.fillLabel(match[1], state.blockNumber)));
       this.updateLonelyLabelsFromOpcode(state, tokens);
@@ -150,6 +150,15 @@ export class AssemblyLine {
         labelToken.tokenType = 'struct';
         labelToken.tokenModifiers = ['declaration'];
         labelToken.kind = CompletionItemKind.Struct;
+      } else if (opcode.toLowerCase() === 'export') {
+        labelToken.tokenType = 'variable';
+        labelToken.tokenModifiers = [];
+        labelToken.kind = CompletionItemKind.Reference;
+        this.references.push({
+          name: labelToken.text,
+          range: labelToken.range,
+          token: labelToken,
+        } as SymbolReference);
       }
     }
   }
@@ -170,7 +179,7 @@ export class AssemblyLine {
     return text.match(/^([^ \t*;]*)(?:[ \t]+(?:[*]\s|;)(.*))/);
   }
 
-  private matcOpcodeAndComment(text: string): RegExpMatchArray {
+  private matchOpcodeAndComment(text: string): RegExpMatchArray {
     return text.match(/^([^ \t*;]*)(?:[ \t]+(abx|as[lr][abd]|clr[abdefw]|com[abdefw]|daa|dec[abdefw]|inc[abdefw]|ls[lr][abdw]|mul|neg[abd]|nop|psh[su]w|pul[su]w|ro[lr][abdw]|rt[is]|sexw?|swi[23]?|tst[abdefw]|macro|struct))(?:[ \t]+(.*))/i);
   }
 

@@ -44,6 +44,25 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
               range: symbol.range,
               isResolved: true,
             });
+
+            // Possible bug in VSCode, this breaks code lens
+            // references.filter(s => s.uri === document.uri).forEach(reference => {
+            //   if (reference.range.start.character === 0) {
+            //     const siblings = reference.parent.children;
+            //     siblings.splice(siblings.indexOf(reference), 1, symbol);
+
+            //     const command: vscode.Command = {
+            //       command: 'editor.action.showReferences',
+            //       title: `${siblings.length} reference${siblings.length !== 1 ? 's' : ''}`,
+            //       arguments: [document.uri, reference.range.start, siblings.map(r => new vscode.Location(r.uri, r.range))],
+            //     };
+            //     lenses.push({
+            //       command,
+            //       range: reference.range,
+            //       isResolved: true,
+            //     }); 
+            //   }
+            // });
           });
 
           resolve(lenses);
