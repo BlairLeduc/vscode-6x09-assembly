@@ -8,12 +8,12 @@ export class DocOpcode {
   public processor = '';
   public conditionCodes = '';
   public summary = '';
-  public arithmetic = '';
+  public notation = '';
   public documentation = '';
   public type = DocOpcodeType.unknown;
 
   public static parse(line: string, type: DocOpcodeType): DocOpcode {
-    const columns = line.replace(/\!/g, '\n').split(';');
+    const columns = line.replace(/\!/g, '\n').split('\t');
     if (columns.length > 1) {
       const opcode = new DocOpcode();
       if (type == DocOpcodeType.opcode) {
@@ -21,7 +21,7 @@ export class DocOpcode {
         opcode.processor = columns[1];
         opcode.conditionCodes = columns[2];
         opcode.summary = columns[3];
-        opcode.arithmetic = columns[4];
+        opcode.notation = columns[4];
         opcode.documentation = columns[5];
       } else {
         opcode.name = columns[0];
@@ -36,8 +36,8 @@ export class DocOpcode {
 
 export class Docs {
   private readonly docsPath = 'docs';
-  private readonly opcodesFile = 'opcodes.csv';
-  private readonly pseudoOpsFile = 'pseudo-ops.csv';
+  private readonly opcodesFile = 'opcodes.tsv';
+  private readonly pseudoOpsFile = 'pseudo-ops.tsv';
   private opcodes = new Map<string, DocOpcode>();
 
   constructor(extensionPath: string) {
@@ -61,6 +61,10 @@ export class Docs {
 
     let lineNumber = 0;
     for (const line of lines) {
+      if (lineNumber === 0) {
+        // header row
+        continue;
+      }
       if (line.length > 0) {
         const opcode = DocOpcode.parse(line, type);
         if (opcode) {
