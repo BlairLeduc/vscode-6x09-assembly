@@ -1,8 +1,8 @@
 import { Disposable, Uri } from 'vscode';
-import { AssemblyToken } from '../common';
+import { AssemblySymbol } from '../common';
 
 export class SymbolManager implements Disposable {
-  public tokens = new Array<AssemblyToken>();
+  public tokens = new Array<AssemblySymbol>();
 
   public dispose(): void {
     //TODO
@@ -12,7 +12,7 @@ export class SymbolManager implements Disposable {
     this.tokens = this.tokens.filter(t => t.uri !== uri);
   }
 
-  public addToken(token: AssemblyToken): void {
+  public addToken(token: AssemblySymbol): void {
     this.tokens.push(token);
   }
 }

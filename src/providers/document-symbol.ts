@@ -22,7 +22,7 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
           );
           if (symbol.kind === vscode.CompletionItemKind.Class && symbol.blockNumber > 0) {
             const block = assemblyDocument.blocks.get(symbol.blockNumber);
-            documentSymbol.children = block.tokens.filter(s => s.kind !== vscode.CompletionItemKind.Class).map(blockSymbol => {
+            documentSymbol.children = block.symbols.filter(s => s.kind !== vscode.CompletionItemKind.Class).map(blockSymbol => {
               return new vscode.DocumentSymbol(
                 blockSymbol.text,
                 blockSymbol.documentation,

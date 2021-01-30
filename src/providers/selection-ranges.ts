@@ -18,7 +18,7 @@ export class SelectionRangeProvider implements vscode.SelectionRangeProvider {
           const lineSelectionRange = new vscode.SelectionRange(assemblyLine.lineRange);
           const operandSelectionRange = new vscode.SelectionRange(assemblyLine.operandRange, lineSelectionRange);
 
-          const symbol = assemblyLine.tokens.find(t => t.range.contains(position));
+          const symbol = assemblyLine.references.find(r => r.range.contains(position)) ?? assemblyLine.label;
           if (symbol) {
             if (assemblyLine.operandRange.contains(position)) {
               selectionRanges.push(new vscode.SelectionRange(symbol.range, operandSelectionRange));

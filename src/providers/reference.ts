@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { referencableKinds } from '../common';
 import { WorkspaceManager } from '../managers/workspace';
 
 
@@ -14,20 +13,16 @@ export class ReferenceProvider implements vscode.ReferenceProvider {
 
       if (!token.isCancellationRequested) {
         const assemblyLine = assemblyDocument.lines[position.line];
-
-        let symbol = assemblyLine.tokens.find(t => t.range.contains(position));
-
-        if (symbol.kind === vscode.CompletionItemKind.Reference && symbol.parent) {
-          symbol = symbol.parent;
-        }
-
-        if (referencableKinds.indexOf(symbol.kind) >= 0) {
-          const references = symbol.children.map(s => new vscode.Location(s.uri, s.range));
+        const symbol = assemblyLine.references.find(r => r.range.contains(position))?.definition ?? assemblyLine.label;
+        if (symbol && symbol.range.contains(position)) {
+          const references = symbol.references.map(s => new vscode.Location(s.uri, s.range));
           if (context.includeDeclaration) {
             resolve([new vscode.Location(symbol.uri, symbol.range), ...references]);
           } else {
             resolve(references);
           }
+        } else {
+          resolve([]);
         }
       } else {
         reject();

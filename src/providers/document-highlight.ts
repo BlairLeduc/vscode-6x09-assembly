@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { referencableKinds } from '../common';
 import { WorkspaceManager } from '../managers/workspace';
 
 export class DocumentHighlightProvider implements vscode.DocumentHighlightProvider {
@@ -14,15 +13,12 @@ export class DocumentHighlightProvider implements vscode.DocumentHighlightProvid
       if (!cancelationToken.isCancellationRequested) {
         const assemblyLine = assemblyDocument.lines[position.line];
 
-        let token = assemblyLine.tokens.find(t => t.range.contains(position));
-
-        if (token.kind === vscode.CompletionItemKind.Reference && token.parent) {
-          token = token.parent;
-        }
-
-        if (referencableKinds.indexOf(token.kind) >= 0) {
-          const references = token.children.map(s => new vscode.DocumentHighlight(s.range));
-          resolve([new vscode.DocumentHighlight(token.range), ...references]);
+        const symbol = assemblyLine.references.find(r => r.range.contains(position))?.definition ?? assemblyLine.label;
+        if (symbol && symbol.range.contains(position)) {
+          const references = symbol.references.map(s => new vscode.DocumentHighlight(s.range));
+          resolve([new vscode.DocumentHighlight(assemblyLine.labelRange), ...references]);
+        } else {
+          resolve([]);
         }
       } else {
         reject();

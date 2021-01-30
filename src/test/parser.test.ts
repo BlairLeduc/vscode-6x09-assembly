@@ -5,517 +5,1450 @@
 
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
-import * as vscode from 'vscode';
 
 // Classes under test
-import { AssemblyLine, ParserState } from '../parsers/assembly-line';
-import { ListingLine } from '../parsers/listing-line';
 
-function getState(): ParserState {
-  return { lonelyLabels: [], blockNumber: 1 } as ParserState;
-}
+import { Token, TokenKind, TokenModifier, TokenType } from '../common';
+import { LineParser } from '../parsers/line-parser';
 
-// Defines a Mocha test suite to group tests of similar kind together
-suite('Parser Tests', () => {
-  test('See comment line from start (asterisk)', () => {
-    const text = '* This is a comment';
-    const expected = 'This is a comment';
+suite('LineParser', () => {
+  test('Empty string returns empty token list', () => {
+    const line = '';
+    const tokens = LineParser.parse(line);
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
-
-    assert.strictEqual(line.tokens[0]?.text, expected, 'Comment not captured correctly');
+    assert.ok(tokens);
+    assert.strictEqual(tokens.length, 0);
   });
 
-  test('See comment line from start (semicolon)', () => {
-    const text = '; This is a comment';
-    const expected = 'This is a comment';
+  test('String with whitespace returns empty token list', () => {
+    const line = '\t   \n\n   ';
+    const tokens = LineParser.parse(line);
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
-
-    assert.strictEqual(line.tokens[0]?.text, expected, 'Comment not captured correctly');
+    assert.ok(tokens);
+    assert.strictEqual(tokens.length, 0);
   });
 
-  test('See comment line from anywhere (asterisk)', () => {
-    const text = '\t\t* This is a comment';
-    const expected = 'This is a comment';
+  test('Line with only line number returns empty token list', () => {
+    const line = '00010';
+    const expectedToken = new Token(line, 0, line.length, TokenKind.ignore, TokenType.label);
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    const tokens = LineParser.parse(line);
 
-    assert.strictEqual(line.tokens[0]?.text, expected, 'Comment not captured correctly');
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0], expectedToken);
   });
 
-  test('See comment line from anywhere (semicolon)', () => {
-    const text = '        ; This is a comment';
-    const expected = 'This is a comment';
+  test('Line with only global symbol returns global symbol token', () => {
+    const expectedSymbol = 'GlobalSymbol';
+    const line = `${expectedSymbol}`;
+    const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.class);
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    const tokens = LineParser.parse(line);
 
-    assert.strictEqual(line.tokens[0]?.text, expected, 'Comment not captured correctly');
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0], expectedToken);
   });
 
-  test('Find no label with no label on line', () => {
-    const text = ' clra';
-    const expected = vscode.CompletionItemKind.Keyword;
+  test('Line with line number, global symbol returns global symbol token', () => {
+    const expectedLineNumber = '12345';
+    const expectedSymbol = 'GlobalSymbol';
+    const line = `${expectedLineNumber} ${expectedSymbol}`;
+    const expectedLineNumberToken = new Token(
+      expectedLineNumber,
+      line.indexOf(expectedLineNumber),
+      expectedLineNumber.length,
+      TokenKind.ignore,
+      TokenType.label);
+    const expectedToken = new Token(
+      expectedSymbol,
+      line.indexOf(expectedSymbol),
+      expectedSymbol.length,
+      TokenKind.label,
+      TokenType.class);
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    const tokens = LineParser.parse(line);
 
-    assert.strictEqual(line.tokens[0]?.kind, expected);
+    assert.strictEqual(tokens.length, 2);
+    assert.deepStrictEqual(tokens[0], expectedLineNumberToken);
+    assert.deepStrictEqual(tokens[1], expectedToken);
   });
 
-  test('Find label alone on line', () => {
-    const text = 'Start';
-    const expected = 'Start';
-    const expectedStart = 0;
-    const expectedEnd = expected.length;
+  test('Line with only local Symbol Local@Symbol returns single local symbol token', () => {
+    const expectedSymbol = 'Local@Symbol';
+    const line = `${expectedSymbol}`;
+    const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.function, true, true);
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    const tokens = LineParser.parse(line);
 
-    assert.strictEqual(line.tokens[0]?.text, expected);
-    assert.strictEqual(line.tokens[0]?.range.start.character, expectedStart, 'Label Range start incorrect');
-    assert.strictEqual(line.tokens[0]?.range.end.character, expectedEnd, 'Label Range end incorrect');
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0], expectedToken);
   });
 
-  test('Find label on line with opcode', () => {
-    const text = 'Start   clra';
-    const expected = 'Start';
-    const expectedStart = 0;
-    const expectedEnd = expected.length;
+  test('Line with only local Symbol LocalSymbol? returns single local symbol token', () => {
+    const expectedSymbol = 'LocalSymbol?';
+    const line = `${expectedSymbol}`;
+    const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.function, true, true);
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    const tokens = LineParser.parse(line);
 
-    assert.strictEqual(line.tokens[0]?.text, expected);
-    assert.strictEqual(line.tokens[0]?.range.start.character, expectedStart, 'Label Range start incorrect');
-    assert.strictEqual(line.tokens[0]?.range.end.character, expectedEnd, 'Label Range end incorrect');
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0], expectedToken);
   });
 
-  test('Find label on line with opcode and operand', () => {
-    const text = 'Sta_rt   lda     #@72';
-    const expected = 'Sta_rt';
-    const expectedStart = 0;
-    const expectedEnd = expected.length;
+  test('Line with only local Symbol LocalSymbol returns single local symbol token', () => {
+    const expectedSymbol = '$LocalSymbol';
+    const line = `${expectedSymbol}`;
+    const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.function, true, true);
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    const tokens = LineParser.parse(line);
 
-    assert.strictEqual(line.tokens[0]?.text, expected);
-    assert.strictEqual(line.tokens[0]?.range.start.character, expectedStart, 'Label Range start incorrect');
-    assert.strictEqual(line.tokens[0]?.range.end.character, expectedEnd, 'Label Range end incorrect');
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0], expectedToken);
   });
 
-  test('Find label on line with opcode and operand and comment', () => {
-    const text = 'Sta.rt   lda     #%11001010    load *';
-    const expected = 'Sta.rt';
-    const expectedStart = 0;
-    const expectedEnd = expected.length;
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+  test('Line with only local Symbol _?$@. returns single local symbol token', () => {
+    const expectedSymbol = '_?$@.';
+    const line = `${expectedSymbol}`;
+    const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.function, true, true);
 
-    assert.strictEqual(line.tokens[0]?.text, expected);
-    assert.strictEqual(line.tokens[0]?.range.start.character, expectedStart, 'Label Range start incorrect');
-    assert.strictEqual(line.tokens[0]?.range.end.character, expectedEnd, 'Label Range end incorrect');
+    const tokens = LineParser.parse(line);
+
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0], expectedToken);
   });
 
-  test('Find label on line with label and comment (asterisk)', () => {
-    const text = 'S$tart            * a comment';
-    const expected = 'S$tart';
-    const expectedStart = 0;
-    const expectedEnd = expectedStart + expected.length;
+  test('Line with global symbol followed by whitespace returns single global symbol token', () => {
+    const expectedSymbol = 'GlobalSymbol';
+    const line = `${expectedSymbol}\t`;
+    const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.class);
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    const tokens = LineParser.parse(line);
 
-    assert.strictEqual(line.tokens[0]?.text, expected);
-    assert.strictEqual(line.tokens[0]?.range.start.character, expectedStart, 'Label Range start incorrect');
-    assert.strictEqual(line.tokens[0]?.range.end.character, expectedEnd, 'Label Range end incorrect');
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0], expectedToken);
   });
 
-  test('Find label on line with label and comment (semicolon)', () => {
-    const text = 'Start@            ; a comment';
-    const expected = 'Start@';
-    const expectedStart = 0;
-    const expectedEnd = expected.length;
+  test('Line with local symbol Local?Symbol followed by whitespace returns single local symbol token', () => {
+    const expectedSymbol = 'Local?Symbol';
+    const line = `${expectedSymbol}\t`;
+    const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.function, true, true);
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    const tokens = LineParser.parse(line);
 
-    assert.strictEqual(line.tokens[0]?.text, expected);
-    assert.strictEqual(line.tokens[0]?.range.start.character, expectedStart, 'Label Range start incorrect');
-    assert.strictEqual(line.tokens[0]?.range.end.character, expectedEnd, 'Label Range end incorrect');
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0], expectedToken);
   });
 
-  test('Find opcode on line with opcode', () => {
-    const text = '   clra';
-    const expected = 'clra';
-    const expectedStart = 3;
-    const expectedEnd = expectedStart + expected.length;
+  test('Line with invalid local symbol ?LocalSymbol followed by whitespace returns invalid local symbol token', () => {
+    const expectedSymbol = '?LocalSymbol';
+    const line = `${expectedSymbol}\t`;
+    const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.function, false, true);
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    const tokens = LineParser.parse(line);
 
-    assert.strictEqual(line.tokens[0]?.text, expected);
-    assert.strictEqual(line.tokens[0]?.range.start.character, expectedStart, 'Range start incorrect');
-    assert.strictEqual(line.tokens[0]?.range.end.character, expectedEnd, 'Range end incorrect');
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0], expectedToken);
   });
 
-  test('Find opcode on line with opcode and label', () => {
-    const text = 'Start   clra';
-    const expected = 'clra';
-    const expectedStart = 8;
-    const expectedEnd = expectedStart + expected.length;
+  test('Line with invalid local symbol .LocalSymbol followed by whitespace returns invalid local symbol token', () => {
+    const expectedSymbol = '.LocalSymbol';
+    const line = `${expectedSymbol}\t`;
+    const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.class, false);
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    const tokens = LineParser.parse(line);
 
-    assert.strictEqual(line.tokens[1]?.text, expected);
-    assert.strictEqual(line.tokens[1]?.range.start.character, expectedStart, 'Range start incorrect');
-    assert.strictEqual(line.tokens[1]?.range.end.character, expectedEnd, 'Range end incorrect');
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0], expectedToken);
   });
 
-  test('Find opcode on line with label and operand', () => {
-    const text = 'Sta_rt   lda     #$42';
-    const expected = 'lda';
-    const expectedStart = 9;
-    const expectedEnd = expectedStart + expected.length;
+  test('Line with invalid global symbol followed by whitespace returns invalid global symbol token', () => {
+    const expectedSymbol = 'foo-bar';
+    const line = `${expectedSymbol}\t`;
+    const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.class, false);
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    const tokens = LineParser.parse(line);
 
-    assert.strictEqual(line.tokens[1]?.text, expected);
-    assert.strictEqual(line.tokens[1]?.range.start.character, expectedStart, 'Range start incorrect');
-    assert.strictEqual(line.tokens[1]?.range.end.character, expectedEnd, 'Range end incorrect');
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0], expectedToken);
   });
 
-  test('Find opcode on line with label and operand and comment', () => {
-    const text = 'Sta.rt   lda     #$ef    load *';
-    const expected = 'lda';
-    const expectedStart = 9;
-    const expectedEnd = expectedStart + expected.length;
+  test('Line with invalid global symbol (*) followed by whitespace returns invalid global symbol token', () => {
+    const expectedSymbol = 'foo*bar';
+    const line = `${expectedSymbol}\t`;
+    const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.class, false);
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    const tokens = LineParser.parse(line);
 
-    assert.strictEqual(line.tokens[1]?.text, expected);
-    assert.strictEqual(line.tokens[1]?.range.start.character, expectedStart, 'Range start incorrect');
-    assert.strictEqual(line.tokens[1]?.range.end.character, expectedEnd, 'Range end incorrect');
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0], expectedToken);
   });
 
-  test('Find operand on line with opcode and operand', () => {
-    const text = '   ldb #$c5';
+  test('Line with invalid global symbol starting with a colon followed by whitespace returns invalid global symbol token', () => {
+    const expectedSymbol = ':';
+    const line = `${expectedSymbol}\t`;
+    const expectedSymbolToken = new Token('', 0, 0, TokenKind.label, TokenType.class, false);
+    const expectedColonToken = new Token(':', 0, 1, TokenKind.ignore, TokenType.operator);
 
-    const opExpected = '#';
-    const opExpectedKind = vscode.CompletionItemKind.Operator;
-    const opExpectedStart = 7;
-    const opExpectedEnd = opExpectedStart + opExpected.length;
-    const numExpected = '$c5';
+    const tokens = LineParser.parse(line);
 
-    const numExpectedKind = vscode.CompletionItemKind.Value;
-    const numExpectedStart = 8;
-    const numExpectedEnd = numExpectedStart + numExpected.length;
-
-    const line = new AssemblyLine(text);
-    line.parse(getState());
-
-    assert.strictEqual(line.tokens[1]?.text, opExpected);
-    assert.strictEqual(line.tokens[1]?.kind, opExpectedKind, "operation kind incorrect");
-    assert.strictEqual(line.tokens[1]?.range.start.character, opExpectedStart, 'operation Range start incorrect');
-    assert.strictEqual(line.tokens[1]?.range.end.character, opExpectedEnd, 'operation Range end incorrect');
-    assert.strictEqual(line.tokens[2]?.text, numExpected);
-    assert.strictEqual(line.tokens[2]?.kind, numExpectedKind, "number kind incorrect");
-    assert.strictEqual(line.tokens[2]?.range.start.character, numExpectedStart, 'number Range start incorrect');
-    assert.strictEqual(line.tokens[2]?.range.end.character, numExpectedEnd, 'numberRange end incorrect');
+    assert.strictEqual(tokens.length, 2);
+    assert.deepStrictEqual(tokens[0], expectedSymbolToken);
+    assert.deepStrictEqual(tokens[1], expectedColonToken);
   });
 
-  test('Find operand on line with label, opcode, and operand', () => {
-    const text = 'hello   ldb #$40';
-    const opExpected = '#';
-    const opExpectedKind = vscode.CompletionItemKind.Operator;
-    const opExpectedStart = 12;
-    const opExpectedEnd = opExpectedStart + opExpected.length;
-    const numExpected = '$40';
+  test('Line with global symbol followed by colon returns a global symbol and operator token', () => {
+    const expectedSymbol = 'GlobalSymbol';
+    const line = `${expectedSymbol}:`;
+    const expectedSymbolToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.class);
+    const expectedColonToken = new Token(':', expectedSymbol.length, 1, TokenKind.ignore, TokenType.operator);
 
-    const numExpectedKind = vscode.CompletionItemKind.Value;
-    const numExpectedStart = 13;
-    const numExpectedEnd = numExpectedStart + numExpected.length;
-    const line = new AssemblyLine(text);
-    line.parse(getState());
-
-    assert.strictEqual(line.tokens[2]?.text, opExpected);
-    assert.strictEqual(line.tokens[2]?.kind, opExpectedKind, "operation kind incorrect");
-    assert.strictEqual(line.tokens[2]?.range.start.character, opExpectedStart, 'operation Range start incorrect');
-    assert.strictEqual(line.tokens[2]?.range.end.character, opExpectedEnd, 'operation Range end incorrect');
-    assert.strictEqual(line.tokens[3]?.text, numExpected);
-    assert.strictEqual(line.tokens[3]?.kind, numExpectedKind, "number kind incorrect");
-    assert.strictEqual(line.tokens[3]?.range.start.character, numExpectedStart, 'number Range start incorrect');
-    assert.strictEqual(line.tokens[3]?.range.end.character, numExpectedEnd, 'numberRange end incorrect');
+    const tokens = LineParser.parse(line);
+    
+    assert.strictEqual(tokens.length, 2);
+    assert.deepStrictEqual(tokens[0], expectedSymbolToken);
+    assert.deepStrictEqual(tokens[1], expectedColonToken);
   });
 
-  test('Find reference in operand', () => {
-    const text = ' ldb #screen';
-    const expectedLength = 1;
-    const expectedName = 'screen';
-    const expectedStart = 6;
-    const expectedEnd = expectedStart + expectedName.length;
+  test('Line with invalid local symbol followed by colon returns invalid local symbol and operator token', () => {
+    const expectedSymbol = 'foo-bar@';
+    const line = `${expectedSymbol}:`;
+    const expectedSymbolToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.function, false, true);
+    const expectedColonToken = new Token(':', expectedSymbol.length, 1, TokenKind.ignore, TokenType.operator);
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    const tokens = LineParser.parse(line);
 
-    assert.strictEqual(line.references.length, expectedLength);
-    assert.strictEqual(line.references[0].name, expectedName);
-    assert.strictEqual(line.references[0].range.start.character, expectedStart, 'Range start incorrect');
-    assert.strictEqual(line.references[0].range.end.character, expectedEnd, 'Range end incorrect');
+    assert.strictEqual(tokens.length, 2);
+    assert.deepStrictEqual(tokens[0], expectedSymbolToken);
+    assert.deepStrictEqual(tokens[1], expectedColonToken);
   });
 
-  test('Find multiple references in operand', () => {
-    const text = ' ldx   #screen+start+one';
-    const expectedLength = 3;
-    const expected = [
-      {
-        name: 'screen',
-        start: 8,
-        end: 8 + 6
-      },
-      {
-        name: 'start',
-        start: 15,
-        end: 15 + 5
-      },
-      {
-        name: 'one',
-        start: 21,
-        end:  21 + 3
-      }
-    ];
+  test('* Comment at start of the line returns comment token', () => {
+    const expectedComment = 'Hello there';
+    const commentString = `*${expectedComment}`;
+    const line = commentString;
+    const expectedCommentToken = new Token(
+      expectedComment,
+      line.indexOf(commentString),
+      commentString.length,
+      TokenKind.comment,
+      TokenType.comment);
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    const tokens = LineParser.parse(line);
 
-    assert.strictEqual(line.references.length, expectedLength);
-    line.references.forEach((r, i) => {
-      assert.strictEqual(r.name, expected[i].name);
-      assert.strictEqual(r.range.start.character, expected[i].start, 'Range start incorrect');
-      assert.strictEqual(r.range.end.character, expected[i].end, 'Range end incorrect');
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0],expectedCommentToken);
+  });
+
+  test('Line number followed by * Comment returns comment token', () => {
+    const expectedLineNumber = '42';
+    const expectedComment = 'Hello there';
+    const commentString = `*${expectedComment}`;
+    const line = `${expectedLineNumber} ${commentString}`;
+    const expectedLineNumberToken = new Token(
+      expectedLineNumber,
+      line.indexOf(expectedLineNumber),
+      expectedLineNumber.length,
+      TokenKind.ignore,
+      TokenType.label);
+    const expectedCommentToken = new Token(
+      expectedComment,
+      line.indexOf(commentString),
+      commentString.length,
+      TokenKind.comment,
+      TokenType.comment);
+
+    const tokens = LineParser.parse(line);
+
+    assert.strictEqual(tokens.length, 2);
+    assert.deepStrictEqual(tokens[0],expectedLineNumberToken);
+    assert.deepStrictEqual(tokens[1],expectedCommentToken);
+  });
+
+  test('* Comment at start of the line followed by whitespace returns comment token', () => {
+    const expectedComment = 'Hello Bob!';
+    const commentString = `* ${expectedComment}`;
+    const line = `${commentString}\t   `;
+    const expectedCommentToken = new Token(
+      expectedComment,
+      line.indexOf(commentString),
+      commentString.length,
+      TokenKind.comment,
+      TokenType.comment);
+
+    const tokens = LineParser.parse(line);
+
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0],expectedCommentToken);
+  });
+
+  test('; Comment at start of the line returns comment token', () => {
+    const expectedComment = 'This is a comment';
+    const commentString = `; ${expectedComment}`;
+    const line = commentString;
+    const expectedCommentToken = new Token(
+      expectedComment,
+      line.indexOf(commentString),
+      commentString.length,
+      TokenKind.comment,
+      TokenType.comment);
+
+    const tokens = LineParser.parse(line);
+
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0],expectedCommentToken);
+  });
+
+  test('; Comment at start of the line followed by whitespace returns comment token', () => {
+    const expectedComment = 'Loop around the world';
+    const commentString = `;${expectedComment}`;
+    const line = `${commentString}\t   `;
+    const expectedCommentToken = new Token(
+      expectedComment,
+      line.indexOf(commentString),
+      commentString.length,
+      TokenKind.comment,
+      TokenType.comment);
+
+    const tokens = LineParser.parse(line);
+
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0],expectedCommentToken);
+  });
+
+  test('* Only comment in the line returns comment token', () => {
+    const expectedComment = 'Hello';
+    const commentString = `* ${expectedComment}`;
+    const line = `\t${commentString}`;
+    const expectedCommentToken = new Token(
+      expectedComment,
+      line.indexOf(commentString),
+      commentString.length,
+      TokenKind.comment,
+      TokenType.comment);
+
+    const tokens = LineParser.parse(line);
+
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0],expectedCommentToken);
+  });
+
+  test('* Only comment in the line followed by whitespace returns comment token', () => {
+    const expectedComment = 'Bob\'s your uncle';
+    const commentString = `*${expectedComment}`;
+    const line = `           ${commentString}\t   `;
+    const expectedCommentToken = new Token(
+      expectedComment,
+      line.indexOf(commentString),
+      commentString.length,
+      TokenKind.comment,
+      TokenType.comment);
+
+    const tokens = LineParser.parse(line);
+
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0],expectedCommentToken);
+  });
+
+  test('; Only comment in the line returns comment token', () => {
+    const expectedComment = 'Hello';
+    const commentString = `; ${expectedComment}`;
+    const line = `\t     ${commentString}`;
+    const expectedCommentToken = new Token(
+      expectedComment,
+      line.indexOf(commentString),
+      commentString.length,
+      TokenKind.comment,
+      TokenType.comment);
+
+    const tokens = LineParser.parse(line);
+
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0],expectedCommentToken);
+  });
+
+  test('; Only comment in the line followed by whitespace returns comment token', () => {
+    const expectedComment = ';;;;;;;;;;;;;;;;;;;;;;;';
+    const commentString = `;${expectedComment}`;
+    const line = `\t\t${commentString}\t   `;
+    const expectedCommentToken = new Token(
+      expectedComment,
+      line.indexOf(commentString),
+      commentString.length,
+      TokenKind.comment,
+      TokenType.comment);
+
+    const tokens = LineParser.parse(line);
+
+    assert.strictEqual(tokens.length, 1);
+    assert.deepStrictEqual(tokens[0],expectedCommentToken);
+  });
+
+  test('Global Symbol followed by comment returns global symbol and comment token', () => {
+    const expectedSymbol = 'GlobalSymbol';
+    const expectedComment = 'Egad, a comment';
+    const commentString = `*${expectedComment}`;
+    const line = `${expectedSymbol} ${commentString}`;
+    const expectedSymbolToken = new Token(
+      expectedSymbol,
+      line.indexOf(expectedSymbol),
+      expectedSymbol.length,
+      TokenKind.label,
+      TokenType.class);
+    const expectedCommentToken = new Token(
+      expectedComment,
+      line.indexOf(commentString),
+      commentString.length,
+      TokenKind.comment,
+      TokenType.comment);
+
+    const tokens = LineParser.parse(line);
+
+    assert.strictEqual(tokens.length, 2);
+    assert.deepStrictEqual(tokens[0],expectedSymbolToken);
+    assert.deepStrictEqual(tokens[1],expectedCommentToken);
+  });
+
+  test('Local Symbol, colon, comment returns local symbol, colon, comment tokens', () => {
+    const expectedSymbol = 'Local@Symbol';
+    const expectedComment = '372hf7bv7 62736v-=][;/,';
+    const commentString = `; ${expectedComment}`;
+    const line = `${expectedSymbol}:${commentString}`;
+    const expectedSymbolToken = new Token(
+      expectedSymbol,
+      line.indexOf(expectedSymbol),
+      expectedSymbol.length,
+      TokenKind.label, TokenType.function, true, true);
+    const expectedColonToken = new Token(
+      ':',
+      line.indexOf(':'),
+      1,
+      TokenKind.ignore, TokenType.operator);
+    const expectedCommentToken = new Token(
+      expectedComment,
+      line.indexOf(commentString),
+      commentString.length,
+      TokenKind.comment,
+      TokenType.comment);
+
+    const tokens = LineParser.parse(line);
+
+    assert.strictEqual(tokens.length, 3);
+    assert.deepStrictEqual(tokens[0],expectedSymbolToken);
+    assert.deepStrictEqual(tokens[1],expectedColonToken);
+    assert.deepStrictEqual(tokens[2],expectedCommentToken);
+  });
+
+  ['abx'].forEach(opcode => {
+
+    test(`Inherent opcode ${opcode} returns opcode token`, () => {
+      const expectedOpcode = opcode;
+      const line = ` ${expectedOpcode}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 1);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+    });
+
+    test(`Inherent opcode ${opcode.toUpperCase()} returns opcode (in lowercase) token`, () => {
+      const expectedOpcode = opcode;
+      const line = ` ${expectedOpcode.toUpperCase()}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode.toUpperCase()),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 1);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+    });
+
+    test(`Inherent opcode ${opcode}, comment returns opcode, comment tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedComment = 'Hello there';
+      const commentString = `${expectedComment}`;
+      const line = ` ${expectedOpcode} ${commentString}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedCommentToken = new Token(
+        expectedComment,
+        line.indexOf(commentString),
+        commentString.length,
+        TokenKind.comment,
+        TokenType.comment);
+
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 2);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedCommentToken);
+    });
+
+    test(`Symbol, inherent opcode ${opcode}, comment returns symbol, opcode, comment tokens`, () => {
+      const expectedSymbol = 'GlobalSymbol';
+      const expectedOpcode = opcode;
+      const expectedComment = 'Hello there';
+      const commentString = `${expectedComment}`;
+      const line = `${expectedSymbol} ${expectedOpcode} ${commentString}`;
+      const expectedSymbolToken = new Token(
+        expectedSymbol,
+        line.indexOf(expectedSymbol),
+        expectedSymbol.length,
+        TokenKind.label,
+        TokenType.class);
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedCommentToken = new Token(
+        expectedComment,
+        line.indexOf(commentString),
+        commentString.length,
+        TokenKind.comment,
+        TokenType.comment);
+
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedSymbolToken);
+      assert.deepStrictEqual(tokens[1], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[2], expectedCommentToken);
+    });
+
+    test(`Inherent opcode ${opcode}, * comment returns inherent opcode, comment tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedComment = 'Hello there';
+      const commentString = `* ${expectedComment}`;
+
+      const line = ` ${expectedOpcode} ${commentString}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedCommentToken = new Token(
+        expectedComment,
+        line.indexOf(commentString),
+        commentString.length,
+        TokenKind.comment,
+        TokenType.comment);
+
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 2);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedCommentToken);
+    });
+
+    test(`Symbol, inherent opcode ${opcode}, comment returns symbol, opcode, comment tokens`, () => {
+      const expectedSymbol = 'GlobalSymbol';
+      const expectedOpcode = opcode;
+      const expectedComment = 'Hello there';
+      const commentString = `;${expectedComment}`;
+      const line = `${expectedSymbol}:${expectedOpcode} ${commentString}`;
+      const expectedSymbolToken = new Token(
+        expectedSymbol,
+        line.indexOf(expectedSymbol),
+        expectedSymbol.length,
+        TokenKind.label,
+        TokenType.class);
+      const expectedColonToken = new Token(
+        ':',
+        line.indexOf(':'),
+        1,
+        TokenKind.ignore,
+        TokenType.operator);
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedCommentToken = new Token(
+        expectedComment,
+        line.indexOf(commentString),
+        commentString.length,
+        TokenKind.comment,
+        TokenType.comment);
+
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 4);
+      assert.deepStrictEqual(tokens[0], expectedSymbolToken);
+      assert.deepStrictEqual(tokens[1], expectedColonToken);
+      assert.deepStrictEqual(tokens[2], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[3], expectedCommentToken);
     });
   });
 
-  test('Should not find symbol in operand', () => {
-    const text = ' org $3f00';
-    const expected = 0;
+  ['clr'].forEach(opcode => {
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    test(`Operand opcode ${opcode}, operand returns opcode, operand tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = '42';
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.number);
 
-    assert.strictEqual(line.references.length, expected);
-  });
+      const tokens = LineParser.parse(line);
 
-  test('Find all columns on a line', () => {
-    const text = 'STA010   lda     ,x+    Test of all';
-    const expectedLabel = 'STA010';
-    const expectedLabelStart = 0;
-    const expectedLabelEnd = expectedLabelStart + expectedLabel.length;
-    const expectedOpcode = 'lda';
-    const expectedOpcodeStart = 9;
-    const expectedOpcodeEnd = expectedOpcodeStart + expectedOpcode.length;
-    const expectedOperand1 = ',';
-    const expectedOperandStart1 = 17;
-    const expectedOperandEnd1 = expectedOperandStart1 + expectedOperand1.length;
-    const expectedOperand2 = 'x';
-    const expectedOperandStart2 = 18;
-    const expectedOperandEnd2 = expectedOperandStart2 + expectedOperand2.length;
-    const expectedOperand3 = '+';
-    const expectedOperandStart3 = 19;
-    const expectedOperandEnd3 = expectedOperandStart3 + expectedOperand3.length;
-    const expectedComment = 'Test of all';
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+    });
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    test(`Operand opcode ${opcode.toUpperCase()}, operand returns opcode, operand tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = '42';
+      const line = ` ${expectedOpcode.toUpperCase()} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode.toUpperCase()),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.number);
 
-    assert.strictEqual(line.tokens[0]?.text, expectedLabel, 'Label not captured');
-    assert.strictEqual(line.tokens[0]?.range.start.character, expectedLabelStart, 'Label Range start incorrect');
-    assert.strictEqual(line.tokens[0]?.range.end.character, expectedLabelEnd, 'Label Range end incorrect');
-    assert.strictEqual(line.tokens[1]?.text, expectedOpcode, 'Opcode not captured');
-    assert.strictEqual(line.tokens[1]?.range.start.character, expectedOpcodeStart, 'Opcode Range start incorrect');
-    assert.strictEqual(line.tokens[1]?.range.end.character, expectedOpcodeEnd, 'Opcode Range end incorrect');
-    assert.strictEqual(line.tokens[2]?.text, expectedOperand1, 'Operand not captured');
-    assert.strictEqual(line.tokens[2]?.range.start.character, expectedOperandStart1, 'Operand Range start incorrect');
-    assert.strictEqual(line.tokens[2]?.range.end.character, expectedOperandEnd1, 'Operand Range end incorrect');
-    assert.strictEqual(line.tokens[3]?.text, expectedOperand2, 'Operand not captured');
-    assert.strictEqual(line.tokens[3]?.range.start.character, expectedOperandStart2, 'Operand Range start incorrect');
-    assert.strictEqual(line.tokens[3]?.range.end.character, expectedOperandEnd2, 'Operand Range end incorrect');
-    assert.strictEqual(line.tokens[4]?.text, expectedOperand3, 'Operand not captured');
-    assert.strictEqual(line.tokens[4]?.range.start.character, expectedOperandStart3, 'Operand Range start incorrect');
-    assert.strictEqual(line.tokens[4]?.range.end.character, expectedOperandEnd3, 'Operand Range end incorrect');
-    assert.strictEqual(line.tokens[5]?.text, expectedComment, 'Comment not captured');
-  });
+      const tokens = LineParser.parse(line);
 
-  test('Find opcode with label named same', () => {
-    const text = 'clra   clra';
-    const expected = 'clra';
-    const expectedStart = 7;
-    const expectedEnd = expectedStart + expected.length;
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+    });
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    test(`Operand opcode ${opcode}, comment returns opcode, operand, comment tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = '42';
+      const expectedComment = 'Hello there';
+      const commentString = `${expectedComment}`;
+      const line = ` ${expectedOpcode} ${expectedOperand} ${commentString}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.number);
+      const expectedCommentToken = new Token(
+        expectedComment,
+        line.indexOf(commentString),
+        commentString.length,
+        TokenKind.comment,
+        TokenType.comment);
 
-    assert.strictEqual(line.tokens[1]?.text, expected);
-    assert.strictEqual(line.tokens[1]?.range.start.character, expectedStart, 'Range start incorrect');
-    assert.strictEqual(line.tokens[1]?.range.end.character, expectedEnd, 'Range end incorrect');
-  });
+      const tokens = LineParser.parse(line);
 
-  test('Find reference in operand on line with label and opcode', () => {
-    const text = 'hello   ldx   #screen';
-    const expectedLength = 1;
-    const expectedName = 'screen';
-    const expectedStart = 15;
-    const expectedEnd = expectedStart + expectedName.length;
+      assert.strictEqual(tokens.length, 4);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      assert.deepStrictEqual(tokens[3], expectedCommentToken);
+    });
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    test(`Symbol, operand opcode ${opcode}, comment returns symbol, opcode, operand, comment tokens`, () => {
+      const expectedSymbol = 'GlobalSymbol';
+      const expectedOpcode = opcode;
+      const expectedOperand = '42';
+      const expectedComment = 'Hello there';
+      const commentString = `${expectedComment}`;
+      const line = `${expectedSymbol} ${expectedOpcode} ${expectedOperand} ${commentString}`;
+      const expectedSymbolToken = new Token(
+        expectedSymbol,
+        line.indexOf(expectedSymbol),
+        expectedSymbol.length,
+        TokenKind.label,
+        TokenType.class);
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.number);
+      const expectedCommentToken = new Token(
+        expectedComment,
+        line.indexOf(commentString),
+        commentString.length,
+        TokenKind.comment,
+        TokenType.comment);
 
-    assert.strictEqual(line.references.length, expectedLength);
-    assert.strictEqual(line.references[0].name, expectedName);
-    assert.strictEqual(line.references[0].range.start.character, expectedStart, 'Range start incorrect');
-    assert.strictEqual(line.references[0].range.end.character, expectedEnd, 'Range end incorrect');
-  });
+      const tokens = LineParser.parse(line);
 
-  test('Find multiple references in operand on line with label and opcode', () => {
-    const text = 'hello   ldx   #screen+start+one';
-    const expectedLength = 3;
-    const expected = [
-      {
-        name: 'screen',
-        start: 15,
-        end: 15 + 6
-      },
-      {
-        name: 'start',
-        start: 22,
-        end: 22 + 5
-      },
-      {
-        name: 'one',
-        start: 28,
-        end:  28 + 3
-      }
-    ];
+      assert.strictEqual(tokens.length, 5);
+      assert.deepStrictEqual(tokens[0], expectedSymbolToken);
+      assert.deepStrictEqual(tokens[1], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[2], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[3], expectedOperandToken);
+      assert.deepStrictEqual(tokens[4], expectedCommentToken);
+    });
 
-    const line = new AssemblyLine(text);
-    line.parse(getState());
+    test(`Binary % operand returns opcode, operand tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = '%11001010';
+      const line = `  ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.number);
 
-    assert.strictEqual(line.references.length, expectedLength);
-    line.references.forEach((r, i) => {
-      assert.strictEqual(r.name, expected[i].name);
-      assert.strictEqual(r.range.start.character, expected[i].start, 'Range start incorrect');
-      assert.strictEqual(r.range.end.character, expected[i].end, 'Range end incorrect');
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+    });
+
+    test(`Binary b operand returns opcode, operand tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = '10101100b';
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.number);
+
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+    });
+
+    test(`Octal @ operand returns opcode, operand tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = '@755';
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.number);
+
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+    });
+
+    test(`Octal o operand returns opcode, operand tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = '755o';
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.number);
+
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+    });
+
+    test(`Octal q operand returns opcode, operand tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = '755q';
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.number);
+
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+    });
+
+    test(`Hexidecimal $ operand returns opcode, operand tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = '$7F80';
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.number);
+
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+    });
+
+    test(`Hexidecimal 0x operand returns opcode, operand tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = '0x7F80';
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.number);
+
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+    });
+
+    test(`Hexidecimal H operand returns opcode, operand tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = '7F80H';
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.number);
+
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+    });
+
+    test(`Hexidecimal start 0 end H operand returns opcode, operand tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = '0FFH';
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.number);
+  
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+    });
+
+    test(`Decimal operand returns opcode, operand tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = '42';
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.number);
+  
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+    });
+
+    test(`Decimal & operand returns opcode, operand tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = '&42';
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.number);
+  
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+    });
+
+    test(`Symbol * operand returns opcode, operand tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = '*';
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.operator);
+  
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+    });
+
+    test(`Character ' operand returns opcode, operand tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = "'A";
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.number);
+  
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+    });
+
+    test(`Character " operand returns opcode, operand tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = '"AB';
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.number);
+  
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+    });
+
+    test(`Immediate operand returns opcode, Operator, numeric token`, () => {
+      const expectedOpcode = opcode;
+      const immediate = '#';
+      const number = '42';
+      const expectedOperand = `${immediate}${number}`;
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedImmediateToken = new Token(
+        immediate,
+        line.indexOf(immediate),
+        immediate.length,
+        TokenKind.ignore,
+        TokenType.operator);
+      const expectedNumberToken = new Token(
+        number,
+        line.indexOf(number),
+        number.length,
+        TokenKind.ignore,
+        TokenType.number);
+
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 4);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedImmediateToken);
+      assert.deepStrictEqual(tokens[3], expectedNumberToken);
+    });
+
+    test(`Immediate reference operand returns opcode, Operator, numeric token`, () => {
+      const expectedOpcode = opcode;
+      const immediate = '#';
+      const reference = 'hello';
+      const expectedOperand = `${immediate}${reference}`;
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedImmediateToken = new Token(
+        immediate,
+        line.indexOf(immediate),
+        immediate.length,
+        TokenKind.ignore,
+        TokenType.operator);
+      const expectedReferenceToken = new Token(
+        reference,
+        line.indexOf(reference),
+        reference.length,
+        TokenKind.reference,
+        TokenType.class);
+
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 4);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedImmediateToken);
+      assert.deepStrictEqual(tokens[3], expectedReferenceToken);
+    });
+
+    test(`Immediate register inc operand returns opcode, Operator, numeric token`, () => {
+      const expectedOpcode = opcode;
+      const comma = ',';
+      const register = 'x';
+      const increment = '++';
+      const expectedOperand = `${comma}${register}${increment}`;
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);  
+      const expectedCommaToken = new Token(
+        comma,
+        line.indexOf(comma),
+        comma.length,
+        TokenKind.ignore,
+        TokenType.operator);
+      const expectedRegisterToken = new Token(
+        register,
+        line.indexOf(register),
+        register.length,
+        TokenKind.ignore,
+        TokenType.variable);
+      expectedRegisterToken.modifiers = TokenModifier.static;
+      const expectedIncrementToken = new Token(
+        increment,
+        line.indexOf(increment),
+        increment.length,
+        TokenKind.ignore,
+        TokenType.operator);
+
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 5);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedCommaToken);
+      assert.deepStrictEqual(tokens[3], expectedRegisterToken);
+      assert.deepStrictEqual(tokens[4], expectedIncrementToken);
+    });
+    
+    test(`&& operator operand returns opcode, Operator token`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = '&&';
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.operator);
+  
+
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+    });
+
+    test(`Bad operator operand returns opcode, Operator token`, () => {
+      const expectedOpcode = opcode;
+      const expectedOperand = '}';
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.ignore,
+        TokenType.operator);
+
+      const tokens = LineParser.parse(line);
+
+      assert.strictEqual(tokens.length, 3);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
+      assert.deepStrictEqual(tokens[2], expectedOperandToken);
     });
   });
 
-  test('Line with only file and line number', () => {
-    const text = '                      (      monitor.asm):00001         *****************************************';
-    const expectedAddress = -1;
-    const expectedFile = 'monitor.asm';
-    const expectedLineNumber = 1;
-    const expectedValue = '';
-    const expectedConinuation = false;
+  ['fcc', 'fcn', 'fcs'].forEach(pseudo => {
+    test(`${pseudo} string, operand returns opcode, string tokens`, () => {
+      const expectedOpcode = pseudo;
+      const expectedOperand = '/this is a string/';
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.string);
 
-    const line = new ListingLine(text);
+      const tokens = LineParser.parse(line);
 
-    assert.strictEqual(line.address, expectedAddress, 'address not captured correctly');
-    assert.strictEqual(line.file, expectedFile, 'file not captured correctly');
-    assert.strictEqual(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
-    assert.strictEqual(line.value, expectedValue, 'value not captured correctly');
-    assert.strictEqual(line.continuation, expectedConinuation, 'continuation not set correctly');
+      assert.strictEqual(tokens.length, 2);
+      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      assert.deepStrictEqual(tokens[1], expectedOperandToken);
+    });
   });
 
-  test('Line with value, file and line number', () => {
-    const text = '     FF41             (      monitor.asm):00009         BeckerStatus    equ     $FF41           Status register for becker port';
-    const expectedAddress = -1;
-    const expectedFile = 'monitor.asm';
-    const expectedLineNumber = 9;
-    const expectedValue = 'FF41';
-    const expectedConinuation = false;
+  test(`include string, operand returns opcode, string tokens`, () => {
+    const expectedOpcode = 'include';
+    const expectedOperand = '/usr/local/var/file.asm';
+    const line = ` ${expectedOpcode} ${expectedOperand}`;
+    const expectedOpcodeToken = new Token(
+      expectedOpcode,
+      line.indexOf(expectedOpcode),
+      expectedOpcode.length,
+      TokenKind.opCode,
+      TokenType.keyword);
+    const expectedOperandToken = new Token(
+      expectedOperand,
+      line.indexOf(expectedOperand),
+      expectedOperand.length,
+      TokenKind.file,
+      TokenType.string);
 
-    const line = new ListingLine(text);
+    const tokens = LineParser.parse(line);
 
-    assert.strictEqual(line.address, expectedAddress, 'address not captured correctly');
-    assert.strictEqual(line.file, expectedFile, 'file not captured correctly');
-    assert.strictEqual(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
-    assert.strictEqual(line.value, expectedValue, 'value not captured correctly');
-    assert.strictEqual(line.continuation, expectedConinuation, 'continuation not set correctly');
+    assert.strictEqual(tokens.length, 2);
+    assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+    assert.deepStrictEqual(tokens[1], expectedOperandToken);
   });
 
-  test('Line with address, value, file and line number', () => {
-    const text = '7800 8D47             (      monitor.asm):00017         Monitor         bsr     Cls';
-    const expectedAddress = 0x7800;
-    const expectedFile = 'monitor.asm';
-    const expectedLineNumber = 17;
-    const expectedValue = '8D47';
-    const expectedConinuation = false;
+  test(`warning string, operand returns opcode, string tokens`, () => {
+    const expectedOpcode = 'warning';
+    const expectedOperand = 'Watch your head!';
+    const line = ` ${expectedOpcode} ${expectedOperand}`;
+    const expectedOpcodeToken = new Token(
+      expectedOpcode,
+      line.indexOf(expectedOpcode),
+      expectedOpcode.length,
+      TokenKind.opCode,
+      TokenType.keyword);
+    const expectedOperandToken = new Token(
+      expectedOperand,
+      line.indexOf(expectedOperand),
+      expectedOperand.length,
+      TokenKind.operand,
+      TokenType.string);
 
-    const line = new ListingLine(text);
+    const tokens = LineParser.parse(line);
 
-    assert.strictEqual(line.address, expectedAddress, 'address not captured correctly');
-    assert.strictEqual(line.file, expectedFile, 'file not captured correctly');
-    assert.strictEqual(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
-    assert.strictEqual(line.value, expectedValue, 'value not captured correctly');
-    assert.strictEqual(line.continuation, expectedConinuation, 'continuation not set correctly');
+    assert.strictEqual(tokens.length, 2);
+    assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+    assert.deepStrictEqual(tokens[1], expectedOperandToken);
   });
 
-  test('Line with data continuation', () => {
-    const text = '     6F726C642100';
-    const expectedAddress = -1;
-    const expectedFile = '';
-    const expectedLineNumber = -1;
-    const expectedValue = '6F726C642100';
-    const expectedConinuation = true;
-
-    const line = new ListingLine(text);
-
-    assert.strictEqual(line.address, expectedAddress, 'address not captured correctly');
-    assert.strictEqual(line.file, expectedFile, 'file not captured correctly');
-    assert.strictEqual(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
-    assert.strictEqual(line.value, expectedValue, 'value not captured correctly');
-    assert.strictEqual(line.continuation, expectedConinuation, 'continuation not set correctly');
-  });
-
-  test('Line with macro usage', () => {
-    const text = '                      (      monitor.asm):00047                         __mon_init';
-    const expectedAddress = -1;
-    const expectedFile = 'monitor.asm';
-    const expectedLineNumber = 47;
-    const expectedValue = '';
-    const expectedConinuation = false;
-
-    const line = new ListingLine(text);
-
-    assert.strictEqual(line.address, expectedAddress, 'address not captured correctly');
-    assert.strictEqual(line.file, expectedFile, 'file not captured correctly');
-    assert.strictEqual(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
-    assert.strictEqual(line.value, expectedValue, 'value not captured correctly');
-    assert.strictEqual(line.continuation, expectedConinuation, 'continuation not set correctly');
-  });
-
-  test('Blank line', () => {
-    const text = '                      (      monitor.asm):00044         ';
-    const expectedAddress = -1;
-    const expectedFile = 'monitor.asm';
-    const expectedLineNumber = 44;
-    const expectedValue = '';
-    const expectedConinuation = false;
-
-    const line = new ListingLine(text);
-
-    assert.strictEqual(line.address, expectedAddress, 'address not captured correctly');
-    assert.strictEqual(line.file, expectedFile, 'file not captured correctly');
-    assert.strictEqual(line.lineNumber, expectedLineNumber, 'lineNumber not captured correctly');
-    assert.strictEqual(line.value, expectedValue, 'value not captured correctly');
-    assert.strictEqual(line.continuation, expectedConinuation, 'continuation not set correctly');
-  });
 });

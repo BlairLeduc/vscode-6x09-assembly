@@ -1,21 +1,22 @@
-import { CancellationToken, CompletionItemKind, Position, Range, TextDocument, Uri } from 'vscode';
+import { CancellationToken, Position, Range, TextDocument, Uri } from 'vscode';
 import { AssemblyLine, ParserState } from './assembly-line';
-import { AssemblyBlock, AssemblyToken, Registers } from '../common';
+import { AssemblyBlock, AssemblySymbol } from '../common';
 import * as path from 'path';
 import * as lineReader from 'line-reader';
 import * as fileUrl from 'file-url';
 import * as fs from 'fs';
 import { SymbolManager } from '../managers/symbol';
 import { Queue } from '../queue';
+// import { LoggingDebugSession } from 'vscode-debugadapter';
 
 export class AssemblyDocument {
   private processDocumentsQueue: Queue<string> = new Queue<string>();
-  private unknownReferences: AssemblyToken[] = new Array<AssemblyToken>();
+  private unknownReferences: AssemblySymbol[] = new Array<AssemblySymbol>();
 
   public uri: Uri;
   public lines: AssemblyLine[] = new Array<AssemblyLine>();
   public referencedDocuments: string[] = new Array<string>();
-  public symbols: AssemblyToken[] = new Array<AssemblyToken>();
+  public symbols: AssemblySymbol[] = new Array<AssemblySymbol>();
   public blocks: Map<number, AssemblyBlock> = new Map<number, AssemblyBlock>();
 
   constructor(private symbolManager: SymbolManager, document: TextDocument, range?: Range, cancelationToken?: CancellationToken) {
@@ -23,57 +24,55 @@ export class AssemblyDocument {
     this.parse(document, range, cancelationToken);
   }
 
-  private processTokens(uri: Uri, line: AssemblyLine, block?: AssemblyBlock): void {
-    line.tokens.forEach(token => {
-      switch(token.kind) {
-        case CompletionItemKind.Method:
-        case CompletionItemKind.Struct:
-        case CompletionItemKind.Constant:
-        case CompletionItemKind.Variable:
-        case CompletionItemKind.Class:
-        case CompletionItemKind.Function:
-          token.uri = uri;
-          this.symbols.push(token);
-          if (block) {
-            block.tokens.push(token);
-          }
+  private processLine(uri: Uri, line: AssemblyLine, block?: AssemblyBlock): void {
 
-          const unknownReferences = this.unknownReferences.filter(r => r.text == token.text && r.blockNumber == token.blockNumber);
-          unknownReferences.forEach(r => {
-            r.parent = token;
-            token.children.push(r);
-            if (block) {
-              block.tokens.push(r);
-            }
-            const index = this.unknownReferences.indexOf(r);
-            if (index > -1) {
-              this.unknownReferences.splice(index, 1);
-            }
-          });
+    if (line.label) {
+      const definition = line.label;
 
-          this.symbolManager.addToken(token);
-          break;
-        case CompletionItemKind.File:
-          const filename = path.join(path.dirname(this.uri.fsPath), token.text.trim());
-          if (this.referencedDocuments.indexOf(filename) < 0) {
-            this.referencedDocuments.push(filename);
-            this.processDocumentsQueue.enqueue(filename);
-          }
-          break;
-        case CompletionItemKind.Reference:
-          if (Registers.findIndex(r => r === token.text.toLocaleLowerCase()) < 0) {
-            token.uri = uri;
-            const definition = this.symbols.find(d => d.text === token.text && d.blockNumber == token.blockNumber);
-            if (definition) {
-              definition.children.push(token);
-              token.parent = definition;
-            } else {
-              this.unknownReferences.push(token);
-            }
-          }
-          break;
+      definition.uri = uri;
+      this.symbols.push(definition);
+      if (block) {
+        block.symbols.push(definition);
+      }
+      
+      const unknownReferences = this.unknownReferences.filter(r => r.text == definition.text && r.blockNumber == definition.blockNumber);
+      unknownReferences.forEach(r => {
+        r.definition = definition;
+        r.semanticToken.type = definition.semanticToken.type;
+        r.semanticToken.modifiers = definition.semanticToken.modifiers;
+        definition.references.push(r);
+        if (block) {
+          block.symbols.push(r);
+        }
+        const index = this.unknownReferences.indexOf(r);
+        if (index > -1) {
+          this.unknownReferences.splice(index, 1);
+        }
+      });
+
+      this.symbolManager.addToken(definition);
+    }
+
+    line.references.forEach(reference => {
+      reference.uri = uri;
+      const definition = this.symbols.find(d => d.text === reference.text && d.blockNumber == reference.blockNumber);
+      if (definition) {
+        definition.references.push(reference);
+        reference.definition = definition;
+        reference.semanticToken.type = definition.semanticToken.type;
+        reference.semanticToken.modifiers = definition.semanticToken.modifiers;
+      } else {
+        this.unknownReferences.push(reference);
       }
     });
+
+    if (line.file) {
+      const filename = path.join(path.dirname(this.uri.fsPath), line.file);
+      if (this.referencedDocuments.indexOf(filename) < 0) {
+        this.referencedDocuments.push(filename);
+        this.processDocumentsQueue.enqueue(filename);
+      }
+    }
   }
 
   private parse(document: TextDocument, range?: Range, cancelationToken?: CancellationToken): void {
@@ -90,47 +89,48 @@ export class AssemblyDocument {
     let block = new AssemblyBlock(blockNumber, 0);
     this.blocks.set(blockNumber, block);
 
-    let state = { lonelyLabels: [], blockNumber: blockNumber } as ParserState;
+    let state: ParserState;
 
     for (let i = range.start.line; i <= range.end.line; i++) {
       if (cancelationToken && cancelationToken.isCancellationRequested) {
         return;
       }
+
       const line = document.lineAt(i);
-      const asmLine = new AssemblyLine(line.text, line.lineNumber);
-      state = asmLine.parse(state);
+      const asmLine = new AssemblyLine(line.text, state, line.lineNumber);
       this.lines.push(asmLine);
 
+      state = asmLine.state;
       if (state.blockNumber > blockNumber) {
-        block.endLineNumber = i-1;
-        if (block.endLineNumber-block.startLineNumber > 0) {
+        block.endLineNumber = i - 1;
+        if (block.endLineNumber - block.startLineNumber > 0) {
           this.blocks.set(blockNumber, block);
         }
-        block = new AssemblyBlock(state.blockNumber, i+1);
+        block = new AssemblyBlock(state.blockNumber, i + 1);
         blockNumber = state.blockNumber;
       }
-      this.processTokens(this.uri, asmLine, block);
+      this.processLine(this.uri, asmLine, block);
     }
 
     // Post process referenced documents
-    let filePath:string;
-    while(filePath = this.processDocumentsQueue.dequeue()) {
+    let filePath: string;
+    while (filePath = this.processDocumentsQueue.dequeue()) {
       try {
         // Only process files that exist and are files and we have not seen before
         const stats = fs.statSync(filePath);
         if (stats && stats.isFile()) {
           fs.accessSync(filePath, fs.constants.R_OK);
-          const uri = Uri.parse(fileUrl(filePath, {resolve: false}));
+          const uri = Uri.parse(fileUrl(filePath, { resolve: false }));
           this.symbolManager.clearDocument(uri);
           let lineNumber = 0;
-          let state = { lonelyLabels: [], blockNumber: 1 } as ParserState;
+          let state: ParserState;
           lineReader.eachLine(filePath, line => {
-            const asmLine = new AssemblyLine(line, lineNumber++);
-            state = asmLine.parse(state);
-            this.processTokens(uri, asmLine); // ignore references
+            const asmLine = new AssemblyLine(line, state, lineNumber++);
+            this.processLine(uri, asmLine);
+            state = asmLine.state;
           });
         }
-      } catch(e) {
+      } catch (e) {
         console.log(`[asm6x09] File ${filePath} is not readable to find referenced symbols:`);
         if (e instanceof Error) {
           console.log(e.message);

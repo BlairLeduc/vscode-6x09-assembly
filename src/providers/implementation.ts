@@ -13,13 +13,12 @@ export class ImplementationProvider implements vscode.ImplementationProvider {
       if (!token.isCancellationRequested) {
         const assemblyLine = assemblyDocument.lines[position.line];
 
-        let symbol = assemblyLine.tokens.find(t => t.range.contains(position));
-
-        if (symbol.kind === vscode.CompletionItemKind.Reference && symbol.parent) {
-          symbol = symbol.parent;
+        const symbol = assemblyLine.references.find(r => r.range.contains(position))?.definition ?? assemblyLine.label;
+        if (symbol && symbol.range.contains(position)) {
+          resolve([new vscode.Location(symbol.uri, symbol.range)]);
+        } else {
+          resolve([]);
         }
-
-        resolve([new vscode.Location(symbol.uri, symbol.range)]);
       } else {
         reject();
       }

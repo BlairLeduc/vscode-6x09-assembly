@@ -1,4 +1,5 @@
-import { CompletionItemKind, TextEditor, TextEditorEdit } from 'vscode';
+import { Range, TextEditor, TextEditorEdit } from 'vscode';
+import { TokenKind } from './common';
 import { OpcodeCase } from './managers/configuration';
 import { WorkspaceManager } from './managers/workspace';
 import { AssemblyLine } from './parsers/assembly-line';
@@ -12,9 +13,11 @@ export class ChangeCaseOpcodeCommand {
     const assemblyDocument = this.workspaceManager.getAssemblyDocument(textEditor.document, undefined);
 
     assemblyDocument.lines.forEach((line: AssemblyLine) => {
-      const opcodeToken = line.tokens.find(t => t.kind === CompletionItemKind.Keyword);
-      if (opcodeToken) {
-        edit.replace(opcodeToken.range, convertToCase(opcodeToken.text, this.casing));
+      const opCode = line.opCode;
+      if (opCode && opCode.kind == TokenKind.opCode) {
+        edit.replace(
+          new Range(line.lineNumber, opCode.char, line.lineNumber, opCode.char + opCode.length), 
+          convertToCase(opCode.text, this.casing));
       }
     });
   }

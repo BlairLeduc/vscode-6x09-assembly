@@ -13,13 +13,13 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
       if (!cancelationToken.isCancellationRequested) {
         const assemblyLine = assemblyDocument.lines[position.line];
 
-        let token = assemblyLine.tokens.find(t => t.range.contains(position));
+        const reference = assemblyLine.references.find(r => r.range.contains(position));
 
-        if (token.kind === vscode.CompletionItemKind.Reference && token.parent) {
-          token = token.parent;
+        if (reference) {
+          resolve([new vscode.Location(reference.definition.uri, reference.definition.range)]);
+        } else {
+          resolve([]);
         }
-
-        resolve([new vscode.Location(token.uri, token.range)]);
       } else {
         reject();
       }

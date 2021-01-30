@@ -1,17 +1,17 @@
 import { CancellationToken, CompletionItemKind, Hover, MarkdownString, Position, ProviderResult, TextDocument } from 'vscode';
+import { convertTokenToName } from '../common';
 import { ConfigurationManager, HelpVerbosity } from '../managers/configuration';
 import { WorkspaceManager } from '../managers/workspace';
 import { DocOpcodeType } from '../parsers/docs';
 
 const kindMap = new Map<CompletionItemKind, string>([
-  [ CompletionItemKind.Class, 'routine' ],
-  [ CompletionItemKind.Function, 'label' ],
-  [ CompletionItemKind.Method, 'macro' ],
-  [ CompletionItemKind.Constant, 'constant' ],
-  [ CompletionItemKind.Variable, 'variable' ],
-  [ CompletionItemKind.Struct, 'struct' ],
-  [ CompletionItemKind.File, 'file' ],
-  [ CompletionItemKind.Value, 'value'],
+  [CompletionItemKind.Class, 'routine'],
+  [CompletionItemKind.Function, 'label'],
+  [CompletionItemKind.Method, 'macro'],
+  [CompletionItemKind.Struct, 'struct'],
+  [CompletionItemKind.Constant, 'constant'],
+  [CompletionItemKind.Variable, 'variable'],
+  [CompletionItemKind.Property, 'property'],
 ]);
 export class HoverProvider implements HoverProvider {
 
@@ -25,53 +25,51 @@ export class HoverProvider implements HoverProvider {
 
         if (!token.isCancellationRequested) {
           const assemblyLine = assemblyDocument.lines[position.line];
-  
-          const symbol = assemblyLine.tokens.find(t => t.range.contains(position));
-          if (symbol.kind === CompletionItemKind.Keyword) {
-            const opcodeDocs = this.workspaceManager.opcodeDocs.getOpcode(symbol.text);
-            if (opcodeDocs) {
+
+          if (assemblyLine.opCodeRange && assemblyLine.opCodeRange.contains(position)) {
+            const opCode = assemblyLine.opCode;
+            const opCodeDocs = this.workspaceManager.opcodeDocs.getOpcode(opCode.text);
+            if (opCodeDocs) {
               const help = new MarkdownString();
               let processorSpec = ' -';
-              if (opcodeDocs.type === DocOpcodeType.opcode) {
-                processorSpec = opcodeDocs.processor === '6809' ? ' (6809/6309)' : ' (6309)';
+              if (opCodeDocs.type === DocOpcodeType.opcode) {
+                processorSpec = opCodeDocs.processor === '6809' ? ' (6809/6309)' : ' (6309)';
               }
-              help.appendCodeblock(`(${DocOpcodeType[opcodeDocs.type]}) ${symbol.text}${processorSpec} ${opcodeDocs.summary}`);
-              let documentation = `${opcodeDocs.notation}　⸺　${opcodeDocs.conditionCodes}`;
-              if (this.configurationManager.helpVerbosity === HelpVerbosity.full && opcodeDocs.documentation) {
-                documentation += `  \n  \n${opcodeDocs.documentation}`;
+              help.appendCodeblock(`(${DocOpcodeType[opCodeDocs.type]}) ${opCode.text}${processorSpec} ${opCodeDocs.summary}`);
+              let documentation = opCodeDocs.type === DocOpcodeType.opcode ? `${opCodeDocs.notation}　⸺　${opCodeDocs.conditionCodes}` : '';
+              if (this.configurationManager.helpVerbosity === HelpVerbosity.full && opCodeDocs.documentation) {
+                documentation += `  \n  \n${opCodeDocs.documentation}`;
               }
               if (documentation) {
                 help.appendMarkdown('---\n' + documentation);
               }
-              resolve(new Hover(help, symbol.range));
+              resolve(new Hover(help, assemblyLine.opCodeRange));
               return;
             }
-          } else if (symbol.kind !== CompletionItemKind.Operator) {
-            const kind = symbol.parent ? symbol.parent.kind : symbol.kind;
-            const kindName = this.kindToString(kind);
-            if (kindName) { // Only show if it is a kind we want to show
-              const documentation = symbol.parent ? symbol.parent.documentation : symbol.documentation;
-              const value = symbol.parent ? symbol.parent.value : symbol.value;
-              let header = `(${kindName}) ${symbol.text}`;
-              if (value) {
-                header += ` ${value}`;
-              }
-              const help = new MarkdownString();
+          }
+          const symbol = assemblyLine.references.find(r => r.range.contains(position)) ?? assemblyLine.label;
+          if (symbol && symbol.range.contains(position)) {
+            const documentation = symbol.definition ? symbol.definition.documentation : symbol.documentation;
+            const value = symbol.definition ? symbol.definition.value : symbol.value;
+            let header = `(${convertTokenToName(symbol.semanticToken)}) ${symbol.text}`;
+            if (value) {
+              header += ` ${value}`;
+            }
+            const help = new MarkdownString();
 
-              help.appendCodeblock(header);
-              if (documentation) {
-                help.appendMarkdown(`---\n${documentation}`);
-              }
-              resolve(new Hover(help, symbol.range));
-              return;
+            help.appendCodeblock(header);
+            if (documentation) {
+              help.appendMarkdown(`---\n${documentation}`);
             }
+            resolve(new Hover(help, symbol.range));
+            return;
           }
         } else {
           reject(null);
           return;
         }
       }
-      resolve(null); 
+      resolve(null);
     });
   }
 

@@ -107,7 +107,7 @@ repository:
         match: (?i)\b(and(a|b|cc)|clr[ab]?|eor[ab]|or(a|b|cc))\b
 
       - name: keyword.control.opcode.arithmetic.asm6x09
-        match: (?i)\b(abx|adc[ab]|add[abd]|com[ab]?|dec[ab]?|daa|inc[ab]?|mul|neg[ab]?|sbc[ab]|sex|sub[abd])\b
+        match: (?i)\b(abx|adc[ab]|add[abd]|com[ab]?|dec[ab]?|daa|inc[ab]?|mul|neg[ab]?|sbc[ab]|sex|sub[abdw])\b
 
       - name: keyword.control.opcode.branch.asm6x09
         match: (?i)\b(l?b(c[cs]|eq|g[et]|h[is]|l[eost]|mi|ne|pl|ra|sr|v[cs])|rts)\b

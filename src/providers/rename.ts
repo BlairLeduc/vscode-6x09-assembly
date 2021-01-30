@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { referencableKinds } from '../common';
 import { WorkspaceManager } from '../managers/workspace';
 
 export class RenameProvider implements vscode.RenameProvider {
@@ -12,15 +11,11 @@ export class RenameProvider implements vscode.RenameProvider {
       const assemblyLine = assemblyDocument.lines[position.line];
 
       if (!token.isCancellationRequested) {
-        let symbol = assemblyLine.tokens.find(t => t.range.contains(position));
-
-        if (symbol.kind === vscode.CompletionItemKind.Reference && symbol.parent) {
-          symbol = symbol.parent;
-        }
-        if (referencableKinds.indexOf(symbol.kind) >= 0) {
+        const symbol = assemblyLine.references.find(r => r.range.contains(position))?.definition ?? assemblyLine.label;
+        if (symbol && symbol.range.contains(position)) {
           const edit = new vscode.WorkspaceEdit();
           edit.replace(symbol.uri, symbol.range, newName);
-          symbol.children.forEach(s => edit.replace(document.uri, s.range, newName));
+          symbol.references.forEach(s => edit.replace(document.uri, s.range, newName));
           resolve(edit);
         }
       } else {
@@ -35,9 +30,10 @@ export class RenameProvider implements vscode.RenameProvider {
       const assemblyLine = assemblyDocument.lines[position.line];
 
       if (!token.isCancellationRequested) {
-        const symbol = assemblyLine.tokens.find(t => t.range.contains(position));
-
-        resolve({range: symbol.range, placeholder: symbol.text});
+        const symbol = assemblyLine.references.find(r => r.range.contains(position))?.definition ?? assemblyLine.label;
+        if (symbol && symbol.range.contains(position)) {
+          resolve({range: symbol.range, placeholder: symbol.text});
+        }
       } else {
         reject();
       }

@@ -61,7 +61,7 @@ export class Docs {
 
     let lineNumber = 0;
     for (const line of lines) {
-      if (lineNumber === 0) {
+      if (lineNumber++ === 0) {
         // header row
         continue;
       }
