@@ -29,11 +29,7 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
           const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
           const lenses = new Array<vscode.CodeLens>();
           assemblyDocument.symbols.filter(s => s.uri === document.uri).forEach(symbol => {
-            let references = symbol.references;
-            if (symbol.text.match(/.*[@$?].*/)) {
-              // Local symbol, filter references to this block
-              references = references.filter(r => r.blockNumber == symbol.blockNumber);
-            }
+            const references = symbol.references.filter(r => r.blockNumber == symbol.blockNumber);
             const command: vscode.Command = {
               command: 'editor.action.showReferences',
               title: `${references.length} reference${references.length !== 1 ? 's' : ''}`,
@@ -64,7 +60,7 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
             //   }
             // });
           });
-
+          
           resolve(lenses);
         }
       } else {

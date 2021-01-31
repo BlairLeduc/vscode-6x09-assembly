@@ -1,4 +1,12 @@
-import { delimitedStringPseudoOps, filePseudoOps, operandOpcodes, pragmaPseudoOps, Registers, stringPseudoOps, Token, TokenKind, TokenModifier, TokenType } from '../common';
+import { delimitedStringPseudoOps, filePseudoOps, inherentOpcodes, inherentPseudoOps, operandOpcodes, pragmaPseudoOps, pseudoOps, Registers, stringPseudoOps, Token, TokenKind, TokenModifier, TokenType } from '../common';
+
+interface FoundInfo { 
+  match: RegExpMatchArray;
+  kind: TokenKind;
+  type: TokenType;
+  modifiers: TokenModifier;
+  isLocal: boolean;
+}
 
 export class LineParser {
 
@@ -77,7 +85,10 @@ export class LineParser {
     if (opcodeMatch) {
       const space = opcodeMatch[1].length;
       opcode = opcodeMatch[2].toLowerCase();
-      tokens.push(new Token(opcode, pos + space, opcode.length, TokenKind.opCode, TokenType.keyword));
+      const isOpcode = inherentOpcodes.has(opcode) || operandOpcodes.has(opcode) || inherentPseudoOps.has(opcode) || pseudoOps.has(opcode);
+      tokens.push(new Token(opcode, pos + space, opcode.length, 
+        isOpcode ? TokenKind.opCode : TokenKind.macroOrStruct, 
+        isOpcode ? TokenType.keyword : TokenType.type));
 
       pos += opcodeMatch[0].length;
       text = line.substr(pos);
@@ -160,13 +171,16 @@ export class LineParser {
           tokens.push(new Token(expression, pos + space, expression.length, TokenKind.operand, TokenType.namespace));
 
           let offset = 0;
+          let isProperty = false;
           while (expression.length > 0) {
-            const found = this.findMatch(expression);
+            const found = this.findMatch(expression, isProperty);
             const length = found.match[0].length;
             
             const token = new Token(found.match[0], pos + space + offset, length, found.kind, found.type);
             token.modifiers = found.modifiers;
+            token.isLocal = found.isLocal;
             tokens.push(token);
+            isProperty = token.type === TokenType.operator && token.text === '.';
 
             expression = expression.substring(length);
             offset += length;
@@ -192,11 +206,12 @@ export class LineParser {
     return tokens;
   }
 
-
-  private static findMatch(s: string): { match: RegExpMatchArray, kind: TokenKind, type: TokenType, modifiers: TokenModifier} {
+  private static findMatch(s: string, isProperty: boolean): FoundInfo {
     let tokenKind = TokenKind.ignore;
     let tokenType = TokenType.number;
     let tokenModifiers = 0;
+    let isLocal = false;
+
     let match = /^(('.)|("..))/.exec(s); // character constant
     if (!match) {
       match = /^((\$|(0x))[0-9a-f]*)|([0-9][0-9a-f]*h)/i.exec(s); // hex number
@@ -211,9 +226,14 @@ export class LineParser {
       match = /^((&[0-9]+)|([0-9]+))/i.exec(s); // decimal number
     }
     if (!match) {
-      match = /^([a-z_@$][a-z0-9.$_@?]*)/i.exec(s); // reference
+      match = /^([a-z_@$][a-z0-9$_@?]*)/i.exec(s); // reference
       if (match) {
-        if (Registers.has(match[0].toLowerCase())) {
+        isLocal = /.*[$@?].*/.test(s);
+        
+        if (isProperty) {
+          tokenKind = TokenKind.property;
+          tokenType = TokenType.property;
+        } else if (Registers.has(match[0].toLowerCase())) {
           tokenType = TokenType.variable;
           tokenModifiers = TokenModifier.static;
         } else {
@@ -230,6 +250,6 @@ export class LineParser {
       }
     }
     
-    return {match: match, kind: tokenKind, type: tokenType, modifiers: tokenModifiers};
+    return { match: match, kind: tokenKind, type: tokenType, modifiers: tokenModifiers, isLocal: isLocal };
   }
 }

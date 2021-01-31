@@ -36,6 +36,8 @@ export class AssemblyLine {
   public labelRange: Range;
   public opCode: Token;
   public opCodeRange: Range;
+  public type: AssemblySymbol;
+  public typeRange: Range;
   public operandRange: Range;
 
 
@@ -75,8 +77,17 @@ export class AssemblyLine {
     this.semanicTokens.forEach((token, index, tokens) => {
       switch (token.kind) {
         case TokenKind.label:
-          this.label = new AssemblySymbol(token, this.lineRange);
+          this.label = new AssemblySymbol(token, this.lineRange, this.state.blockNumber);
           this.state.lonelyLabels.push(this.label);
+          break;
+        case TokenKind.macroOrStruct:
+          clearLonelyLabels = true;
+          this.typeRange = new Range(this.lineNumber, token.char, this.lineNumber, token.char + token.length);
+          this.type = new AssemblySymbol(token, this.lineRange, 0);
+          this.updateLabels(label => {
+            label.semanticToken.type = TokenType.variable;
+            label.kind == CompletionItemKind.Variable;
+          });
           break;
         case TokenKind.opCode:
           clearLonelyLabels = true;
@@ -88,7 +99,7 @@ export class AssemblyLine {
           this.operandRange = this.getRangeFromToken(token);
           break;
         case TokenKind.reference:
-          this.references.push(new AssemblySymbol(token, this.lineRange));
+          this.references.push(new AssemblySymbol(token, this.lineRange, this.state.blockNumber));
           break;
         case TokenKind.comment:
           this.updateLabels(label => label.documentation += '  \n' + token.text);
@@ -116,32 +127,33 @@ export class AssemblyLine {
     }
     else if (AssemblyLine.storageRegExp.test(token.text) && tokens.length > index) {
       this.updateLabels(label => {
-        label.semanticToken.type = TokenType.variable;
-        label.semanticToken.modifiers = TokenModifier.declaration;
-        label.kind = CompletionItemKind.Variable;
+        label.semanticToken.type = this.state.struct ? TokenType.property : TokenType.variable;
+        label.semanticToken.modifiers = TokenModifier.definition;
+        label.kind = this.state.struct ? CompletionItemKind.Property : CompletionItemKind.Variable;
         if (this.state.struct) {
-          label.text = `${this.state.struct}.${label.semanticToken.text}`;
+          label.text = `${this.state.struct.semanticToken.text}.${label.semanticToken.text}`;
+          this.state.struct.properties.push(label);
         }
       });
     }
     else if (token.text.toLowerCase() === 'macro') {
       this.updateLabels(label => {
+        this.state.macro = label;
         label.semanticToken.type = TokenType.macro;
-        label.semanticToken.modifiers = TokenModifier.declaration;
+        label.semanticToken.modifiers = TokenModifier.definition;
         label.kind = CompletionItemKind.Method;
       });
-      this.state.macro = new AssemblySymbol(token, this.lineRange);
     }
     else if (token.text.toLowerCase().startsWith('endm')) {
       this.state.macro = null;
     }
     else if (token.text.toLowerCase() === 'struct') {
       this.updateLabels(label => {
+        this.state.struct = label;
         label.semanticToken.type = TokenType.struct;
-        label.semanticToken.modifiers = TokenModifier.declaration;
+        label.semanticToken.modifiers = TokenModifier.definition;
         label.kind = CompletionItemKind.Struct;
       });
-      this.state.struct = new AssemblySymbol(token, this.lineRange);
     }
     else if (token.text.toLowerCase().startsWith('ends')) {
       this.state.struct = null;

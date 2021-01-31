@@ -5,14 +5,14 @@ import * as path from 'path';
 import * as lineReader from 'line-reader';
 import * as fileUrl from 'file-url';
 import * as fs from 'fs';
-import { SymbolManager } from '../managers/symbol';
 import { Queue } from '../queue';
+import { SymbolManager } from '../managers/symbol';
 // import { LoggingDebugSession } from 'vscode-debugadapter';
 
 export class AssemblyDocument {
   private processDocumentsQueue: Queue<string> = new Queue<string>();
   private unknownReferences: AssemblySymbol[] = new Array<AssemblySymbol>();
-
+  private unknownTypes: AssemblySymbol[] = new Array<AssemblySymbol>();
   public uri: Uri;
   public lines: AssemblyLine[] = new Array<AssemblyLine>();
   public referencedDocuments: string[] = new Array<string>();
@@ -35,8 +35,7 @@ export class AssemblyDocument {
         block.symbols.push(definition);
       }
       
-      const unknownReferences = this.unknownReferences.filter(r => r.text == definition.text && r.blockNumber == definition.blockNumber);
-      unknownReferences.forEach(r => {
+      this.unknownReferences.filter(r => r.text == definition.text && r.blockNumber == definition.blockNumber).forEach(r => {
         r.definition = definition;
         r.semanticToken.type = definition.semanticToken.type;
         r.semanticToken.modifiers = definition.semanticToken.modifiers;
@@ -50,12 +49,22 @@ export class AssemblyDocument {
         }
       });
 
-      this.symbolManager.addToken(definition);
+      this.unknownTypes.filter(t => t.text == definition.text).forEach(t => {
+        t.definition = definition;
+        definition.references.push(t);
+        const index = this.unknownTypes.indexOf(t);
+        if (index > -1) {
+          this.unknownTypes.splice(index, 1);
+        }
+      });
+
+      this.symbolManager.addSymbol(definition);
     }
 
     line.references.forEach(reference => {
       reference.uri = uri;
       const definition = this.symbols.find(d => d.text === reference.text && d.blockNumber == reference.blockNumber);
+
       if (definition) {
         definition.references.push(reference);
         reference.definition = definition;
@@ -71,6 +80,17 @@ export class AssemblyDocument {
       if (this.referencedDocuments.indexOf(filename) < 0) {
         this.referencedDocuments.push(filename);
         this.processDocumentsQueue.enqueue(filename);
+      }
+    }
+
+    if (line.type) {
+      line.type.uri = uri;
+      const type = this.symbols.find(t => t.text == line.type.text);
+      if (type) {
+        type.references.push(line.type);
+        line.type.definition = type;
+      } else {
+        this.unknownTypes.push(line.type);
       }
     }
   }

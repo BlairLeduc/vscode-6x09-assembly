@@ -6,23 +6,24 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
   constructor(private workspaceManager: WorkspaceManager) {
   }
 
-  public provideDefinition(document: vscode.TextDocument, position: vscode.Position, cancelationToken: vscode.CancellationToken): vscode.ProviderResult<vscode.Location[]> {
-    return new Promise((resolve, reject) => {
-      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, cancelationToken);
+  public provideDefinition(document: vscode.TextDocument, position: vscode.Position, cancelationToken: vscode.CancellationToken): vscode.Location[] {
+    const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, cancelationToken);
+    const symbolManager = this.workspaceManager.getSymbolManager(document);
 
-      if (!cancelationToken.isCancellationRequested) {
-        const assemblyLine = assemblyDocument.lines[position.line];
+    const assemblyLine = assemblyDocument.lines[position.line];
+    const reference = assemblyLine.references.find(r => r.range.contains(position));
 
-        const reference = assemblyLine.references.find(r => r.range.contains(position));
+    if (reference) {
+      return [new vscode.Location(reference.definition.uri, reference.definition.range)];
+    }
 
-        if (reference) {
-          resolve([new vscode.Location(reference.definition.uri, reference.definition.range)]);
-        } else {
-          resolve([]);
-        }
-      } else {
-        reject();
+    if (assemblyLine.type && assemblyLine.typeRange.contains(position)) {
+      const type = symbolManager.symbols.find(t => t.text === assemblyLine.type.text);
+      if (type) {
+        return [new vscode.Location(type.uri, type.range)];
       }
-    });
+    }
+
+    return [];
   }
 }

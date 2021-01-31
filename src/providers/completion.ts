@@ -23,7 +23,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
           const items = this.workspaceManager.opcodeDocs
             .findOpcode(assemblyLine.opCode.text.toUpperCase())
             .map(opcode => this.createOpcodeCompletionItem(opcode, casing));
-          resolve([...items, ...symbolManager.tokens
+          resolve([...items, ...symbolManager.symbols
             .filter(t => t.kind === vscode.CompletionItemKind.Method)
             .map(t => this.createSymbolCompletionItem(t))]);
         } else if (assemblyLine.operandRange && assemblyLine.operandRange.contains(position)) {

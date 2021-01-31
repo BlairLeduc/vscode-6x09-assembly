@@ -1,24 +1,25 @@
-import { CancellationToken, CompletionItemKind, Hover, MarkdownString, Position, ProviderResult, TextDocument } from 'vscode';
-import { convertTokenToName } from '../common';
+import * as vscode from 'vscode';
+import { convertTokenToName, TokenType } from '../common';
 import { ConfigurationManager, HelpVerbosity } from '../managers/configuration';
 import { WorkspaceManager } from '../managers/workspace';
 import { DocOpcodeType } from '../parsers/docs';
 
-const kindMap = new Map<CompletionItemKind, string>([
-  [CompletionItemKind.Class, 'routine'],
-  [CompletionItemKind.Function, 'label'],
-  [CompletionItemKind.Method, 'macro'],
-  [CompletionItemKind.Struct, 'struct'],
-  [CompletionItemKind.Constant, 'constant'],
-  [CompletionItemKind.Variable, 'variable'],
-  [CompletionItemKind.Property, 'property'],
+const kindMap = new Map<vscode.CompletionItemKind, string>([
+  [vscode.CompletionItemKind.Class, 'routine'],
+  [vscode.CompletionItemKind.Function, 'label'],
+  [vscode.CompletionItemKind.Method, 'macro'],
+  [vscode.CompletionItemKind.Struct, 'struct'],
+  [vscode.CompletionItemKind.Constant, 'constant'],
+  [vscode.CompletionItemKind.Variable, 'variable'],
+  [vscode.CompletionItemKind.Property, 'property'],
 ]);
-export class HoverProvider implements HoverProvider {
+
+export class HoverProvider implements vscode.HoverProvider {
 
   constructor(private workspaceManager: WorkspaceManager, private configurationManager: ConfigurationManager) {
   }
 
-  public provideHover(document: TextDocument, position: Position, token: CancellationToken): ProviderResult<Hover> {
+  public provideHover(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.ProviderResult<vscode.Hover> {
     return new Promise((resolve, reject) => {
       if (this.configurationManager.helpVerbosity !== HelpVerbosity.none) {
         const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
@@ -30,7 +31,7 @@ export class HoverProvider implements HoverProvider {
             const opCode = assemblyLine.opCode;
             const opCodeDocs = this.workspaceManager.opcodeDocs.getOpcode(opCode.text);
             if (opCodeDocs) {
-              const help = new MarkdownString();
+              const help = new vscode.MarkdownString();
               let processorSpec = ' -';
               if (opCodeDocs.type === DocOpcodeType.opcode) {
                 processorSpec = opCodeDocs.processor === '6809' ? ' (6809/6309)' : ' (6309)';
@@ -43,10 +44,19 @@ export class HoverProvider implements HoverProvider {
               if (documentation) {
                 help.appendMarkdown('---\n' + documentation);
               }
-              resolve(new Hover(help, assemblyLine.opCodeRange));
+              resolve(new vscode.Hover(help, assemblyLine.opCodeRange));
               return;
             }
           }
+
+          if (assemblyLine.typeRange && assemblyLine.typeRange.contains(position)) {
+            const type = assemblyLine.type;
+            const help = new vscode.MarkdownString();
+            help.appendCodeblock(`(${type.type === TokenType.macro ? 'macro' : 'struct'}) ${type.text}`);
+            resolve(new vscode.Hover(help, assemblyLine.opCodeRange));
+            return;
+          }
+
           const symbol = assemblyLine.references.find(r => r.range.contains(position)) ?? assemblyLine.label;
           if (symbol && symbol.range.contains(position)) {
             const documentation = symbol.definition ? symbol.definition.documentation : symbol.documentation;
@@ -55,13 +65,13 @@ export class HoverProvider implements HoverProvider {
             if (value) {
               header += ` ${value}`;
             }
-            const help = new MarkdownString();
+            const help = new vscode.MarkdownString();
 
             help.appendCodeblock(header);
             if (documentation) {
               help.appendMarkdown(`---\n${documentation}`);
             }
-            resolve(new Hover(help, symbol.range));
+            resolve(new vscode.Hover(help, symbol.range));
             return;
           }
         } else {
@@ -73,7 +83,7 @@ export class HoverProvider implements HoverProvider {
     });
   }
 
-  private kindToString(kind: CompletionItemKind): string {
+  private kindToString(kind: vscode.CompletionItemKind): string {
     if (kindMap.has(kind)) {
       return kindMap.get(kind);
     }

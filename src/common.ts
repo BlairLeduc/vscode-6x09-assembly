@@ -114,6 +114,8 @@ export enum TokenKind {
   comment,
   file,
   parameter,
+  property,
+  macroOrStruct,
 }
 
 export enum TokenType {
@@ -256,6 +258,7 @@ export class AssemblySymbol {
   public text: string;
   public range: vscode.Range;
   public lineRange: vscode.Range;
+  public type: TokenType;
   public kind: vscode.CompletionItemKind;
   public value: string;
   public blockNumber: number;
@@ -267,14 +270,15 @@ export class AssemblySymbol {
   public isValid: boolean;
   public isLocal: boolean;
 
-  constructor(token: Token, lineRange: vscode.Range) {
-    this.semanticToken = token,
-    this.text = token.text,
+  constructor(token: Token, lineRange: vscode.Range, blockNumber: number) {
+    this.semanticToken = token;
+    this.text = token.text;
     this.range = new vscode.Range(lineRange.start.line, token.char, lineRange.start.line, token.char + token.length);
-    this.lineRange = lineRange,
+    this.lineRange = lineRange;
     this.kind = convertTokenKindToComplitionItemKind(token.kind);
-    this.isLocal = false;
-    this.blockNumber = 0;
+    this.type = token.type;
+    this.isLocal = token.isLocal;
+    this.blockNumber = token.isLocal ? blockNumber : 0;
     this.references = [];
     this.properties = [];
     this.documentation = '';
@@ -296,25 +300,3 @@ export class AssemblyBlock {
     this.endLineNumber = startLineNumber;
   }
 }
-
-// export class AssemblySymbol {
-
-//   constructor(
-//     public name: string,
-//     public range: vscode.Range,
-//     public documentation: string,
-//     public kind: vscode.CompletionItemKind,
-//     public lineRange: vscode.Range,
-//     public uri: vscode.Uri,
-//     public value: string = '', // for constants
-//   ) { }
-// }
-
-// export class AssemblyReference {
-//   constructor(
-//     public range: vscode.Range,
-//     public lineRange: vscode.Range,
-//     public uri: vscode.Uri,
-
-//   ) { }
-//}

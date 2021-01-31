@@ -11,7 +11,7 @@ export class Folder implements vscode.Disposable {
   public documents: Collection<AssemblyDocument> = new Collection<AssemblyDocument>();
   public watched: Collection<Collection<fs.FSWatcher>> = new Collection<Collection<fs.FSWatcher>>();
 
-  constructor(public symbolManager:SymbolManager, public uri?: vscode.Uri) {
+  constructor(public symbolManager: SymbolManager, public uri?: vscode.Uri) {
     this.path = this.uri.fsPath;
     this.managed = this.path !== 'none';
   }
