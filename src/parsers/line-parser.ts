@@ -238,7 +238,7 @@ export class LineParser {
           tokenModifiers = TokenModifier.static;
         } else {
           tokenKind = TokenKind.reference;
-          tokenType = TokenType.class;
+          tokenType = TokenType.variable;
         }
       }
     }

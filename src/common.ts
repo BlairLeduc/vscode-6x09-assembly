@@ -61,7 +61,7 @@ export const operandOpcodes = new Set([
   'fcb', 'fcc', 'fcn', 'fcs', 'fdb', 'fill',
   'fqb', 'ifdef', 'ifeq', 'ifge', 'ifgt', 'ifle', 'iflt', 'ifndef', 'ifne', 'ifpragma',
   'import', 'include', 'includebin', 'macro', 'mod', 'nam', 'org', 'os9', 'pragma',
-  'rmb', 'rmd', 'rmq', 'sect', 'section', 'set', 'setdp', 'struct', 'use', 'warning',
+  'rmb', 'rmd', 'rmq', 'sect', 'section', 'set', 'setdp', 'use', 'warning',
   'zmb', 'zmd', 'zmq',
 ]);
 
@@ -82,7 +82,7 @@ export const filePseudoOps = new Set([
 
 export const inherentPseudoOps = new Set([
   'reorg', 'else', 'endc', 'emod', 'endm', 'endstruct', 'ends', 'endsection', 'endsect',
-  'extern', 'external', 'import', 'export', '.globl', 'extdep',
+  'extern', 'external', 'import', 'export', '.globl', 'extdep', 'struct',
 ]);
 
 export const pragmaPseudoOps = new Set([
@@ -97,7 +97,7 @@ export const pseudoOps = new Set([
   'fcb', 'fcc', 'fcn', 'fcs', 'fdb', 'fill',
   'fqb', 'ifdef', 'ifeq', 'ifge', 'ifgt', 'ifle', 'iflt', 'ifndef', 'ifne', 'ifpragma',
   'import', 'include', 'includebin', 'macro', 'mod', 'nam', 'org', 'os9', 'pragma',
-  'rmb', 'rmd', 'rmq', 'sect', 'section', 'set', 'setdp', 'struct', 'use', 'warning',
+  'rmb', 'rmd', 'rmq', 'sect', 'section', 'set', 'setdp', 'use', 'warning',
   'zmb', 'zmd', 'zmq',
 ]);
 
@@ -262,6 +262,7 @@ export class AssemblySymbol {
   public kind: vscode.CompletionItemKind;
   public value: string;
   public blockNumber: number;
+  public parent: AssemblySymbol;
   public definition: AssemblySymbol;
   public references: AssemblySymbol[];
   public properties: AssemblySymbol[];

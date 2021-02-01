@@ -40,9 +40,14 @@ export class AssemblyDocument {
         r.semanticToken.type = definition.semanticToken.type;
         r.semanticToken.modifiers = definition.semanticToken.modifiers;
         definition.references.push(r);
+        
         if (block) {
           block.symbols.push(r);
         }
+
+        r.properties.forEach(property => {
+          property.definition = definition.properties.find(p => p.text === property.text);
+        });
         const index = this.unknownReferences.indexOf(r);
         if (index > -1) {
           this.unknownReferences.splice(index, 1);
@@ -70,6 +75,14 @@ export class AssemblyDocument {
         reference.definition = definition;
         reference.semanticToken.type = definition.semanticToken.type;
         reference.semanticToken.modifiers = definition.semanticToken.modifiers;
+        reference.properties.forEach(propertyReference => {
+          propertyReference.uri = uri;
+          const property = definition.definition.properties.find(p => p.text === propertyReference.text);
+          if (property) {
+            propertyReference.definition = property;
+            property.references.push(propertyReference);
+          }
+        });
       } else {
         this.unknownReferences.push(reference);
       }
@@ -83,14 +96,18 @@ export class AssemblyDocument {
       }
     }
 
+    // A type (struct) is referenced in the opcode column
     if (line.type) {
-      line.type.uri = uri;
-      const type = this.symbols.find(t => t.text == line.type.text);
-      if (type) {
-        type.references.push(line.type);
-        line.type.definition = type;
+      const typeReference = line.type;
+      const type = line.label;
+      typeReference.uri = uri;
+
+      const definition = this.symbols.find(t => t.text == typeReference.text);
+      if (definition) {
+        definition.references.push(type);
+        type.definition = definition;
       } else {
-        this.unknownTypes.push(line.type);
+        this.unknownTypes.push(typeReference);
       }
     }
   }

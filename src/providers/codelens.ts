@@ -26,8 +26,10 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
     return new Promise((resolve, reject) => {
       if (this.enabled) {
         if (!token.isCancellationRequested) {
+
           const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
           const lenses = new Array<vscode.CodeLens>();
+          
           assemblyDocument.symbols.filter(s => s.uri === document.uri).forEach(symbol => {
             const references = symbol.references.filter(r => r.blockNumber == symbol.blockNumber);
             const command: vscode.Command = {

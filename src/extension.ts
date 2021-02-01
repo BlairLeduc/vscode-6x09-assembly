@@ -43,7 +43,7 @@ export function activate(context: vscode.ExtensionContext): void {
   disposables.push(vscode.languages.registerCompletionItemProvider(
     ASM6X09_MODE,
     new CompletionItemProvider(workspaceManager, configurationManager),
-    '\t', '\n'));
+    ' ', '\t', '\n', '.'));
 
   disposables.push(vscode.languages.registerDefinitionProvider(
     ASM6X09_MODE,
@@ -161,6 +161,8 @@ export function activate(context: vscode.ExtensionContext): void {
     capitalizeCommand));
 
   context.subscriptions.push(...disposables.filter(d => !!d));
+
+  
 }
 
 export function deactivate(): void {

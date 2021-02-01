@@ -10,7 +10,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
   constructor(private workspaceManager: WorkspaceManager, private configurationManager: ConfigurationManager) {
   }
 
-  public provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.ProviderResult<vscode.CompletionItem[]> {
+  public provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken, _: vscode.CompletionContext): vscode.ProviderResult<vscode.CompletionList> {
     return new Promise((resolve, reject) => {
       const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
       const symbolManager = this.workspaceManager.getSymbolManager(document);
@@ -19,19 +19,33 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         const assemblyLine = assemblyDocument.lines[position.line];
         const casing = this.configurationManager.opcodeCasing;
 
-        if (assemblyLine.opCodeRange && assemblyLine.opCodeRange.contains(position)) {
-          const items = this.workspaceManager.opcodeDocs
-            .findOpcode(assemblyLine.opCode.text.toUpperCase())
+        if ((assemblyLine.opCodeRange && assemblyLine.opCodeRange.contains(position))
+              || (assemblyLine.typeRange && assemblyLine.typeRange.contains(position))) {
+          const text = assemblyLine.opCode?.text ?? assemblyLine.type.text;
+          const opcodes = this.workspaceManager.opcodeDocs.findOpcode(text.toUpperCase())
             .map(opcode => this.createOpcodeCompletionItem(opcode, casing));
-          resolve([...items, ...symbolManager.symbols
-            .filter(t => t.kind === vscode.CompletionItemKind.Method)
-            .map(t => this.createSymbolCompletionItem(t))]);
-        } else if (assemblyLine.operandRange && assemblyLine.operandRange.contains(position)) {
+          const types = symbolManager.symbols.filter(t => t.kind === vscode.CompletionItemKind.Struct || t.kind === vscode.CompletionItemKind.Method)
+            .map(type => this.createSymbolCompletionItem(type));
+          const completions = [...opcodes, ...types];
 
-          resolve([...Array.from(Registers).map(r => this.createRegisterCompletionItem(r)),
-                   ...assemblyDocument.symbols
-                      .filter(s => s.blockNumber === 0 || s.blockNumber === assemblyLine.blockNumber)
-                      .map(s => this.createSymbolCompletionItem(s))]);
+          resolve(new vscode.CompletionList(completions));
+
+        } else if (assemblyLine.operandRange && assemblyLine.operandRange.contains(position)) {
+          const word = this.findWord(document.getText(assemblyLine.lineRange), position.character);
+          const parts = word.split('.');
+          if (parts.length > 1) {
+            const symbol = symbolManager.symbols.find(s => s.text == parts[0]);
+            if (symbol.definition?.kind === vscode.CompletionItemKind.Struct) {
+              resolve(new vscode.CompletionList(symbol.definition.properties.map(p => this.createSymbolCompletionItem(p))));
+              return;
+            }
+          }
+          
+          const registers = Array.from(Registers).map(r => this.createRegisterCompletionItem(r));
+          const symbols = assemblyDocument.symbols.filter(s => s.blockNumber === 0 || s.blockNumber === assemblyLine.blockNumber)
+            .map(s => this.createSymbolCompletionItem(s));
+
+          resolve(new vscode.CompletionList([...registers, ...symbols]));
         } else {
           reject();
         }
@@ -39,6 +53,16 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         reject();
       }
     });
+  }
+
+  private findWord(line: string, start: number): string {
+    let match: RegExpExecArray;
+    while(match = /^([a-z_@$.][a-z0-9.$_@?]*)/i.exec(line.substr(start - 1))) {
+      if (match) {
+        start -= 1;
+      }
+    }
+    return line.substr(start);
   }
 
   private createRegisterCompletionItem(register: string): vscode.CompletionItem {

@@ -1,13 +1,6 @@
 import { CompletionItemKind, Range, Uri } from 'vscode';
-// import { AssemblyToken, Registers, Token, TokenKind, TokenModifier, TokenType } from '../common';
 import { AssemblySymbol, constantPseudoOps, Token, TokenKind, TokenModifier, TokenType } from '../common';
 import { LineParser } from './line-parser';
-
-// interface MatchedItem {
-//   tokenType: string;
-//   text: string;
-//   pos: number;
-// }
 
 export interface SymbolReference {
   name: string;
@@ -38,13 +31,13 @@ export class AssemblyLine {
   public opCodeRange: Range;
   public type: AssemblySymbol;
   public typeRange: Range;
+  public operand: Token;
   public operandRange: Range;
 
-
-  //public tokens: AssemblyToken[];
   public semanicTokens: Token[];
   public file: string;
-  public references: AssemblySymbol[];
+  public references: AssemblySymbol[] = [];
+  public properties: AssemblySymbol[] = [];
 
   constructor(private rawLine: string, state?: ParserState, rawLineNumber?: number) {
     if (rawLineNumber) {
@@ -53,7 +46,6 @@ export class AssemblyLine {
     this.lineRange = this.getRange(0, this.rawLine.length);
 
     this.state = state ? state : state = { lonelyLabels: [], blockNumber: 1, struct: null } as ParserState;
-    this.references = [];
 
     if (!AssemblyLine.storageRegExp) {
       const s1 = '[.](4byte|asci[isz]|blkb|byte|d[bsw]|globl|quad|rs|str[sz]?|word)|f[dq]b|fc[bcns]|import|[zr]m[dbq]';
@@ -74,6 +66,7 @@ export class AssemblyLine {
     this.blockNumber = this.state.blockNumber;
 
     let clearLonelyLabels = false;
+    let lastReference: AssemblySymbol;
     this.semanicTokens.forEach((token, index, tokens) => {
       switch (token.kind) {
         case TokenKind.label:
@@ -97,9 +90,20 @@ export class AssemblyLine {
           break;
         case TokenKind.operand:
           this.operandRange = this.getRangeFromToken(token);
+          this.operand = token;
           break;
         case TokenKind.reference:
-          this.references.push(new AssemblySymbol(token, this.lineRange, this.state.blockNumber));
+          lastReference = new AssemblySymbol(token, this.lineRange, this.state.blockNumber);
+          this.references.push(lastReference);
+          break;
+        case TokenKind.property:
+          if (lastReference) {
+            const property = new AssemblySymbol(token, this.lineRange, 0);
+            property.definition = lastReference;
+            lastReference.properties.push(property);
+            lastReference = null;
+            this.properties.push(property);
+          }
           break;
         case TokenKind.comment:
           this.updateLabels(label => label.documentation += '  \n' + token.text);
@@ -107,6 +111,10 @@ export class AssemblyLine {
         case TokenKind.file:
           this.file = token.text;
           break;
+      }
+
+      if (token.type === TokenType.operator && token.text !== '.') {
+        lastReference = null;
       }
     });
 
@@ -131,7 +139,7 @@ export class AssemblyLine {
         label.semanticToken.modifiers = TokenModifier.definition;
         label.kind = this.state.struct ? CompletionItemKind.Property : CompletionItemKind.Variable;
         if (this.state.struct) {
-          label.text = `${this.state.struct.semanticToken.text}.${label.semanticToken.text}`;
+          label.parent = this.state.struct;
           this.state.struct.properties.push(label);
         }
       });

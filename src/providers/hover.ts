@@ -23,6 +23,7 @@ export class HoverProvider implements vscode.HoverProvider {
     return new Promise((resolve, reject) => {
       if (this.configurationManager.helpVerbosity !== HelpVerbosity.none) {
         const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
+        const symbolManager =  this.workspaceManager.getSymbolManager(document);
 
         if (!token.isCancellationRequested) {
           const assemblyLine = assemblyDocument.lines[position.line];
@@ -51,17 +52,23 @@ export class HoverProvider implements vscode.HoverProvider {
 
           if (assemblyLine.typeRange && assemblyLine.typeRange.contains(position)) {
             const type = assemblyLine.type;
+            const symbol = symbolManager.symbols.find(s => s.text == type.text);
             const help = new vscode.MarkdownString();
             help.appendCodeblock(`(${type.type === TokenType.macro ? 'macro' : 'struct'}) ${type.text}`);
+            if (symbol.documentation) {
+              help.appendMarkdown('---\n' + symbol.documentation);
+            }
             resolve(new vscode.Hover(help, assemblyLine.opCodeRange));
             return;
           }
 
           const symbol = assemblyLine.references.find(r => r.range.contains(position)) ?? assemblyLine.label;
           if (symbol && symbol.range.contains(position)) {
-            const documentation = symbol.definition ? symbol.definition.documentation : symbol.documentation;
+            const documentation = symbol.definition.definition 
+              ? symbol.definition.definition.documentation 
+              : symbol.definition ? symbol.definition.documentation : symbol.documentation;
             const value = symbol.definition ? symbol.definition.value : symbol.value;
-            let header = `(${convertTokenToName(symbol.semanticToken)}) ${symbol.text}`;
+            let header = `(${convertTokenToName(symbol.semanticToken)}) ${symbol.parent ? `${symbol.parent.text}.` : ''}${symbol.text}`;
             if (value) {
               header += ` ${value}`;
             }
@@ -72,6 +79,17 @@ export class HoverProvider implements vscode.HoverProvider {
               help.appendMarkdown(`---\n${documentation}`);
             }
             resolve(new vscode.Hover(help, symbol.range));
+            return;
+          }
+
+          const property = assemblyLine.properties.find(p => p.range.contains(position));
+          if (property) {
+            const help = new vscode.MarkdownString();
+            help.appendCodeblock(`(${convertTokenToName(property.semanticToken)}) ${property.definition?.parent ? `${property.definition.parent.text}.` : ''}${property.text}`);
+            if (property.definition?.documentation) {
+              help.appendMarkdown(`---\n${property.definition.documentation}`);
+            }
+            resolve(new vscode.Hover(help, property.range));
             return;
           }
         } else {

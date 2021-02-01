@@ -48,11 +48,5 @@
       "'"
     ]
   ],
-  "folding": {
-    "markers": {
-      "start": "^\\s*\\*\\s*region\\b|\\b(IF|if|MACRO|macro|STRUCT|struct).*\\b",
-      "end": "^\\s*\\*\\s*endregion\\b|\\b(END|end).\\b"
-    }
-  },
-  "wordPattern": "([a-zA-Z._][a-zA-Z0-9.$_@?]*)"
+  "wordPattern": "[a-z_@$][a-z0-9$_@?]*"
 }

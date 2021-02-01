@@ -139,7 +139,7 @@
 				"editor.insertSpaces": false,
 				"editor.hover.enabled": true,
 				"editor.codeLens": true,
-				"editor.wordSeparators": "`~!#$%^&*()-=+[{]}\\|;:'\",.<>/"
+				"editor.wordSeparators": "`~!#%^&*()-=+[{]}\\|;:'\",.<>/"
 			}
 		},
 		"grammars": [
