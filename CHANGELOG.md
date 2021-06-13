@@ -2,8 +2,9 @@
 
 All notable changes to the "vscode-6x09-assembly" extension will be documented in this file.
 
-## [0.6.1]
+## [0.6.7]
 
+- Improved highlighing using semantic analysis.
 - Added documentation for 6309 opcodes from the sources available.  The documentation still has room for improvement.
 - Added provided tasks for assembling with `lwasm` and running your code with `XRoar`.
 - Removed command to start an emulator (a task replaced this).

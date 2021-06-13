@@ -19,24 +19,24 @@ available at [http://www.lwtools.ca](http://www.lwtools.ca).
 
 ### Problem metching with `lwasm`
 
-<img src="https://github.com/BlairLeduc/vscode-6x09-assembly/raw/master/media/lwasm-errors.png" width="480px">
+<img src="media/lwasm-errors.png" width="480px">
 
 ### Op code completion with documentation
 
-<img src="https://github.com/BlairLeduc/vscode-6x09-assembly/raw/master/media/Opcode%20completion%20with%20docs.png" width="480px">
+<img src="media/Opcode%20completion%20with%20docs.png" width="480px">
 
 ### Folding of code blocks
 
-<img src="https://github.com/BlairLeduc/vscode-6x09-assembly/raw/master/media/Sample-Syntax-Folding.png" width="340px">
+<img src="media/Sample-Syntax-Folding.png" width="340px">
 
 ### Hover documentation for op codes
 
-<img src="https://github.com/BlairLeduc/vscode-6x09-assembly/raw/master/media/Hover-opcode.png" width="480px">
+<img src="media/Hover-opcode.png" width="480px">
 
 ### Code Lens showing number of references for labels
 
-<img src="https://github.com/BlairLeduc/vscode-6x09-assembly/raw/master/media/codelens.png" width="640px">
+<img src="media/codelens.png" width="640px">
 
 ### Commands
 
-<img src="https://github.com/BlairLeduc/vscode-6x09-assembly/raw/master/media/commands.png" width="640px">
+<img src="media/commands.png" width="640px">
