@@ -3,7 +3,7 @@ import { AssemblyLine, ParserState } from './assembly-line';
 import { AssemblyBlock, AssemblySymbol } from '../common';
 import * as path from 'path';
 import * as lineReader from 'line-reader';
-import * as fileUrl from 'file-url';
+import fileUrl from 'file-url';
 import * as fs from 'fs';
 import { Queue } from '../queue';
 import { SymbolManager } from '../managers/symbol';
