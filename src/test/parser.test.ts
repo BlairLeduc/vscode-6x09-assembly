@@ -1253,7 +1253,7 @@ suite('LineParser', () => {
         line.indexOf(reference),
         reference.length,
         TokenKind.reference,
-        TokenType.class);
+        TokenType.variable);
 
       const tokens = LineParser.parse(line);
 

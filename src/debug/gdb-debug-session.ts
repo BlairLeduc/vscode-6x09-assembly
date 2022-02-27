@@ -6,8 +6,8 @@ import {
 	InitializedEvent, TerminatedEvent, StoppedEvent, BreakpointEvent, OutputEvent,
 	//ProgressStartEvent, ProgressUpdateEvent, ProgressEndEvent,
 	Thread, StackFrame, Scope, Source, Handles, Breakpoint
-} from 'vscode-debugadapter';
-import { DebugProtocol } from 'vscode-debugprotocol';
+} from '@vscode/debugadapter';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import { GdbRuntime, IGdbBreakpoint } from './gdb-runtime';
 
 
@@ -109,7 +109,7 @@ export class GdbDebugSession extends LoggingDebugSession {
    * The 'initialize' request is the first request called by the frontend
    * to interrogate the features the debug adapter provides.
    */
-  protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
+  protected initializeRequest(response: DebugProtocol.InitializeResponse, _: DebugProtocol.InitializeRequestArguments): void {
 
     // build and return the capabilities of this debug adapter:
     response.body = response.body || {};
@@ -255,22 +255,22 @@ export class GdbDebugSession extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
+  protected continueRequest(response: DebugProtocol.ContinueResponse, _: DebugProtocol.ContinueArguments): void {
     this.debugger.continue();
     this.sendResponse(response);
   }
 
-  protected reverseContinueRequest(response: DebugProtocol.ReverseContinueResponse, args: DebugProtocol.ReverseContinueArguments): void {
+  protected reverseContinueRequest(response: DebugProtocol.ReverseContinueResponse, _: DebugProtocol.ReverseContinueArguments): void {
     this.debugger.continue(true);
     this.sendResponse(response);
   }
 
-  protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
+  protected nextRequest(response: DebugProtocol.NextResponse, _: DebugProtocol.NextArguments): void {
     this.debugger.step();
     this.sendResponse(response);
   }
 
-  protected stepBackRequest(response: DebugProtocol.StepBackResponse, args: DebugProtocol.StepBackArguments): void {
+  protected stepBackRequest(response: DebugProtocol.StepBackResponse, _: DebugProtocol.StepBackArguments): void {
     this.debugger.step(true);
     this.sendResponse(response);
   }
