@@ -28,7 +28,7 @@
 		"theme": "light"
 	},
 	"engines": {
-		"vscode": "^1.57.0"
+		"vscode": "^1.69.0"
 	},
 	"activationEvents": [
 		"onLanguage:asm6x09",
@@ -237,20 +237,20 @@
 		"@types/glob": "^7.2.0",
 		"@types/line-reader": "~0.0.33",
 		"@types/mocha": "^9.1.0",
-		"@types/node": "14.x",
-		"@types/vscode": "^1.64.0",
+		"@types/node": "^16.x",
+		"@types/vscode": "^1.69.0",
 		"@typescript-eslint/eslint-plugin": "^5.12.1",
 		"@typescript-eslint/parser": "^5.12.1",
 		"@vscode/test-electron": "^2.1.2",
 		"eslint": "^8.9.0",
-		"glob": "^7.2.0",
-		"mocha": "^9.2.1",
+		"glob": "^8.0.0",
+		"mocha": "^10.0.0",
 		"typescript": "^4.5.5",
-		"vsce": "^2.0"
+		"vsce": "^2.10"
 	},
 	"dependencies": {
-		"@vscode/debugadapter": "^1.54.0",
-		"@vscode/debugprotocol": "^1.54.0",
+		"@vscode/debugadapter": "^1.56.1",
+		"@vscode/debugprotocol": "^1.56.1",
 		"await-notify": "^1.0.1",
 		"file-url": "^4.0.0",
 		"line-reader": "^0.4.0"
