@@ -237,7 +237,7 @@
 		"@types/glob": "7",
 		"@types/line-reader": "0",
 		"@types/mocha": "9",
-		"@types/node": "16",
+		"@types/node": "18",
 		"@types/vscode": "1",
 		"@typescript-eslint/eslint-plugin": "5",
 		"@typescript-eslint/parser": "5",
