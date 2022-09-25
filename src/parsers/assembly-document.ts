@@ -1,21 +1,19 @@
 import { CancellationToken, Position, Range, TextDocument, Uri } from 'vscode';
 import { AssemblyLine, ParserState } from './assembly-line';
 import { AssemblyBlock, AssemblySymbol } from '../common';
-import * as path from 'path';
 import * as lineReader from 'line-reader';
-import fileUrl from 'file-url';
 import * as fs from 'fs';
 import { Queue } from '../queue';
 import { SymbolManager } from '../managers/symbol';
 // import { LoggingDebugSession } from 'vscode-debugadapter';
 
 export class AssemblyDocument {
-  private processDocumentsQueue: Queue<string> = new Queue<string>();
+  private processDocumentsQueue: Queue<Uri> = new Queue<Uri>();
   private unknownReferences: AssemblySymbol[] = new Array<AssemblySymbol>();
   private unknownTypes: AssemblySymbol[] = new Array<AssemblySymbol>();
   public uri: Uri;
   public lines: AssemblyLine[] = new Array<AssemblyLine>();
-  public referencedDocuments: string[] = new Array<string>();
+  public referencedDocuments: Uri[] = new Array<Uri>();
   public symbols: AssemblySymbol[] = new Array<AssemblySymbol>();
   public blocks: Map<number, AssemblyBlock> = new Map<number, AssemblyBlock>();
 
@@ -89,10 +87,10 @@ export class AssemblyDocument {
     });
 
     if (line.file) {
-      const filename = path.join(path.dirname(this.uri.fsPath), line.file);
-      if (this.referencedDocuments.indexOf(filename) < 0) {
-        this.referencedDocuments.push(filename);
-        this.processDocumentsQueue.enqueue(filename);
+      const fileUri = Uri.joinPath(this.uri, line.file);
+      if (this.referencedDocuments.indexOf(fileUri) < 0) {
+        this.referencedDocuments.push(fileUri);
+        this.processDocumentsQueue.enqueue(fileUri);
       }
     }
 
@@ -150,25 +148,25 @@ export class AssemblyDocument {
     }
 
     // Post process referenced documents
-    let filePath: string;
-    while (filePath = this.processDocumentsQueue.dequeue()) {
+    let fileUri: Uri;
+    while (fileUri = this.processDocumentsQueue.dequeue()) {
       try {
         // Only process files that exist and are files and we have not seen before
+        const filePath = fileUri.fsPath;
         const stats = fs.statSync(filePath);
         if (stats && stats.isFile()) {
           fs.accessSync(filePath, fs.constants.R_OK);
-          const uri = Uri.parse(fileUrl(filePath, { resolve: false }));
-          this.symbolManager.clearDocument(uri);
+          this.symbolManager.clearDocument(fileUri);
           let lineNumber = 0;
           let state: ParserState;
           lineReader.eachLine(filePath, line => {
             const asmLine = new AssemblyLine(line, state, lineNumber++);
-            this.processLine(uri, asmLine);
+            this.processLine(fileUri, asmLine);
             state = asmLine.state;
           });
         }
       } catch (e) {
-        console.log(`[asm6x09] File ${filePath} is not readable to find referenced symbols:`);
+        console.log(`[asm6x09] File ${fileUri.toString()} is not readable to find referenced symbols:`);
         if (e instanceof Error) {
           console.log(e.message);
         } else {

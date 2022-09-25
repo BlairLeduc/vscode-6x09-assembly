@@ -4,6 +4,7 @@ import { AssemblyDocument } from '../parsers/assembly-document';
 import { Docs } from '../parsers/docs';
 import * as fs from 'fs';
 import { SymbolManager } from './symbol';
+import path = require('path');
 
 export class Folder implements vscode.Disposable {
   private readonly managed: boolean;
@@ -61,8 +62,8 @@ export class Folder implements vscode.Disposable {
     }
 
     const filesToWatch = new Collection<fs.FSWatcher>();
-    assemblyDocument.referencedDocuments.forEach(filePath => {
-      filesToWatch.add(filePath, fs.watch(filePath, () => { process.stdout.write("watcher: "); this.updateAssemblyDocument(document); }));
+    assemblyDocument.referencedDocuments.forEach(fileUri => {
+      filesToWatch.add(fileUri, fs.watch(fileUri.fsPath, () => { process.stdout.write("watcher: "); this.updateAssemblyDocument(document); }));
     });
     this.watched.add(document.uri, filesToWatch);
   }
@@ -136,7 +137,7 @@ export class WorkspaceManager implements vscode.Disposable {
 
   private getOrCreateFolder(document: vscode.TextDocument): Folder {
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
-    const uri = workspaceFolder ? workspaceFolder.uri : vscode.Uri.parse(WorkspaceManager.NoWorkspaceUri);
+    const uri = workspaceFolder ? workspaceFolder.uri : document.uri.with({path: path.dirname(document.uri.path)});
 
     if (!this.folders.containsKey(uri)) {
       return this.folders.add(uri, new Folder(this.symbolManager, uri));

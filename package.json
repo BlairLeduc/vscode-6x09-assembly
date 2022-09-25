@@ -28,7 +28,7 @@
 		"theme": "light"
 	},
 	"engines": {
-		"vscode": "^1.69.0"
+		"vscode": "^1.71.0"
 	},
 	"activationEvents": [
 		"onLanguage:asm6x09",
@@ -252,7 +252,6 @@
 		"@vscode/debugadapter": "1",
 		"@vscode/debugprotocol": "1",
 		"await-notify": "1",
-		"file-url": "4",
 		"line-reader": "0"
 	}
 }
