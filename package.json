@@ -234,7 +234,7 @@
 		"test": "npm run compile && node ./out/test/runTests"
 	},
 	"devDependencies": {
-		"@types/glob": "7",
+		"@types/glob": "8",
 		"@types/line-reader": "0",
 		"@types/mocha": "9",
 		"@types/node": "18",
