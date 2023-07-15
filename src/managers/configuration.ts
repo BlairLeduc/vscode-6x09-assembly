@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 
+// Provides a configuration for runnung an CLI command on specific platforms
 interface CommandConfiguration {
   path: {
     linux: string;
@@ -8,46 +9,52 @@ interface CommandConfiguration {
   };
   arguments: string;
 }
+
+// Provides a configuration for the extension
 interface ExtensionWorkspaceConfiguration extends vscode.WorkspaceConfiguration {
 
   opcode: {
-    /** the casing of the opcodes */
+    // The display casing of the opcodes
     casing: string,
 
-    /** the level of detail when providing help */
+    // The level of detail when providing help 
     help: string,
   };
 
-  /** whether Codelens is enabled */
+  // Whether to enable Codelens
   enableCodeLens: boolean;
 
-  /** lwasm configuration */
+  // Where to find lwasm
   lwasm: CommandConfiguration;
 
-  /** xroar configuration */
+  // Where to find xroar
   xroar: CommandConfiguration;
 
-  /** the GDB debug port */
+  // The GDB debug port
   debugPort: number;
 }
 
+// Supported commands
 export enum Command {
   lwasm,
   xroar
 }
 
+// Supported platforms
 export enum OSPlatform {
   windows,
   macOS,
   linux
 }
 
+// Available opcode casing
 export enum OpcodeCase {
   lowercase,
   uppercase,
   capitalised,
 }
 
+// Available help verbosity
 export enum HelpVerbosity {
   none,
   light,

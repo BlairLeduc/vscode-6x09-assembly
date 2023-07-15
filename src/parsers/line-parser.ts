@@ -10,7 +10,7 @@ interface FoundInfo {
 
 export class LineParser {
 
-  public static parse(line: string): Token[] {
+  public static parse(line: string, labelOnly = false): Token[] {
 
     // Empty line
     if (line.trim() === '') {
@@ -27,7 +27,7 @@ export class LineParser {
       tokens.push(new Token(lineNumberMatch[1], pos, lineNumberMatch[1].length, TokenKind.ignore, TokenType.label));
       
       pos += lineNumberMatch[0].length;
-      text = line.substr(pos);
+      text = line.substring(pos);
       if (!text) {
         return tokens; // end of the line, return
       }
@@ -50,10 +50,15 @@ export class LineParser {
       tokens.push(new Token(name, pos, name.length, TokenKind.label, isLocal ? TokenType.function : TokenType.class, isValid, isLocal));
 
       pos += symbolMatch[0].length;
-      text = line.substr(pos);
+      text = line.substring(pos);
       if (!text) {
         return tokens; // end of the line, return
       }
+    }
+
+    // Leave early if looking for only labels
+    if (labelOnly) {
+      return tokens;
     }
 
     // Symbol can be followed bt a colon (acts like a space)
@@ -65,7 +70,7 @@ export class LineParser {
       }
       tokens.push(new Token(':', pos, 1, TokenKind.ignore, TokenType.operator));
 
-      text = ' ' + line.substr(pos + 1); // replace the colon with a space for next match
+      text = ' ' + line.substring(pos + 1); // replace the colon with a space for next match
       if (text === ' ') {
         return tokens; // end of the line, return
       }
@@ -91,7 +96,7 @@ export class LineParser {
         isOpcode ? TokenType.keyword : TokenType.type));
 
       pos += opcodeMatch[0].length;
-      text = line.substr(pos);
+      text = line.substring(pos);
       if (!text) {
         return tokens; // end of the line, return
       }
@@ -105,7 +110,7 @@ export class LineParser {
           tokens.push(new Token(str, pos + space, str.length, TokenKind.operand, TokenType.string));
     
           pos += operandMatch[0].length;
-          text = line.substr(pos);
+          text = line.substring(pos);
           if (!text) {
             return tokens; // end of the line, return
           }
@@ -127,12 +132,13 @@ export class LineParser {
           });
     
           pos += operandMatch[0].length;
-          text = line.substr(pos);
+          text = line.substring(pos);
           if (!text) {
             return tokens; // end of the line, return
           }
         }
-      }      // if file operand, match and consume
+      }
+      // if file operand, match and consume
       else if (filePseudoOps.has(opcode)) {
         const operandMatch = /^(\s+)(.*)/.exec(text); // match everything until a space
         if (operandMatch) {
@@ -141,7 +147,7 @@ export class LineParser {
           tokens.push(new Token(str, pos + space, str.length, TokenKind.file, TokenType.string));
     
           pos += operandMatch[0].length;
-          text = line.substr(pos);
+          text = line.substring(pos);
           if (!text) {
             return tokens; // end of the line, return
           }
@@ -156,7 +162,7 @@ export class LineParser {
           tokens.push(new Token(str, pos + space, str.length, TokenKind.operand, TokenType.string));
     
           pos += operandMatch[0].length;
-          text = line.substr(pos);
+          text = line.substring(pos);
           if (!text) {
             return tokens; // end of the line, return
           }
@@ -187,7 +193,7 @@ export class LineParser {
           }
 
           pos += operandMatch[0].length;
-          text = line.substr(pos);
+          text = line.substring(pos);
           if (!text) {
             return tokens; // end of the line, return
           }

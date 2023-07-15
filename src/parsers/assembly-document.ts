@@ -5,6 +5,7 @@ import * as lineReader from 'line-reader';
 import * as fs from 'fs';
 import { Queue } from '../queue';
 import { SymbolManager } from '../managers/symbol';
+import path = require('path');
 // import { LoggingDebugSession } from 'vscode-debugadapter';
 
 export class AssemblyDocument {
@@ -12,6 +13,7 @@ export class AssemblyDocument {
   private unknownReferences: AssemblySymbol[] = new Array<AssemblySymbol>();
   private unknownTypes: AssemblySymbol[] = new Array<AssemblySymbol>();
   public uri: Uri;
+  public baseUri: Uri;
   public lines: AssemblyLine[] = new Array<AssemblyLine>();
   public referencedDocuments: Uri[] = new Array<Uri>();
   public symbols: AssemblySymbol[] = new Array<AssemblySymbol>();
@@ -19,6 +21,7 @@ export class AssemblyDocument {
 
   constructor(private symbolManager: SymbolManager, document: TextDocument, range?: Range, cancelationToken?: CancellationToken) {
     this.uri = document.uri;
+    this.baseUri = this.uri.with({path: path.dirname(document.uri.path)});
     this.parse(document, range, cancelationToken);
   }
 
@@ -87,7 +90,7 @@ export class AssemblyDocument {
     });
 
     if (line.file) {
-      const fileUri = Uri.joinPath(this.uri, line.file);
+      const fileUri = Uri.joinPath(this.baseUri, line.file);
       if (this.referencedDocuments.indexOf(fileUri) < 0) {
         this.referencedDocuments.push(fileUri);
         this.processDocumentsQueue.enqueue(fileUri);

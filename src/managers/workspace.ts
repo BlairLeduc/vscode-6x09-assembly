@@ -19,7 +19,8 @@ export class Folder implements vscode.Disposable {
 
   dispose(): void {
     if (this.managed) {
-      this.watched.values().forEach(wa => wa.values().forEach(w => w.close()));    }
+      this.watched.values().forEach(wa => wa.values().forEach(w => w.close()));
+    }
   }
 
   public containsAssemblyDocument(document: vscode.TextDocument): boolean {
@@ -36,6 +37,7 @@ export class Folder implements vscode.Disposable {
   }
 
   public getAssemblyDocument(document: vscode.TextDocument): AssemblyDocument {
+    vscode.workspace.fs.readFile(new vscode.Uri('')).then(a => Buffer.from(a.buffer).toString())
     return this.documents.get(document.uri);
   }
 
