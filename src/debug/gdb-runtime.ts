@@ -36,7 +36,6 @@ export class GdbRuntime extends EventEmitter {
 
   // Run control
   public start(_program: string, _stopOnEntry: boolean, _noDebug: boolean): void {
-    vscode.languages
     // Start emulator
     this.startEmulator(this.emulatorExe, this.emulatorOptions, this.emulatorWorkingDir);
   }

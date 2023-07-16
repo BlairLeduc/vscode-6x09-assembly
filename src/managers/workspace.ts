@@ -74,7 +74,7 @@ export class Folder implements vscode.Disposable {
 }
 
 export class WorkspaceManager implements vscode.Disposable {
-  private static readonly NoWorkspaceUri = 'wsf:none';
+  private static readonly noWorkspaceUri = 'wsf:none';
   public readonly opcodeDocs: Docs;
   public symbolManager: SymbolManager;
 
@@ -136,7 +136,7 @@ export class WorkspaceManager implements vscode.Disposable {
 
   private getOrCreateFolder(document: vscode.TextDocument): Folder {
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
-    const uri = workspaceFolder ? workspaceFolder.uri : vscode.Uri.parse(WorkspaceManager.NoWorkspaceUri);
+    const uri = workspaceFolder ? workspaceFolder.uri : vscode.Uri.parse(WorkspaceManager.noWorkspaceUri);
 
     if (!this.folders.containsKey(uri)) {
       return this.folders.add(uri, new Folder(this.symbolManager, uri));
