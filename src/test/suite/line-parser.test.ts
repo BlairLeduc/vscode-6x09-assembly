@@ -8,8 +8,8 @@ import * as assert from 'assert';
 
 // Classes under test
 
-import { Token, TokenKind, TokenModifier, TokenType } from '../common';
-import { LineParser } from '../parsers/line-parser';
+import { Token, TokenKind, TokenModifier, TokenType } from '../../common';
+import { LineParser } from '../../parsers/line-parser';
 
 suite('LineParser', () => {
   test('Empty string returns empty token list', () => {
