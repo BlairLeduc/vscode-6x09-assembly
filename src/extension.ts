@@ -13,7 +13,7 @@ import { ReferenceProvider } from './providers/reference';
 import { RenameProvider } from './providers/rename';
 import { State } from './state';
 import { TaskProvider } from './providers/task';
-import { DocumentSemanticTokensLegend, DocumentSemanticTokensProvider } from './providers/documentSemanticTokens';
+import { documentSemanticTokensLegend, DocumentSemanticTokensProvider } from './providers/documentSemanticTokens';
 import { ImplementationProvider } from './providers/implementation';
 import { SelectionRangeProvider } from './providers/selection-ranges';
 import { WorkspaceSymbolProvider } from './providers/workspace-symbol';
@@ -23,16 +23,16 @@ const ASM6X09_LANGUAGE = 'asm6x09';
 const ASM6X09_CONFIG_SECTION = '6x09Assembly';
 const ASM6X09_MODE: vscode.DocumentSelector = { language: ASM6X09_LANGUAGE, scheme: 'file' };
 // const ASM6X09_DEBUG_TYPE: string = ASM6X09_LANGUAGE;
-const disposables: Array<vscode.Disposable | undefined> = new Array<vscode.Disposable | undefined>();
+const disposables: Array<vscode.Disposable> = new Array<vscode.Disposable>();
 
-export let ExtensionState: State;
+export let extensionState: State;
 
 export function activate(context: vscode.ExtensionContext): void {
 
-  ExtensionState = new State(ASM6X09_CONFIG_SECTION);
+  extensionState = new State(ASM6X09_CONFIG_SECTION);
 
-  const configurationManager = ExtensionState.configurationManager;
-  const workspaceManager = ExtensionState.workspaceManager;
+  const configurationManager = extensionState.configurationManager;
+  const workspaceManager = extensionState.workspaceManager;
 
   // language features
   disposables.push(vscode.languages.registerCodeLensProvider(
@@ -82,7 +82,7 @@ export function activate(context: vscode.ExtensionContext): void {
   disposables.push(vscode.languages.registerDocumentSemanticTokensProvider(
     ASM6X09_MODE,
     new DocumentSemanticTokensProvider(workspaceManager),
-    DocumentSemanticTokensLegend
+    documentSemanticTokensLegend
   ));
 
   disposables.push(vscode.languages.registerHoverProvider(
@@ -125,7 +125,7 @@ export function activate(context: vscode.ExtensionContext): void {
   }));
 
   disposables.push(vscode.workspace.onDidOpenTextDocument(document => {
-    workspaceManager.addDocument(document, undefined);
+    workspaceManager.addDocument(document);
   }));
 
   disposables.push(vscode.workspace.onDidChangeTextDocument(change => {

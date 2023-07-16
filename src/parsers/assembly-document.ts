@@ -35,7 +35,7 @@ export class AssemblyDocument {
         block.symbols.push(definition);
       }
       
-      this.unknownReferences.filter(r => r.text == definition.text && r.blockNumber == definition.blockNumber).forEach(r => {
+      this.unknownReferences.filter(r => r.text === definition.text && r.blockNumber === definition.blockNumber).forEach(r => {
         r.definition = definition;
         r.semanticToken.type = definition.semanticToken.type;
         r.semanticToken.modifiers = definition.semanticToken.modifiers;
@@ -54,7 +54,7 @@ export class AssemblyDocument {
         }
       });
 
-      this.unknownTypes.filter(t => t.text == definition.text).forEach(t => {
+      this.unknownTypes.filter(t => t.text === definition.text).forEach(t => {
         t.definition = definition;
         definition.references.push(t);
         const index = this.unknownTypes.indexOf(t);
@@ -68,7 +68,7 @@ export class AssemblyDocument {
 
     line.references.forEach(reference => {
       reference.uri = uri;
-      const definition = this.symbols.find(d => d.text === reference.text && d.blockNumber == reference.blockNumber);
+      const definition = this.symbols.find(d => d.text === reference.text && d.blockNumber === reference.blockNumber);
 
       if (definition) {
         definition.references.push(reference);
@@ -77,7 +77,7 @@ export class AssemblyDocument {
         reference.semanticToken.modifiers = definition.semanticToken.modifiers;
         reference.properties.forEach(propertyReference => {
           propertyReference.uri = uri;
-          const property = definition.definition.properties.find(p => p.text === propertyReference.text);
+          const property = definition.definition?.properties.find(p => p.text === propertyReference.text);
           if (property) {
             propertyReference.definition = property;
             property.references.push(propertyReference);
@@ -99,10 +99,10 @@ export class AssemblyDocument {
     // A type (struct) is referenced in the opcode column
     if (line.type) {
       const typeReference = line.type;
-      const type = line.label;
+      const type = line.type;
       typeReference.uri = uri;
 
-      const definition = this.symbols.find(t => t.text == typeReference.text);
+      const definition = this.symbols.find(t => t.text === typeReference.text);
       if (definition) {
         definition.references.push(type);
         type.definition = definition;
@@ -134,7 +134,7 @@ export class AssemblyDocument {
       }
 
       const line = document.lineAt(i);
-      const asmLine = new AssemblyLine(line.text, state, line.lineNumber);
+      const asmLine = new AssemblyLine(line.text, undefined, line.lineNumber);
       this.lines.push(asmLine);
 
       state = asmLine.state;
@@ -150,7 +150,7 @@ export class AssemblyDocument {
     }
 
     // Post process referenced documents
-    let filePath: string;
+    let filePath: string | undefined;
     while (filePath = this.processDocumentsQueue.dequeue()) {
       try {
         // Only process files that exist and are files and we have not seen before

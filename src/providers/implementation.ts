@@ -10,11 +10,11 @@ export class ImplementationProvider implements vscode.ImplementationProvider {
     return new Promise((resolve, reject) => {
       const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
 
-      if (!token.isCancellationRequested) {
+      if (assemblyDocument && !token.isCancellationRequested) {
         const assemblyLine = assemblyDocument.lines[position.line];
 
         const symbol = assemblyLine.references.find(r => r.range.contains(position))?.definition ?? assemblyLine.label;
-        if (symbol && symbol.range.contains(position)) {
+        if (symbol && symbol.uri && symbol.range.contains(position)) {
           resolve([new vscode.Location(symbol.uri, symbol.range)]);
         } else {
           resolve([]);

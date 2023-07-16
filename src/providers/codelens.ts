@@ -31,11 +31,13 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
             const lenses = new Array<vscode.CodeLens>();
 
             assemblyDocument.symbols.filter(s => s.uri === document.uri).forEach(symbol => {
-              const references = symbol.references.filter(r => r.blockNumber == symbol.blockNumber);
+              const references = symbol.references.filter(r => r.blockNumber === symbol.blockNumber);
               const command: vscode.Command = {
                 command: 'editor.action.showReferences',
                 title: `${references.length} reference${references.length !== 1 ? 's' : ''}`,
-                arguments: [document.uri, symbol.range.start, references.map(r => new vscode.Location(r.uri, r.range))],
+                arguments: [document.uri, symbol.range.start, references
+                  .filter(r => r.uri)
+                  .map(r => new vscode.Location(r.uri!, r.range))],
               };
               lenses.push({
                 command,

@@ -1,7 +1,7 @@
-import { delimitedStringPseudoOps, filePseudoOps, inherentOpcodes, inherentPseudoOps, operandOpcodes, pragmaPseudoOps, pseudoOps, Registers, stringPseudoOps, Token, TokenKind, TokenModifier, TokenType } from '../common';
+import { delimitedStringPseudoOps, filePseudoOps, inherentOpcodes, inherentPseudoOps, operandOpcodes, pragmaPseudoOps, pseudoOps, registers, stringPseudoOps, Token, TokenKind, TokenModifier, TokenType } from '../common';
 
 interface FoundInfo { 
-  match: RegExpMatchArray;
+  match: RegExpMatchArray | null;
   kind: TokenKind;
   type: TokenType;
   modifiers: TokenModifier;
@@ -174,6 +174,10 @@ export class LineParser {
           let isProperty = false;
           while (expression.length > 0) {
             const found = this.findMatch(expression, isProperty);
+            if (!found.match) {
+              break;
+            }
+
             const length = found.match[0].length;
             
             const token = new Token(found.match[0], pos + space + offset, length, found.kind, found.type);
@@ -233,7 +237,7 @@ export class LineParser {
         if (isProperty) {
           tokenKind = TokenKind.property;
           tokenType = TokenType.property;
-        } else if (Registers.has(match[0].toLowerCase())) {
+        } else if (registers.has(match[0].toLowerCase())) {
           tokenType = TokenType.variable;
           tokenModifiers = TokenModifier.static;
         } else {

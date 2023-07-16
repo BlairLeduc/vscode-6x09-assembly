@@ -1,0 +1,38 @@
+{
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module"
+    },
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "rules": {
+        "@typescript-eslint/naming-convention": "warn",
+        "@typescript-eslint/semi": "warn",
+        "curly": "warn",
+        "eqeqeq": "warn",
+        "no-throw-literal": "warn",
+        "semi": "off",
+        "no-unused-vars": [
+            "error", {
+                "vars": "all",
+                "varsIgnorePattern": "^_",
+                "args": "all",
+                "argsIgnorePattern": "^_",
+                "ignoreRestSiblings": false
+            }
+        ],
+        "prefer-const": [
+            "error", {
+                "destructuring": "all"
+            }
+        ]
+    },
+    "ignorePatterns": [
+        "out",
+        "dist",
+        "**/*.d.ts"
+    ]
+}

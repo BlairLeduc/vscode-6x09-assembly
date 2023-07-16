@@ -12,7 +12,7 @@ export class FoldingRangeProvider implements vscode.FoldingRangeProvider {
     return new Promise((resolve, reject) => {
       const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
 
-      if (!token.isCancellationRequested) {
+      if (assemblyDocument && !token.isCancellationRequested) {
         const foldingRanges = Array.from(assemblyDocument.blocks.values()).map(b => new vscode.FoldingRange(b.startLineNumber, b.endLineNumber, vscode.FoldingRangeKind.Region));
         resolve(foldingRanges);
       } else {

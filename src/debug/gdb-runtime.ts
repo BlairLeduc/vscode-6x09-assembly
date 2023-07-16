@@ -35,35 +35,34 @@ export class GdbRuntime extends EventEmitter {
   }
 
   // Run control
-  public start(program: string, stopOnEntry: boolean, noDebug: boolean): void {
-    vscode.languages
+  public start(_program: string, _stopOnEntry: boolean, _noDebug: boolean): void {
     // Start emulator
     this.startEmulator(this.emulatorExe, this.emulatorOptions, this.emulatorWorkingDir);
   }
 
-  public continue(reverse = false): void {
+  public continue(_reverse = false): void {
     throw new Error('Method not implemented.');
   }
 
-  public step(reverse = false, event = 'stopOnStep'): void {
+  public step(_reverse = false, _event = 'stopOnStep'): void {
     throw new Error('Method not implemented.');
   }
 
   // Breakpoints
-  public clearBreakPoint(path: string, line: number): IGdbBreakpoint | undefined {
+  public clearBreakPoint(_path: string, _line: number): IGdbBreakpoint | undefined {
     throw new Error('Method not implemented.');
   }
 
-  public clearBreakpoints(path: string): void {
+  public clearBreakpoints(_path: string): void {
     throw new Error('Method not implemented.');
   }
 
-  public setBreakPoint(path: string, line: number): IGdbBreakpoint {
+  public setBreakPoint(_path: string, _line: number): IGdbBreakpoint {
     throw new Error('Method not implemented.');
   }
 
   // Stacks
-  public stack(startFrame: number, endFrame: number): IGdbStack {
+  public stack(_startFrame: number, _endFrame: number): IGdbStack {
     throw new Error('Method not implemented.');
   }
 

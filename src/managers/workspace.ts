@@ -7,12 +7,12 @@ import { SymbolManager } from './symbol';
 
 export class Folder implements vscode.Disposable {
   private readonly managed: boolean;
-  public readonly path: string;
+  public readonly path?: string;
   public documents: Collection<AssemblyDocument> = new Collection<AssemblyDocument>();
   public watched: Collection<Collection<fs.FSWatcher>> = new Collection<Collection<fs.FSWatcher>>();
 
   constructor(public symbolManager: SymbolManager, public uri?: vscode.Uri) {
-    this.path = this.uri.fsPath;
+    this.path = this.uri?.fsPath;
     this.managed = this.path !== 'none';
   }
 
@@ -25,7 +25,7 @@ export class Folder implements vscode.Disposable {
     return this.documents.containsKey(document.uri);
   }
 
-  public addAssemblyDocument(document: vscode.TextDocument, token: vscode.CancellationToken): AssemblyDocument {
+  public addAssemblyDocument(document: vscode.TextDocument, token?: vscode.CancellationToken): AssemblyDocument | undefined {
     if (this.managed) {
       const assemblyDocument = this.documents.add(document.uri, new AssemblyDocument(this.symbolManager, document, undefined, token));
       this.addFilesToWatch(document, assemblyDocument);
@@ -38,7 +38,7 @@ export class Folder implements vscode.Disposable {
     return this.documents.get(document.uri);
   }
 
-  public updateAssemblyDocument(document: vscode.TextDocument, _?: readonly vscode.TextDocumentContentChangeEvent[]): AssemblyDocument {
+  public updateAssemblyDocument(document: vscode.TextDocument, _?: readonly vscode.TextDocumentContentChangeEvent[]): AssemblyDocument | undefined {
     if (this.managed) {
       // Optimisation potential: look at what changed in document instead of re-parsing the whole thing
       const assemblyDocument = this.documents.add(document.uri, new AssemblyDocument(this.symbolManager, document));
@@ -74,7 +74,7 @@ export class Folder implements vscode.Disposable {
 }
 
 export class WorkspaceManager implements vscode.Disposable {
-  private static readonly NoWorkspaceUri = 'wsf:none';
+  private static readonly noWorkspaceUri = 'wsf:none';
   public readonly opcodeDocs: Docs;
   public symbolManager: SymbolManager;
 
@@ -91,12 +91,12 @@ export class WorkspaceManager implements vscode.Disposable {
     this.symbolManager.dispose();
   }
 
-  public addDocument(document: vscode.TextDocument, token: vscode.CancellationToken): void {
+  public addDocument(document: vscode.TextDocument, token?: vscode.CancellationToken): void {
     const folder = this.getOrCreateFolder(document);
     folder.addAssemblyDocument(document, token);
   }
 
-  public getAssemblyDocument(document: vscode.TextDocument, token: vscode.CancellationToken): AssemblyDocument {
+  public getAssemblyDocument(document: vscode.TextDocument, token?: vscode.CancellationToken): AssemblyDocument | undefined {
     const folder = this.getOrCreateFolder(document);
     if (folder.containsAssemblyDocument(document)) {
       return folder.getAssemblyDocument(document);
@@ -128,7 +128,7 @@ export class WorkspaceManager implements vscode.Disposable {
       const folder = this.getOrCreateFolder(document);
 
       if (!folder.containsAssemblyDocument(document)) {
-        folder.addAssemblyDocument(document, null);
+        folder.addAssemblyDocument(document);
       }
     }
     return this.symbolManager;
@@ -136,7 +136,7 @@ export class WorkspaceManager implements vscode.Disposable {
 
   private getOrCreateFolder(document: vscode.TextDocument): Folder {
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
-    const uri = workspaceFolder ? workspaceFolder.uri : vscode.Uri.parse(WorkspaceManager.NoWorkspaceUri);
+    const uri = workspaceFolder ? workspaceFolder.uri : vscode.Uri.parse(WorkspaceManager.noWorkspaceUri);
 
     if (!this.folders.containsKey(uri)) {
       return this.folders.add(uri, new Folder(this.symbolManager, uri));

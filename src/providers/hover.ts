@@ -23,21 +23,21 @@ export class HoverProvider implements vscode.HoverProvider {
     return new Promise((resolve, reject) => {
       if (this.configurationManager.helpVerbosity !== HelpVerbosity.none) {
         const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
-        const symbolManager =  this.workspaceManager.getSymbolManager(document);
 
-        if (!token.isCancellationRequested) {
+        if (assemblyDocument && !token.isCancellationRequested) {
+          const symbolManager = this.workspaceManager.getSymbolManager(document);
           const assemblyLine = assemblyDocument.lines[position.line];
 
           if (assemblyLine.opCodeRange && assemblyLine.opCodeRange.contains(position)) {
             const opCode = assemblyLine.opCode;
-            const opCodeDocs = this.workspaceManager.opcodeDocs.getOpcode(opCode.text);
+            const opCodeDocs = this.workspaceManager.opcodeDocs.getOpcode(opCode?.text);
             if (opCodeDocs) {
               const help = new vscode.MarkdownString();
               let processorSpec = ' -';
               if (opCodeDocs.type === DocOpcodeType.opcode) {
                 processorSpec = opCodeDocs.processor === '6809' ? ' (6809/6309)' : ' (6309)';
               }
-              help.appendCodeblock(`(${DocOpcodeType[opCodeDocs.type]}) ${opCode.text}${processorSpec} ${opCodeDocs.summary}`);
+              help.appendCodeblock(`(${DocOpcodeType[opCodeDocs.type]}) ${opCode!.text}${processorSpec} ${opCodeDocs.summary}`);
               let documentation = opCodeDocs.type === DocOpcodeType.opcode ? `${opCodeDocs.notation}　⸺　${opCodeDocs.conditionCodes}` : '';
               if (this.configurationManager.helpVerbosity === HelpVerbosity.full && opCodeDocs.documentation) {
                 documentation += `  \n  \n${opCodeDocs.documentation}`;
@@ -52,21 +52,26 @@ export class HoverProvider implements vscode.HoverProvider {
 
           if (assemblyLine.typeRange && assemblyLine.typeRange.contains(position)) {
             const type = assemblyLine.type;
-            const symbol = symbolManager.symbols.find(s => s.text == type.text);
-            const help = new vscode.MarkdownString();
-            help.appendCodeblock(`(${type.type === TokenType.macro ? 'macro' : 'struct'}) ${type.text}`);
-            if (symbol.documentation) {
-              help.appendMarkdown('---\n' + symbol.documentation);
+            const symbol = symbolManager.symbols.find(s => s.text === type?.text);
+
+            if (type && symbol) {
+              const help = new vscode.MarkdownString();
+              help.appendCodeblock(`(${type.type === TokenType.macro ? 'macro' : 'struct'}) ${type.text}`);
+              if (symbol.documentation) {
+                help.appendMarkdown('---\n' + symbol.documentation);
+              }
+              resolve(new vscode.Hover(help, assemblyLine.opCodeRange));
             }
-            resolve(new vscode.Hover(help, assemblyLine.opCodeRange));
             return;
           }
 
           const symbol = assemblyLine.references.find(r => r.range.contains(position)) ?? assemblyLine.label;
           if (symbol && symbol.range.contains(position)) {
-            const documentation = symbol.definition.definition 
-              ? symbol.definition.definition.documentation 
-              : symbol.definition ? symbol.definition.documentation : symbol.documentation;
+            const documentation = symbol.definition
+              ? symbol.definition.definition
+                ? symbol.definition.definition.documentation
+                : symbol.definition.documentation
+              : symbol.documentation;
             const value = symbol.definition ? symbol.definition.value : symbol.value;
             let header = `(${convertTokenToName(symbol.semanticToken)}) ${symbol.parent ? `${symbol.parent.text}.` : ''}${symbol.text}`;
             if (value) {
@@ -101,10 +106,10 @@ export class HoverProvider implements vscode.HoverProvider {
     });
   }
 
-  private kindToString(kind: vscode.CompletionItemKind): string {
+  private kindToString(kind: vscode.CompletionItemKind): string | undefined {
     if (kindMap.has(kind)) {
       return kindMap.get(kind);
     }
-    return null;
+    return undefined;
   }
 }

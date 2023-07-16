@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-export const Registers = new Set(['a', 'b', 'd', 'e', 'f', 'x', 'y', 'w', 'q', 'u', 's', 'v', 'pc', 'dp', 'cc', 'pcr']);
+export const registers = new Set(['a', 'b', 'd', 'e', 'f', 'x', 'y', 'w', 'q', 'u', 's', 'v', 'pc', 'dp', 'cc', 'pcr']);
 
 export const inherentOpcodes = new Set([
   'abx',
@@ -137,6 +137,7 @@ export enum TokenType {
 }
 
 export enum TokenModifier {
+  none = 0,
   definition = 1,
   declaration = 2,
   readonly = 4,
@@ -155,13 +156,13 @@ export class Token {
     public isValid: boolean = true,
     public isLocal: boolean = false,
   ) {
-    this.modifiers = 0;
+    this.modifiers = TokenModifier.none;
   }
 }
 
 
 
-const CompletionItemKindTranslation = [
+const completionItemKindTranslation = [
   vscode.CompletionItemKind.Constant,
   vscode.CompletionItemKind.Variable,
   vscode.CompletionItemKind.Method,
@@ -179,10 +180,10 @@ const CompletionItemKindTranslation = [
 ];
 
 export function convertTokenKindToComplitionItemKind(kind: TokenKind): vscode.CompletionItemKind {
-  return CompletionItemKindTranslation[kind];
+  return completionItemKindTranslation[kind];
 }
 
-export const TokenTypeToString = [
+export const tokenTypeToString = [
   'global label',
   'local label',
   'struct',
@@ -201,7 +202,7 @@ export const TokenTypeToString = [
 ];
 
 export function convertTokenToName(token: Token): string {
-  let name = TokenTypeToString[token.type];
+  let name = tokenTypeToString[token.type];
   if (token.modifiers & TokenModifier.readonly) {
     name = 'constant';
   }
@@ -211,7 +212,7 @@ export function convertTokenToName(token: Token): string {
   return name;
 }
 
-const SymbolKindTranslation = [
+const symbolKindTranslation = [
   vscode.SymbolKind.Constant,
   vscode.SymbolKind.Variable,
   vscode.SymbolKind.Method,
@@ -229,10 +230,10 @@ const SymbolKindTranslation = [
 ];
 
 export function convertTokenKindToSymbolKind(kind: TokenKind): vscode.SymbolKind {
-  return SymbolKindTranslation[kind];
+  return symbolKindTranslation[kind];
 }
 
-const TokenTypeTranslation = [
+const tokenTypeTranslation = [
   'variable',
   'variable',
   'macro',
@@ -250,7 +251,7 @@ const TokenTypeTranslation = [
 ];
 
 export function convertTokenKindToTokenType(kind: TokenKind): string {
-  return TokenTypeTranslation[kind];
+  return tokenTypeTranslation[kind];
 }
 
 export class AssemblySymbol {
@@ -260,14 +261,14 @@ export class AssemblySymbol {
   public lineRange: vscode.Range;
   public type: TokenType;
   public kind: vscode.CompletionItemKind;
-  public value: string;
+  public value: string = "";
   public blockNumber: number;
-  public parent: AssemblySymbol;
-  public definition: AssemblySymbol;
+  public parent?: AssemblySymbol;
+  public definition?: AssemblySymbol;
   public references: AssemblySymbol[];
   public properties: AssemblySymbol[];
   public documentation: string;
-  public uri: vscode.Uri;
+  public uri?: vscode.Uri;
   public isValid: boolean;
   public isLocal: boolean;
 
@@ -290,12 +291,12 @@ export class AssemblySymbol {
 
 export class AssemblyBlock {
   public endLineNumber: number;
-  public foldingRangeKind: vscode.FoldingRangeKind;
+  public foldingRangeKind?: vscode.FoldingRangeKind;
 
   constructor(
     public number: number,
     public startLineNumber: number,
-    public label: AssemblySymbol = null,
+    public label?: AssemblySymbol,
     public symbols: AssemblySymbol[] = [],
   ) {
     this.endLineNumber = startLineNumber;
