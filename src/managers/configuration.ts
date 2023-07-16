@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-interface CommandConfiguration {
+export interface CommandConfiguration {
   path: {
     linux: string;
     macOS: string;
@@ -8,6 +8,7 @@ interface CommandConfiguration {
   };
   arguments: string;
 }
+
 interface ExtensionWorkspaceConfiguration extends vscode.WorkspaceConfiguration {
 
   opcode: {
@@ -43,20 +44,44 @@ export enum OSPlatform {
 }
 
 export enum OpcodeCase {
-  lowercase,
-  uppercase,
-  capitalised,
+  lowercase = 'lowercase',
+  uppercase = 'uppercase',
+  capitalised = 'capitalised',
 }
 
 export enum HelpVerbosity {
-  none,
-  light,
-  full,
+  none = 'none',
+  light = 'light',
+  full = 'full',
 }
 
 export class ConfigurationManager implements vscode.Disposable {
   private onDidChangeConfigurationEmitter = new vscode.EventEmitter<void>();
-  private config: ExtensionWorkspaceConfiguration;
+  private config?: ExtensionWorkspaceConfiguration;
+  private defaultConfiguration = {
+    opcode: {
+      casing: OpcodeCase.lowercase,
+      help: HelpVerbosity.full,
+    },
+    enableCodeLens: true,
+    lwasm: {
+      path: {
+        linux: '/usr/local/bin/lwasm',
+        macOS: '/usr/local/bin/lwasm',
+        windows: 'C:\\lwtools\\lwasm.exe',
+      },
+      arguments: '--6309',
+    },
+    xroar: {
+      path: {
+        linux: '/usr/local/bin/xroar',
+        macOS: '/usr/local/bin/xroar',
+        windows: 'C:\\XRoar\\XRoar.exe',
+      },
+      arguments: '-machine coco2bus',
+    },
+    debugPort: 65520,
+  };
 
   constructor(private language: string) {
     this.update(vscode.workspace.getConfiguration(language));
@@ -76,27 +101,38 @@ export class ConfigurationManager implements vscode.Disposable {
   }
 
   public get opcodeCasing(): OpcodeCase {
-    return OpcodeCase[this.config.opcode.casing];
+    return this.config
+      ? OpcodeCase[this.config.opcode.casing as keyof typeof OpcodeCase]
+      : this.defaultConfiguration.opcode.casing;
   }
 
   public get isCodeLensEnabled(): boolean {
-    return this.config.enableCodeLens;
+    return this.config?.enableCodeLens ?? this.defaultConfiguration.enableCodeLens;
   }
 
   public get helpVerbosity(): HelpVerbosity {
-    return HelpVerbosity[this.config.opcode.help];
+    return this.config
+      ? HelpVerbosity[this.config.opcode.help as keyof typeof HelpVerbosity]
+      : this.defaultConfiguration.opcode.help;
   }
 
-  public getPath(command: Command, platform: OSPlatform): string {
-    return this.config[Command[command]].path[OSPlatform[platform]];
+  public getCommandConfiguration(command: Command): CommandConfiguration | undefined {
+    if (this.config && this.config[Command[command]]) {
+      return this.config[Command[command]];
+    }
+
+    if (command === Command.lwasm) {
+      return this.defaultConfiguration.lwasm;
+    }
+    
+    if (command === Command.xroar) {
+      return this.defaultConfiguration.xroar;
+    }
+
+    return undefined;
   }
 
-  public getArgs(command: Command): string {
-    return this.config[Command[command]].arguments;
+  public get debugPort(): number {
+    return this.config?.debugPort ?? this.defaultConfiguration.debugPort;
   }
-
-  public get debugPort (): number {
-    return this.config.debugPort;
-  }
-
 }

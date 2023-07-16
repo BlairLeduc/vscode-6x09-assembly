@@ -7,7 +7,7 @@ export class ListingLine {
   public lineNumber = -1;
   public file = '';
   public continuation = false;
-  public assemblyLine: AssemblyLine;
+  public assemblyLine?: AssemblyLine;
 
   constructor(private rawLine: string) {
     this.parse();

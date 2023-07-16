@@ -1,11 +1,10 @@
-import { Subject } from 'await-notify';
 import * as path from 'path';
 import {
-	Logger, logger,
-	LoggingDebugSession,
-	InitializedEvent, TerminatedEvent, StoppedEvent, BreakpointEvent, OutputEvent,
-	//ProgressStartEvent, ProgressUpdateEvent, ProgressEndEvent,
-	Thread, StackFrame, Scope, Source, Handles, Breakpoint
+  Logger, logger,
+  LoggingDebugSession,
+  InitializedEvent, TerminatedEvent, StoppedEvent, BreakpointEvent, OutputEvent,
+  //ProgressStartEvent, ProgressUpdateEvent, ProgressEndEvent,
+  Thread, StackFrame, Scope, Source, Handles, Breakpoint
 } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { GdbRuntime, IGdbBreakpoint } from './gdb-runtime';
@@ -22,8 +21,8 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
 
 
   /** Automatically stop target after launch. If not specified, target does not stop. */
-	stopOnEntry?: boolean;
-  
+  stopOnEntry?: boolean;
+
   /** enable logging the Debug Adapter Protocol */
   trace?: boolean;
 
@@ -61,14 +60,12 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
 export class GdbDebugSession extends LoggingDebugSession {
 
   // we don't support multiple threads, so we can use a hardcoded ID for the default thread
-  private static THREAD_ID = 1;
+  private static threadId = 1;
 
   // the 6x09 debugger
   private debugger: GdbRuntime;
 
   private variableHandles = new Handles<string>();
-
-  private configurationDone = new Subject();
 
   /**
    * Creates a new debug adapter that is used for one debug session.
@@ -81,17 +78,17 @@ export class GdbDebugSession extends LoggingDebugSession {
     this.setDebuggerLinesStartAt1(true);
     this.setDebuggerColumnsStartAt1(true);
 
-    //this.debugger: GdbRuntime;  = new GdbRuntime();
+    this.debugger = new GdbRuntime("", [], ""); // TODO
 
     // setup event handlers
     this.debugger.on('stopOnStep', () => {
-      this.sendEvent(new StoppedEvent('step', GdbDebugSession.THREAD_ID));
+      this.sendEvent(new StoppedEvent('step', GdbDebugSession.threadId));
     });
     this.debugger.on('stopOnBreakpoint', () => {
-      this.sendEvent(new StoppedEvent('breakpoint', GdbDebugSession.THREAD_ID));
+      this.sendEvent(new StoppedEvent('breakpoint', GdbDebugSession.threadId));
     });
     this.debugger.on('stopOnException', () => {
-      this.sendEvent(new StoppedEvent('exception', GdbDebugSession.THREAD_ID));
+      this.sendEvent(new StoppedEvent('exception', GdbDebugSession.threadId));
     });
     this.debugger.on('breakpointValidated', (bp: IGdbBreakpoint) => {
       this.sendEvent(new BreakpointEvent('changed', { verified: bp.verified, id: bp.id } as DebugProtocol.Breakpoint));
@@ -139,7 +136,7 @@ export class GdbDebugSession extends LoggingDebugSession {
     super.configurationDoneRequest(response, args);
 
     // notify the launchRequest that configuration has finished
-    this.configurationDone.notify();
+    //this.configurationDone.notify();
   }
 
   protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): Promise<void> {
@@ -148,10 +145,12 @@ export class GdbDebugSession extends LoggingDebugSession {
     logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
 
     // wait until configuration has finished (and configurationDoneRequest has been called)
-    await this.configurationDone.wait(1000);
+    //await this.configurationDone.wait(1000);
 
     // start the program in the runtime
-    this.debugger.start(args.sourceFile, !!args.stopOnEntry, !!args.noDebug);
+    if (args.sourceFile) {
+      this.debugger.start(args.sourceFile, !!args.stopOnEntry, !!args.noDebug);
+    }
 
     this.sendResponse(response);
   }
@@ -161,21 +160,23 @@ export class GdbDebugSession extends LoggingDebugSession {
     const assembplyPath = args.source.path;
     const clientLines = args.lines || [];
 
-    // clear all breakpoints for this file
-    this.debugger.clearBreakpoints(assembplyPath);
+    if (assembplyPath) {
+      // clear all breakpoints for this file
+      this.debugger.clearBreakpoints(assembplyPath);
 
-    // set and verify breakpoint locations
-    const actualBreakpoints = clientLines.map(l => {
-      const { verified, line, id } = this.debugger.setBreakPoint(assembplyPath, this.convertClientLineToDebugger(l));
-      const bp = new Breakpoint(verified, this.convertDebuggerLineToClient(line)) as DebugProtocol.Breakpoint;
-      bp.id = id;
-      return bp;
-    });
+      // set and verify breakpoint locations
+      const actualBreakpoints = clientLines.map(l => {
+        const { verified, line, id } = this.debugger.setBreakPoint(assembplyPath, this.convertClientLineToDebugger(l));
+        const bp = new Breakpoint(verified, this.convertDebuggerLineToClient(line)) as DebugProtocol.Breakpoint;
+        bp.id = id;
+        return bp;
+      });
 
-    // send back the actual breakpoint positions
-    response.body = {
-      breakpoints: actualBreakpoints,
-    };
+      // send back the actual breakpoint positions
+      response.body = {
+        breakpoints: actualBreakpoints,
+      };
+    }
     this.sendResponse(response);
   }
 
@@ -184,7 +185,7 @@ export class GdbDebugSession extends LoggingDebugSession {
     // runtime supports now threads so just return a default thread.
     response.body = {
       threads: [
-        new Thread(GdbDebugSession.THREAD_ID, 'thread 1'),
+        new Thread(GdbDebugSession.threadId, 'thread 1'),
       ],
     };
     this.sendResponse(response);
@@ -308,9 +309,9 @@ export class GdbDebugSession extends LoggingDebugSession {
     };
     this.sendResponse(response);
   }
-  
 
-  
+
+
 
   // ---- helpers
 

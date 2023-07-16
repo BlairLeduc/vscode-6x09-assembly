@@ -12,11 +12,11 @@ export class DocOpcode {
   public documentation = '';
   public type = DocOpcodeType.unknown;
 
-  public static parse(line: string, type: DocOpcodeType): DocOpcode {
+  public static parse(line: string, type: DocOpcodeType): DocOpcode | null {
     const columns = line.replace(/\!/g, '\n').split('\t');
     if (columns.length > 1) {
       const opcode = new DocOpcode();
-      if (type == DocOpcodeType.opcode) {
+      if (type === DocOpcodeType.opcode) {
         opcode.name = columns[0];
         opcode.processor = columns[1];
         opcode.conditionCodes = columns[2];
@@ -52,8 +52,10 @@ export class Docs {
     return [...this.opcodes].filter(opcode => opcode[1].name.startsWith(startsWith)).map(opcode => opcode[1]);
   }
 
-  public getOpcode(name: string): DocOpcode {
-    return this.opcodes.get(name.toUpperCase());
+  public getOpcode(name: string | undefined): DocOpcode | undefined {
+    return name 
+      ? this.opcodes.get(name.toUpperCase())
+      : undefined;
   }
 
   private parse(filePath: string, type: DocOpcodeType): void {

@@ -12,8 +12,8 @@ export interface SymbolReference {
 export interface ParserState {
   lonelyLabels: AssemblySymbol[];
   blockNumber: number;
-  struct: AssemblySymbol;
-  macro: AssemblySymbol;
+  struct?: AssemblySymbol;
+  macro?: AssemblySymbol;
 }
 
 export class AssemblyLine {
@@ -25,17 +25,17 @@ export class AssemblyLine {
   public lineRange: Range;
   public blockNumber = 0;
 
-  public label: AssemblySymbol;
-  public labelRange: Range;
-  public opCode: Token;
-  public opCodeRange: Range;
-  public type: AssemblySymbol;
-  public typeRange: Range;
-  public operand: Token;
-  public operandRange: Range;
+  public label?: AssemblySymbol;
+  public labelRange?: Range;
+  public opCode?: Token;
+  public opCodeRange?: Range;
+  public type?: AssemblySymbol;
+  public typeRange?: Range;
+  public operand?: Token;
+  public operandRange?: Range;
 
-  public semanicTokens: Token[];
-  public file: string;
+  public semanicTokens?: Token[];
+  public file?: string;
   public references: AssemblySymbol[] = [];
   public properties: AssemblySymbol[] = [];
 
@@ -45,7 +45,14 @@ export class AssemblyLine {
     }
     this.lineRange = this.getRange(0, this.rawLine.length);
 
-    this.state = state ? state : state = { lonelyLabels: [], blockNumber: 1, struct: null } as ParserState;
+    this.state = state
+      ? state
+      : state = {
+        lonelyLabels: [],
+        blockNumber: 1,
+        struct: undefined,
+        macro: undefined
+      } as ParserState;
 
     if (!AssemblyLine.storageRegExp) {
       const s1 = '[.](4byte|asci[isz]|blkb|byte|d[bsw]|globl|quad|rs|str[sz]?|word)|f[dq]b|fc[bcns]|import|[zr]m[dbq]';
@@ -58,7 +65,7 @@ export class AssemblyLine {
   private parse(): void {
     this.semanicTokens = LineParser.parse(this.rawLine);
 
-    if (this.semanicTokens.length == 0) {
+    if (this.semanicTokens.length === 0) {
       this.state.blockNumber++;
       return;
     }
@@ -66,7 +73,7 @@ export class AssemblyLine {
     this.blockNumber = this.state.blockNumber;
 
     let clearLonelyLabels = false;
-    let lastReference: AssemblySymbol;
+    let lastReference: AssemblySymbol | undefined = undefined;
     this.semanicTokens.forEach((token, index, tokens) => {
       switch (token.kind) {
         case TokenKind.label:
@@ -79,7 +86,7 @@ export class AssemblyLine {
           this.type = new AssemblySymbol(token, this.lineRange, 0);
           this.updateLabels(label => {
             label.semanticToken.type = TokenType.variable;
-            label.kind == CompletionItemKind.Variable;
+            label.kind === CompletionItemKind.Variable;
           });
           break;
         case TokenKind.opCode:
@@ -101,7 +108,7 @@ export class AssemblyLine {
             const property = new AssemblySymbol(token, this.lineRange, 0);
             property.definition = lastReference;
             lastReference.properties.push(property);
-            lastReference = null;
+            lastReference = undefined;
             this.properties.push(property);
           }
           break;
@@ -114,7 +121,7 @@ export class AssemblyLine {
       }
 
       if (token.type === TokenType.operator && token.text !== '.') {
-        lastReference = null;
+        lastReference = undefined;
       }
     });
 
@@ -153,7 +160,7 @@ export class AssemblyLine {
       });
     }
     else if (token.text.toLowerCase().startsWith('endm')) {
-      this.state.macro = null;
+      this.state.macro = undefined;
     }
     else if (token.text.toLowerCase() === 'struct') {
       this.updateLabels(label => {
@@ -164,7 +171,7 @@ export class AssemblyLine {
       });
     }
     else if (token.text.toLowerCase().startsWith('ends')) {
-      this.state.struct = null;
+      this.state.struct = undefined;
     }
     else if (token.text.toLowerCase() === 'export') {
       this.updateLabels(label => {

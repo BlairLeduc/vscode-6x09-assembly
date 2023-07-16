@@ -11,8 +11,8 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
     return new Promise((resolve, reject) => {
       const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
 
-      if (!token.isCancellationRequested) {
-        resolve(assemblyDocument.symbols.filter(s => !s.isLocal && s.uri == document.uri).map(symbol => {
+      if (assemblyDocument && !token.isCancellationRequested) {
+        resolve(assemblyDocument.symbols.filter(s => !s.isLocal && s.uri === document.uri).map(symbol => {
           const documentSymbol = new vscode.DocumentSymbol(
             symbol.text,
             symbol.documentation,
@@ -22,15 +22,17 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
           );
           if (symbol.kind === vscode.CompletionItemKind.Class && symbol.blockNumber > 0) {
             const block = assemblyDocument.blocks.get(symbol.blockNumber);
-            documentSymbol.children = block.symbols.filter(s => s.kind !== vscode.CompletionItemKind.Class).map(blockSymbol => {
-              return new vscode.DocumentSymbol(
-                blockSymbol.text,
-                blockSymbol.documentation,
-                convertToSymbolKind(blockSymbol.kind.toString()),
-                symbol.lineRange,
-                symbol.range
-              );
-            });
+            if (block) {
+              documentSymbol.children = block.symbols.filter(s => s.kind !== vscode.CompletionItemKind.Class).map(blockSymbol => {
+                return new vscode.DocumentSymbol(
+                  blockSymbol.text,
+                  blockSymbol.documentation,
+                  convertToSymbolKind(blockSymbol.kind.toString()),
+                  symbol.lineRange,
+                  symbol.range
+                );
+              });
+            }
           }
           return documentSymbol;
         }));

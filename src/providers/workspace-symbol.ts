@@ -12,15 +12,17 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
       const symbolManager = this.workspaceManager.getSymbolManager();
 
       if (!token.isCancellationRequested) {
-        resolve(symbolManager.symbols.filter(s => !s.isLocal && s.text.startsWith(query)).map(symbol => {
-          const documentSymbol = new vscode.SymbolInformation(
-            symbol.text,
-            convertToSymbolKind(symbol.kind.toString()),
-            null,
-            new vscode.Location(symbol.uri, symbol.range)
-          );
-          return documentSymbol;
-        }));
+        resolve(symbolManager.symbols
+          .filter(s => s.uri && !s.isLocal && s.text.startsWith(query))
+          .map(symbol => {
+            const documentSymbol = new vscode.SymbolInformation(
+              symbol.text,
+              convertToSymbolKind(symbol.kind.toString()),
+              '',
+              new vscode.Location(symbol.uri!, symbol.range)
+            );
+            return documentSymbol;
+          }));
       } else {
         reject();
       }

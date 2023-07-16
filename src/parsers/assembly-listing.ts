@@ -4,8 +4,8 @@ import { AssemblyDocument } from './assembly-document';
 import { ListingLine } from './listing-line';
 
 export class MachineCode {
-  public address: number;
-  public code: number[];
+  public address?: number;
+  public code?: number[];
 }
 export class AssemblyListing {
 

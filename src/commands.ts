@@ -7,18 +7,20 @@ import { convertToCase } from './utilities';
 
 export class ChangeCaseOpcodeCommand {
 
-  constructor(private workspaceManager: WorkspaceManager, private casing: OpcodeCase) {}
+  constructor(private workspaceManager: WorkspaceManager, private casing: OpcodeCase) { }
 
   public handler(textEditor: TextEditor, edit: TextEditorEdit): void {
-    const assemblyDocument = this.workspaceManager.getAssemblyDocument(textEditor.document, undefined);
+    const assemblyDocument = this.workspaceManager.getAssemblyDocument(textEditor.document);
 
-    assemblyDocument.lines.forEach((line: AssemblyLine) => {
-      const opCode = line.opCode;
-      if (opCode && opCode.kind == TokenKind.opCode) {
-        edit.replace(
-          new Range(line.lineNumber, opCode.char, line.lineNumber, opCode.char + opCode.length), 
-          convertToCase(opCode.text, this.casing));
-      }
-    });
+    if (assemblyDocument) {
+      assemblyDocument.lines.forEach((line: AssemblyLine) => {
+        const opCode = line.opCode;
+        if (opCode && opCode.kind === TokenKind.opCode) {
+          edit.replace(
+            new Range(line.lineNumber, opCode.char, line.lineNumber, opCode.char + opCode.length),
+            convertToCase(opCode.text, this.casing));
+        }
+      });
+    }
   }
 }

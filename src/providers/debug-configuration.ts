@@ -16,9 +16,9 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       }
 
       if (!config.assemblyFile) {
-        resolve(vscode.window.showInformationMessage('Cannot find a program to debug.').then(_ => {
-          return undefined;	// abort launch
-        }));
+        vscode.window.showInformationMessage('Cannot find a program to debug.').then(_ => {
+          resolve(undefined);	// abort launch
+        });
       }
 
       resolve(config);

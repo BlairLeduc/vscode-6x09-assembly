@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { ConfigurationManager, Command, OSPlatform } from '../managers/configuration';
+import { ConfigurationManager, Command, CommandConfiguration, OSPlatform } from '../managers/configuration';
 import { getOSPlatform } from '../utilities';
 
 interface TaskDefinition extends vscode.TaskDefinition {
@@ -13,10 +13,8 @@ interface TaskDefinition extends vscode.TaskDefinition {
 }
 
 export class TaskProvider implements vscode.TaskProvider {
-    private lwasmPath: string;
-    private lwasmArgs: string[];
-    private xroarPath: string;
-    private xroarArgs: string[];
+    private lwasmConfig?: CommandConfiguration;
+    private xroarConfig?: CommandConfiguration;
     private platform: OSPlatform;
 
     constructor(private configurationManager: ConfigurationManager) {
@@ -28,20 +26,24 @@ export class TaskProvider implements vscode.TaskProvider {
         });
     }
 
-    public provideTasks(_?: vscode.CancellationToken): vscode.ProviderResult<vscode.Task[]> {
+    public provideTasks(_token?: vscode.CancellationToken): vscode.ProviderResult<vscode.Task[]> {
         return this.getAssemblyFileTasks();
     }
 
-    public resolveTask(task: vscode.Task, _?: vscode.CancellationToken): vscode.ProviderResult<vscode.Task> {
+    public resolveTask(task: vscode.Task, _token?: vscode.CancellationToken): vscode.ProviderResult<vscode.Task> {
         const definition = task.definition as TaskDefinition;
-        let newTask: vscode.Task = undefined;
-        if (definition.type == "asm6x09") {
+        let newTask: vscode.Task | undefined = undefined;
+        if (definition.type === "asm6x09") {
             switch (definition.command) {
                 case 'lwasm':
-                    newTask = this.createLwasmAssembleTask(definition.file, this.lwasmArgs);
+                    newTask = this.createLwasmAssembleTask(
+                        definition.file,
+                        this.argsAsArray(this.lwasmConfig?.arguments));
                     break;
                 case 'xroar':
-                    newTask = this.createXRoarRunTask(definition.file, this.xroarArgs);
+                    newTask = this.createXRoarRunTask(
+                        definition.file,
+                        this.argsAsArray(this.xroarConfig?.arguments));
                     break;
                 default:
                     newTask = undefined;
@@ -50,12 +52,29 @@ export class TaskProvider implements vscode.TaskProvider {
 
         return newTask;
     }
+    
+    private argsAsArray(args?: string): string[] {
+        return args?.split(' ') ?? [];
+    }
+
+    private getPathForPlatform(config?: CommandConfiguration): string {
+        if (!config) {
+            return '';
+        }
+
+        switch (this.platform) {
+            case OSPlatform.windows:
+                return config.path.windows;
+            case OSPlatform.macOS:
+                return config.path.macOS;
+            case OSPlatform.linux:
+                return config.path.linux;
+        }
+    }
 
     private readConfiguration(): void {
-        this.lwasmPath = this.configurationManager.getPath(Command.lwasm, this.platform);
-        this.lwasmArgs = this.configurationManager.getArgs(Command.lwasm).split(' ');
-        this.xroarPath = this.configurationManager.getPath(Command.xroar, this.platform);
-        this.xroarArgs = this.configurationManager.getArgs(Command.xroar).split(' ');
+        this.lwasmConfig = this.configurationManager.getCommandConfiguration(Command.lwasm);
+        this.xroarConfig = this.configurationManager.getCommandConfiguration(Command.xroar);
     }
 
     private getAssemblyFileTasks(): Promise<vscode.Task[]> {
@@ -63,7 +82,7 @@ export class TaskProvider implements vscode.TaskProvider {
             const workspaceFolders = vscode.workspace.workspaceFolders;
             const result: vscode.Task[] = [];
 
-            if (!workspaceFolders || workspaceFolders.length == 0) {
+            if (!workspaceFolders || workspaceFolders.length === 0) {
                 return result;
             }
 
@@ -74,7 +93,9 @@ export class TaskProvider implements vscode.TaskProvider {
                 }
                 for (const file of fs.readdirSync(folder)) {
                     if (['.asm', '.s'].includes(path.extname(file))) {
-                        result.push(this.createLwasmAssembleTask(file, this.lwasmArgs));
+                        result.push(this.createLwasmAssembleTask(
+                            file,
+                            this.argsAsArray(this.lwasmConfig?.arguments)));
                     }
                 }
             }
@@ -91,7 +112,7 @@ export class TaskProvider implements vscode.TaskProvider {
             vscode.TaskScope.Workspace,
             `assemble ${path.basename(filePath)}`,
             'lwasm',
-            new vscode.ProcessExecution(this.lwasmPath, [
+            new vscode.ProcessExecution(this.getPathForPlatform(this.lwasmConfig), [
                 ...args,
                 '-b', // decb format
                 filePath,
@@ -107,7 +128,7 @@ export class TaskProvider implements vscode.TaskProvider {
             { type: 'asm6x09', command: 'xroar', file: filePath, arguments: args.join(' ') },
             'run',
             'xroar',
-            new vscode.ProcessExecution(this.xroarPath, [
+            new vscode.ProcessExecution(this.getPathForPlatform(this.xroarConfig), [
                 ...args,
                 '-run',
                 filePath

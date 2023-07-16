@@ -1,6 +1,6 @@
 import * as cp from 'child_process';
 import * as vscode from 'vscode';
-import { ExtensionState } from './extension';
+import { extensionState } from './extension';
 import { OpcodeCase, OSPlatform } from './managers/configuration';
 
 export function convertToCase(name: string, casing: OpcodeCase): string {
@@ -14,7 +14,7 @@ export function convertToCase(name: string, casing: OpcodeCase): string {
 }
 
 export function convertToSymbolKind(kind: string): vscode.SymbolKind {
-  return vscode.SymbolKind[kind];
+  return vscode.SymbolKind[kind as keyof typeof vscode.SymbolKind];
 }
 
 export function getOSPlatform(): OSPlatform {
@@ -30,7 +30,7 @@ export function getOSPlatform(): OSPlatform {
 
 
 export function killProcess(process: cp.ChildProcess, details = ''): void {
-  const outputChannel = ExtensionState.windowManager.outputChannel;
+  const outputChannel = extensionState.windowManager.outputChannel;
 
   if (process) {
     try {
@@ -44,7 +44,7 @@ export function killProcess(process: cp.ChildProcess, details = ''): void {
 
 export function execCmd(cmd: string, args: string[], cwd: string, token?: vscode.CancellationToken): Promise<cp.ChildProcess> {
   return new Promise((resolve, reject) => {
-    const outputChannel = ExtensionState.windowManager.outputChannel;
+    const outputChannel = extensionState.windowManager.outputChannel;
 
     const details = [cmd, ...args].join(' ');
 
@@ -52,13 +52,13 @@ export function execCmd(cmd: string, args: string[], cwd: string, token?: vscode
 
     if (process.pid) {
 
-      process.stdout.on('data', (data: string) => {
+      process.stdout?.on('data', (data: string) => {
         data.split(/\r?\n/).forEach(line => {
           outputChannel.appendLine(`${process.pid}:O: ${line}`);
         });
       });
 
-      process.stderr.on('data', (data: string) => {
+      process.stderr?.on('data', (data: string) => {
         data.split(/\r?\n/).forEach(line => {
           outputChannel.appendLine(`${process.pid}:E: ${line}`);
         });
@@ -66,7 +66,7 @@ export function execCmd(cmd: string, args: string[], cwd: string, token?: vscode
 
       process.on('error', err => {
         outputChannel.appendLine(`${process.pid}:M: Error executing procces ${process.pid} (${details}): ${err.message}`);
-        ExtensionState.windowManager.showErrorMessage(err.message);
+        extensionState.windowManager.showErrorMessage(err.message);
       });
 
       process.on('exit', (code, signal) => {
