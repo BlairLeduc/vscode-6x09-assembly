@@ -27,8 +27,12 @@ export class AssemblyDocument {
     return paths.map(p => p.replace(/[\/\s]+$/,'')).join('/');
   }
 
+  private basePath(uri: vscode.Uri): string {
+    return uri.path.split('/').slice(0,-1).join('/') || '';
+  }
+
   private appendPath(uri: vscode.Uri, ...paths: string[]): vscode.Uri {
-    return uri.with({ path: this.pathJoin(uri.path, ...paths) });
+    return uri.with({ path: this.pathJoin(this.basePath(uri), ...paths) });
   }
 
   private processLine(uri: Uri, line: AssemblyLine, block?: AssemblyBlock): void {
@@ -157,25 +161,28 @@ export class AssemblyDocument {
     }
 
     // Post process referenced documents
-    let uri: vscode.Uri | undefined;
-    while (uri = this.processDocumentsQueue.dequeue()) {
+    let documentUri: vscode.Uri | undefined;
+    while (documentUri = this.processDocumentsQueue.dequeue()) {
       try {
         // Only process files that exist and are files and we have not seen before
-        const filepath = uri.fsPath;
+        const filepath = documentUri.fsPath;
         const stats = fs.statSync(filepath);
         if (stats && stats.isFile()) {
           fs.accessSync(filepath, fs.constants.R_OK);
-          this.symbolManager.clearDocument(uri);
+          
+          this.symbolManager.clearDocument(documentUri);
           let lineNumber = 0;
           let state: ParserState;
-          lineReader.eachLine(filepath, line => {
+          const docUri: vscode.Uri = documentUri;
+
+          lineReader.eachLine(filepath, (line: string) => {
             const asmLine = new AssemblyLine(line, state, lineNumber++);
-            this.processLine(uri!, asmLine);
+            this.processLine(docUri, asmLine);
             state = asmLine.state;
           });
         }
       } catch (e) {
-        console.log(`[asm6x09] File ${uri.fsPath} is not readable to find referenced symbols:`);
+        console.log(`[asm6x09] File ${documentUri.fsPath} is not readable to find referenced symbols:`);
         if (e instanceof Error) {
           console.log(e.message);
         } else {
