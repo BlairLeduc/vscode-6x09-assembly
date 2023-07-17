@@ -9,11 +9,12 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 
   public provideWorkspaceSymbols(query: string, token: vscode.CancellationToken): vscode.ProviderResult<vscode.SymbolInformation[]> {
     return new Promise((resolve, reject) => {
-      const symbolManager = this.workspaceManager.getSymbolManager();
+      const symbolManagers = this.workspaceManager.getAllSymbolManagers();
 
       if (!token.isCancellationRequested) {
-        resolve(symbolManager.symbols
+        resolve(symbolManagers.map(sm => sm.symbols).reduce((v, s) => v.concat(s))
           .filter(s => s.uri && !s.isLocal && s.text.startsWith(query))
+          .sort((a, b) => a.text.localeCompare(b.text))
           .map(symbol => {
             const documentSymbol = new vscode.SymbolInformation(
               symbol.text,

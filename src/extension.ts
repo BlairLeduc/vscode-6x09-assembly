@@ -130,23 +130,6 @@ export function activate(context: vscode.ExtensionContext): void {
     }
   }));
 
-  disposables.push(vscode.workspace.onDidOpenTextDocument(document => {
-    workspaceManager.addDocument(document);
-  }));
-
-  disposables.push(vscode.workspace.onDidChangeTextDocument(change => {
-    workspaceManager.updateDocument(change);
-  }));
-
-  disposables.push(vscode.workspace.onDidCloseTextDocument(document => {
-    workspaceManager.removeDocument(document);
-  }));
-
-  disposables.push(vscode.workspace.onDidChangeWorkspaceFolders(change => {
-    change.added.forEach(folder => workspaceManager.addFolder(folder));
-    change.removed.forEach(folder => workspaceManager.removeFolder(folder));
-  }));
-
   // Commands
 
   const lowercaseCommand = new ChangeCaseOpcodeCommand(workspaceManager, OpcodeCase.lowercase);

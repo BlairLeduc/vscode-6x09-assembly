@@ -12,30 +12,34 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
       const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
 
       if (assemblyDocument && !token.isCancellationRequested) {
-        resolve(assemblyDocument.symbols.filter(s => !s.isLocal && s.uri === document.uri).map(symbol => {
-          const documentSymbol = new vscode.DocumentSymbol(
-            symbol.text,
-            symbol.documentation,
-            convertToSymbolKind(symbol.kind.toString()),
-            symbol.lineRange,
-            symbol.range
-          );
-          if (symbol.kind === vscode.CompletionItemKind.Class && symbol.blockNumber > 0) {
-            const block = assemblyDocument.blocks.get(symbol.blockNumber);
-            if (block) {
-              documentSymbol.children = block.symbols.filter(s => s.kind !== vscode.CompletionItemKind.Class).map(blockSymbol => {
-                return new vscode.DocumentSymbol(
-                  blockSymbol.text,
-                  blockSymbol.documentation,
-                  convertToSymbolKind(blockSymbol.kind.toString()),
-                  symbol.lineRange,
-                  symbol.range
-                );
-              });
+        resolve(assemblyDocument.symbols
+          .sort((a, b) => a.text.localeCompare(b.text))
+          .filter(s => !s.isLocal && s.uri === document.uri).map(symbol => {
+            const documentSymbol = new vscode.DocumentSymbol(
+              symbol.text,
+              symbol.documentation,
+              convertToSymbolKind(symbol.kind.toString()),
+              symbol.lineRange,
+              symbol.range
+            );
+            if (symbol.kind === vscode.CompletionItemKind.Class && symbol.blockNumber > 0) {
+              const block = assemblyDocument.blocks.get(symbol.blockNumber);
+              if (block) {
+                documentSymbol.children = block.symbols
+                  .sort((a, b) => a.text.localeCompare(b.text))
+                  .filter(s => s.kind !== vscode.CompletionItemKind.Class).map(blockSymbol => {
+                    return new vscode.DocumentSymbol(
+                      blockSymbol.text,
+                      blockSymbol.documentation,
+                      convertToSymbolKind(blockSymbol.kind.toString()),
+                      symbol.lineRange,
+                      symbol.range
+                    );
+                  });
+              }
             }
-          }
-          return documentSymbol;
-        }));
+            return documentSymbol;
+          }));
       } else {
         reject();
       }

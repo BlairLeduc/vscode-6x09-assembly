@@ -9,4 +9,5 @@ export class Collection<T>  {
   public get = (key: Uri | string): T => this.items[key.toString()];
   public keys = (): string[] => Object.keys(this.items);
   public values = (): T[] => Object.keys(this.items).map(k => this.items[k]);
+  public clear = (): void => { this.items = {}; };
 }

@@ -2,93 +2,77 @@ import * as vscode from 'vscode';
 import { Collection } from '../collection';
 import { AssemblyDocument } from '../parsers/assembly-document';
 import { Docs } from '../parsers/docs';
-import * as fs from 'fs';
 import { SymbolManager } from './symbol';
-
-export class Folder implements vscode.Disposable {
-  private readonly managed: boolean;
-  public readonly path?: string;
-  public documents: Collection<AssemblyDocument> = new Collection<AssemblyDocument>();
-  public watched: Collection<Collection<fs.FSWatcher>> = new Collection<Collection<fs.FSWatcher>>();
-
-  constructor(public symbolManager: SymbolManager, public uri?: vscode.Uri) {
-    this.path = this.uri?.fsPath;
-    this.managed = this.path !== 'none';
-  }
-
-  dispose(): void {
-    if (this.managed) {
-      this.watched.values().forEach(wa => wa.values().forEach(w => w.close()));    }
-  }
-
-  public containsAssemblyDocument(document: vscode.TextDocument): boolean {
-    return this.documents.containsKey(document.uri);
-  }
-
-  public addAssemblyDocument(document: vscode.TextDocument, token?: vscode.CancellationToken): AssemblyDocument | undefined {
-    if (this.managed) {
-      const assemblyDocument = this.documents.add(document.uri, new AssemblyDocument(this.symbolManager, document, undefined, token));
-      this.addFilesToWatch(document, assemblyDocument);
-      return assemblyDocument;
-    }
-    return undefined;
-  }
-
-  public getAssemblyDocument(document: vscode.TextDocument): AssemblyDocument {
-    return this.documents.get(document.uri);
-  }
-
-  public updateAssemblyDocument(document: vscode.TextDocument, _?: readonly vscode.TextDocumentContentChangeEvent[]): AssemblyDocument | undefined {
-    if (this.managed) {
-      // Optimisation potential: look at what changed in document instead of re-parsing the whole thing
-      const assemblyDocument = this.documents.add(document.uri, new AssemblyDocument(this.symbolManager, document));
-      this.addFilesToWatch(document, assemblyDocument);
-      return assemblyDocument;
-    }
-    return undefined;
-  }
-
-  public removeAssemblyDocument(document: vscode.TextDocument): void {
-    if (this.managed) {
-      this.removeFilesToWatch(document.uri);
-      this.documents.remove(document.uri);
-    }
-  }
-
-  private addFilesToWatch(document: vscode.TextDocument, assemblyDocument: AssemblyDocument): void {
-    if (this.watched.containsKey(document.uri)) {
-      this.removeFilesToWatch(document.uri);
-    }
-
-    const filesToWatch = new Collection<fs.FSWatcher>();
-    assemblyDocument.referencedDocuments.forEach(uri => {
-      filesToWatch.add(uri, fs.watch(uri.fsPath, () => { process.stdout.write("watcher: "); this.updateAssemblyDocument(document); }));
-    });
-    this.watched.add(document.uri, filesToWatch);
-  }
-
-  private removeFilesToWatch(uri: vscode.Uri): void {
-    this.watched.get(uri).values().forEach(wa => wa.close());
-    this.watched.remove(uri);
-  }
-}
+import { Folder } from './Folder';
 
 export class WorkspaceManager implements vscode.Disposable {
   private static readonly noWorkspaceUri = 'wsf:none';
+  private isDisposed: boolean = false;
   public readonly opcodeDocs: Docs;
-  public symbolManager: SymbolManager;
-
 
   private folders: Collection<Folder> = new Collection<Folder>();
+  private disposables: Array<vscode.Disposable> = new Array<vscode.Disposable>();
 
   constructor(extensionPath: string) {
     this.opcodeDocs = new Docs(extensionPath);
-    this.symbolManager = new SymbolManager();
+
+    // Add the workspace folders if there are any
+    vscode.workspace.workspaceFolders?.forEach(wf => this.addFolder(wf));
+
+    // Add the workspace folder listeners
+    this.disposables.push(vscode.workspace.onDidChangeWorkspaceFolders(change => {
+      change.added.forEach(folder => this.addFolder(folder));
+      change.removed.forEach(folder => this.removeFolder(folder));
+    }));
+    this.disposables.push(vscode.workspace.onDidOpenTextDocument(document => {
+      this.addDocument(document);
+    }));
+    this.disposables.push(vscode.workspace.onDidChangeTextDocument(change => {
+      this.updateDocument(change);
+    }));
+    this.disposables.push(vscode.workspace.onDidCloseTextDocument(document => {
+      this.removeDocument(document);
+    }));
+    this.disposables.push(vscode.workspace.onDidCreateFiles(event => {
+      event.files.forEach(file => {
+        const document = vscode.workspace.textDocuments.find(d => d.uri.fsPath === file.fsPath);
+        if (document) {
+          this.addDocument(document);
+        }
+      });
+    }));
+    this.disposables.push(vscode.workspace.onDidDeleteFiles(event => {
+      event.files.forEach(file => {
+        const document = vscode.workspace.textDocuments.find(d => d.uri.fsPath === file.fsPath);
+        if (document) {
+          this.removeDocument(document);
+        }
+      });
+    }));
+    this.disposables.push(vscode.workspace.onDidRenameFiles(event => {
+      event.files.forEach(file => {
+        const document = vscode.workspace.textDocuments.find(d => d.uri.fsPath === file.oldUri.fsPath);
+        if (document) {
+          this.removeDocument(document);
+        }
+      });
+      event.files.forEach(file => {
+        const document = vscode.workspace.textDocuments.find(d => d.uri.fsPath === file.newUri.fsPath);
+        if (document) {
+          this.addDocument(document);
+        }
+      });
+    }));
   }
 
   public dispose(): void {
-    this.folders.values().forEach(f => f.dispose());
-    this.symbolManager.dispose();
+    if (!this.isDisposed) {
+      this.folders.values().forEach(f => f.dispose());
+      this.folders.clear();
+      this.disposables.forEach(d => d.dispose());
+      this.disposables = [];
+      this.isDisposed = true;
+    }
   }
 
   public addDocument(document: vscode.TextDocument, token?: vscode.CancellationToken): void {
@@ -115,7 +99,8 @@ export class WorkspaceManager implements vscode.Disposable {
   }
 
   public addFolder(workspaceFolder: vscode.WorkspaceFolder): Folder {
-    return this.folders.add(workspaceFolder.uri, new Folder(this.symbolManager, workspaceFolder.uri));
+
+    return this.folders.add(workspaceFolder.uri, new Folder(workspaceFolder));
   }
 
   public removeFolder(workspaceFolder: vscode.WorkspaceFolder): void {
@@ -123,15 +108,17 @@ export class WorkspaceManager implements vscode.Disposable {
     this.folders.remove(workspaceFolder.uri);
   }
 
-  public getSymbolManager(document?: vscode.TextDocument): SymbolManager {
-    if (document) {
-      const folder = this.getOrCreateFolder(document);
+  public getSymbolManager(document: vscode.TextDocument): SymbolManager {
+    const folder = this.getOrCreateFolder(document);
 
-      if (!folder.containsAssemblyDocument(document)) {
-        folder.addAssemblyDocument(document);
-      }
+    if (!folder.containsAssemblyDocument(document)) {
+      folder.addAssemblyDocument(document);
     }
-    return this.symbolManager;
+    return folder.symbolManager;
+  }
+
+  public getAllSymbolManagers(): SymbolManager[] {
+    return this.folders.values().map(f => f.symbolManager);
   }
 
   private getOrCreateFolder(document: vscode.TextDocument): Folder {
@@ -139,7 +126,7 @@ export class WorkspaceManager implements vscode.Disposable {
     const uri = workspaceFolder ? workspaceFolder.uri : vscode.Uri.parse(WorkspaceManager.noWorkspaceUri);
 
     if (!this.folders.containsKey(uri)) {
-      return this.folders.add(uri, new Folder(this.symbolManager, uri));
+      return this.folders.add(uri, new Folder(workspaceFolder));
     }
     return this.folders.get(uri);
   }
