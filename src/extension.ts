@@ -19,7 +19,7 @@ import { FoldingRangeProvider } from './providers/folding-range';
 
 const ASM6X09_LANGUAGE = 'asm6x09';
 const ASM6X09_CONFIG_SECTION = '6x09Assembly';
-const ASM6X09_MODE: vscode.DocumentSelector = { language: ASM6X09_LANGUAGE };
+const ASM6X09_MODE: vscode.DocumentSelector = { scheme: 'file', language: ASM6X09_LANGUAGE };
 
 // import { DebugAdapterDescriptorFactory } from './debug/debug-adapter-descriptor-factory';
 // import { DebugConfigurationProvider } from './providers/debug-configuration';
