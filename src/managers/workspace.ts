@@ -61,8 +61,8 @@ export class Folder implements vscode.Disposable {
     }
 
     const filesToWatch = new Collection<fs.FSWatcher>();
-    assemblyDocument.referencedDocuments.forEach(filePath => {
-      filesToWatch.add(filePath, fs.watch(filePath, () => { process.stdout.write("watcher: "); this.updateAssemblyDocument(document); }));
+    assemblyDocument.referencedDocuments.forEach(uri => {
+      filesToWatch.add(uri, fs.watch(uri.fsPath, () => { process.stdout.write("watcher: "); this.updateAssemblyDocument(document); }));
     });
     this.watched.add(document.uri, filesToWatch);
   }

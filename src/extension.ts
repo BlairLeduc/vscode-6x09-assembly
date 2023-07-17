@@ -4,8 +4,6 @@ import { OpcodeCase } from './managers/configuration';
 import { CodeLensProvider } from './providers/codelens';
 import { CompletionItemProvider } from './providers/completion';
 import { DefinitionProvider } from './providers/definition';
-// import { DebugAdapterDescriptorFactory } from './debug/debug-adapter-descriptor-factory';
-// import { DebugConfigurationProvider } from './providers/debug-configuration';
 import { DocumentHighlightProvider } from './providers/document-highlight';
 import { DocumentSymbolProvider } from './providers/document-symbol';
 import { HoverProvider } from './providers/hover';
@@ -21,8 +19,12 @@ import { FoldingRangeProvider } from './providers/folding-range';
 
 const ASM6X09_LANGUAGE = 'asm6x09';
 const ASM6X09_CONFIG_SECTION = '6x09Assembly';
-const ASM6X09_MODE: vscode.DocumentSelector = { language: ASM6X09_LANGUAGE, scheme: 'file' };
+const ASM6X09_MODE: vscode.DocumentSelector = { language: ASM6X09_LANGUAGE };
+
+// import { DebugAdapterDescriptorFactory } from './debug/debug-adapter-descriptor-factory';
+// import { DebugConfigurationProvider } from './providers/debug-configuration';
 // const ASM6X09_DEBUG_TYPE: string = ASM6X09_LANGUAGE;
+
 const disposables: Array<vscode.Disposable> = new Array<vscode.Disposable>();
 
 export let extensionState: State;
@@ -34,7 +36,8 @@ export function activate(context: vscode.ExtensionContext): void {
   const configurationManager = extensionState.configurationManager;
   const workspaceManager = extensionState.workspaceManager;
 
-  // language features
+  // Languages
+
   disposables.push(vscode.languages.registerCodeLensProvider(
     ASM6X09_MODE,
     new CodeLensProvider(workspaceManager, configurationManager)
@@ -100,7 +103,8 @@ export function activate(context: vscode.ExtensionContext): void {
     new RenameProvider(workspaceManager)
   ));
 
-  // debug
+  // Debug
+
   // disposables.push(vscode.debug.registerDebugConfigurationProvider(
   //   ASM6X09_DEBUG_TYPE,
   //   new DebugConfigurationProvider()
@@ -111,12 +115,14 @@ export function activate(context: vscode.ExtensionContext): void {
   //   new DebugAdapterDescriptorFactory()
   // ));
 
-  // Workspace
+  // Tasks
 
-  disposables.push(vscode.workspace.registerTaskProvider(
+  disposables.push(vscode.tasks.registerTaskProvider(
     ASM6X09_LANGUAGE,
     new TaskProvider(configurationManager)
   ));
+
+  // Workspace
 
   disposables.push(vscode.workspace.onDidChangeConfiguration(change => {
     if (change.affectsConfiguration(ASM6X09_CONFIG_SECTION)) {
@@ -142,6 +148,7 @@ export function activate(context: vscode.ExtensionContext): void {
   }));
 
   // Commands
+
   const lowercaseCommand = new ChangeCaseOpcodeCommand(workspaceManager, OpcodeCase.lowercase);
   disposables.push(vscode.commands.registerTextEditorCommand(
     'asm6x09.opcodeLowercase',
@@ -161,8 +168,6 @@ export function activate(context: vscode.ExtensionContext): void {
     capitalizeCommand));
 
   context.subscriptions.push(...disposables.filter(d => !!d));
-
-  
 }
 
 export function deactivate(): void {

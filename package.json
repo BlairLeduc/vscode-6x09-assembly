@@ -248,7 +248,6 @@
 	"dependencies": {
 		"@vscode/debugadapter": "1",
 		"@vscode/debugprotocol": "1",
-		"file-url": "4",
 		"line-reader": "0"
 	}
 }

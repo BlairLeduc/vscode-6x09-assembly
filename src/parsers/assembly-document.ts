@@ -1,27 +1,34 @@
+import * as vscode from 'vscode';
 import { CancellationToken, Position, Range, TextDocument, Uri } from 'vscode';
 import { AssemblyLine, ParserState } from './assembly-line';
 import { AssemblyBlock, AssemblySymbol } from '../common';
-import * as path from 'path';
 import * as lineReader from 'line-reader';
-import fileUrl from 'file-url';
 import * as fs from 'fs';
 import { Queue } from '../queue';
 import { SymbolManager } from '../managers/symbol';
 // import { LoggingDebugSession } from 'vscode-debugadapter';
 
 export class AssemblyDocument {
-  private processDocumentsQueue: Queue<string> = new Queue<string>();
+  private processDocumentsQueue: Queue<vscode.Uri> = new Queue<vscode.Uri>();
   private unknownReferences: AssemblySymbol[] = new Array<AssemblySymbol>();
   private unknownTypes: AssemblySymbol[] = new Array<AssemblySymbol>();
   public uri: Uri;
   public lines: AssemblyLine[] = new Array<AssemblyLine>();
-  public referencedDocuments: string[] = new Array<string>();
+  public referencedDocuments: vscode.Uri[] = new Array<vscode.Uri>();
   public symbols: AssemblySymbol[] = new Array<AssemblySymbol>();
   public blocks: Map<number, AssemblyBlock> = new Map<number, AssemblyBlock>();
 
   constructor(private symbolManager: SymbolManager, document: TextDocument, range?: Range, cancelationToken?: CancellationToken) {
     this.uri = document.uri;
     this.parse(document, range, cancelationToken);
+  }
+
+  private pathJoin(...paths: string[]): string {
+    return paths.map(p => p.replace(/[\/\s]+$/,'')).join('/');
+  }
+
+  private appendPath(uri: vscode.Uri, ...paths: string[]): vscode.Uri {
+    return uri.with({ path: this.pathJoin(uri.path, ...paths) });
   }
 
   private processLine(uri: Uri, line: AssemblyLine, block?: AssemblyBlock): void {
@@ -89,10 +96,10 @@ export class AssemblyDocument {
     });
 
     if (line.file) {
-      const filename = path.join(path.dirname(this.uri.fsPath), line.file);
-      if (this.referencedDocuments.indexOf(filename) < 0) {
-        this.referencedDocuments.push(filename);
-        this.processDocumentsQueue.enqueue(filename);
+      const uri = this.appendPath(this.uri, line.file);
+      if (this.referencedDocuments.indexOf(uri) < 0) {
+        this.referencedDocuments.push(uri);
+        this.processDocumentsQueue.enqueue(uri);
       }
     }
 
@@ -150,25 +157,25 @@ export class AssemblyDocument {
     }
 
     // Post process referenced documents
-    let filePath: string | undefined;
-    while (filePath = this.processDocumentsQueue.dequeue()) {
+    let uri: vscode.Uri | undefined;
+    while (uri = this.processDocumentsQueue.dequeue()) {
       try {
         // Only process files that exist and are files and we have not seen before
-        const stats = fs.statSync(filePath);
+        const filepath = uri.fsPath;
+        const stats = fs.statSync(filepath);
         if (stats && stats.isFile()) {
-          fs.accessSync(filePath, fs.constants.R_OK);
-          const uri = Uri.parse(fileUrl(filePath, { resolve: false }));
+          fs.accessSync(filepath, fs.constants.R_OK);
           this.symbolManager.clearDocument(uri);
           let lineNumber = 0;
           let state: ParserState;
-          lineReader.eachLine(filePath, line => {
+          lineReader.eachLine(filepath, line => {
             const asmLine = new AssemblyLine(line, state, lineNumber++);
-            this.processLine(uri, asmLine);
+            this.processLine(uri!, asmLine);
             state = asmLine.state;
           });
         }
       } catch (e) {
-        console.log(`[asm6x09] File ${filePath} is not readable to find referenced symbols:`);
+        console.log(`[asm6x09] File ${uri.fsPath} is not readable to find referenced symbols:`);
         if (e instanceof Error) {
           console.log(e.message);
         } else {
