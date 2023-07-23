@@ -14,26 +14,21 @@ export class ReferenceProvider implements vscode.ReferenceProvider {
     cancellationToken: vscode.CancellationToken): Promise<vscode.Location[] | undefined> {
 
     if (!cancellationToken.isCancellationRequested) {
-      const assemblyDocument = this.workspaceManager
-        .getAssemblyDocument(document, cancellationToken);
-
       const symbolManager = this.workspaceManager.getSymbolManager(document);
 
-      if (assemblyDocument && symbolManager) {
-        const assemblyLine = assemblyDocument.lines[position.line];
-        const reference = assemblyLine.references
-          .find(r => r.range.contains(position)) ?? assemblyLine.label;
+      if (symbolManager) {
+        const implementation = symbolManager.implementations
+          .find(r => r.range.contains(position));
 
-        if (reference && reference.uri && reference.range.contains(position)) {
+        if (implementation) {
           const references = symbolManager.references
-            .filter(r => r.text === reference.text)
-            .map(s => new vscode.Location(s.uri, s.range));
+            .filter(r => r.text === implementation.text
+              && r.blockNumber === implementation.blockNumber)
+            .map(r => new vscode.Location(r.uri, r.range));
 
           return context.includeDeclaration
-            ? [new vscode.Location(reference.uri, reference.range), ...references]
+            ? [new vscode.Location(implementation.uri, implementation.range), ...references]
             : references;
-        } else {
-          return [];
         }
       }
     }
