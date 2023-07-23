@@ -43,7 +43,7 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
           .forEach(symbol => {
 
           const references = symbolManager.references
-            .filter(r => r.text === symbol.text); // TODO: Handle local references
+            .filter(r => r.text === symbol.text && r.blockNumber === symbol.blockNumber);
           
           const command: vscode.Command = {
             command: 'editor.action.showReferences',
