@@ -19,6 +19,7 @@ import { WorkspaceSymbolProvider } from './providers/workspace-symbol';
 import { FoldingRangeProvider } from './providers/folding-range';
 import { ASM6X09_CONFIG_SECTION, ASM6X09_LANGUAGE, ASM6X09_MODE } from './common';
 import { DocumentLinkProvider } from './providers/document-link';
+import { Logger } from './logger';
 
 // import { DebugAdapterDescriptorFactory } from './debug/debug-adapter-descriptor-factory';
 // import { DebugConfigurationProvider } from './providers/debug-configuration';
@@ -29,6 +30,9 @@ const disposables: Array<vscode.Disposable> = new Array<vscode.Disposable>();
 export let extensionState: State;
 
 export function activate(context: vscode.ExtensionContext): void {
+
+  Logger.init();
+  Logger.info(`Language Extension ${ASM6X09_LANGUAGE} started`);
 
   extensionState = new State(ASM6X09_CONFIG_SECTION);
 

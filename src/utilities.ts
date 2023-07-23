@@ -1,7 +1,7 @@
 import * as cp from 'child_process';
 import * as vscode from 'vscode';
-import { extensionState } from './extension';
 import { OpcodeCase, OSPlatform } from './managers/configuration';
+import { Logger } from './logger';
 
 export function convertToCase(name: string, casing: OpcodeCase): string {
   if (casing === OpcodeCase.lowercase) {
@@ -30,15 +30,13 @@ export function getOSPlatform(): OSPlatform {
 
 
 export function killProcess(process: cp.ChildProcess, details = ''): void {
-  const outputChannel = extensionState.windowManager.outputChannel;
-
   if (process) {
     try {
       process.kill();
     } catch (e) {
-      outputChannel.appendLine(`${process.pid}:M: Error killing process (${details}): ${e}`);
+      Logger.error(`${process.pid}:M: Error killing process (${details}): ${e}`);
     }
-    outputChannel.appendLine(`${process.pid}:M: Killed proccess (${details})`);
+    Logger.info(`${process.pid}:M: Killed proccess (${details})`);
   }
 }
 
@@ -48,8 +46,6 @@ export async function execCmd(
   cwd: string,
   token?: vscode.CancellationToken): Promise<cp.ChildProcess | undefined> {
 
-    const outputChannel = extensionState.windowManager.outputChannel;
-
     const details = [cmd, ...args].join(' ');
 
     const process = cp.execFile(cmd, args, { cwd });
@@ -58,32 +54,32 @@ export async function execCmd(
 
       process.stdout?.on('data', (data: string) => {
         data.split(/\r?\n/).forEach(line => {
-          outputChannel.appendLine(`${process.pid}:O: ${line}`);
+          Logger.info(`${process.pid}:O: ${line}`);
         });
       });
 
       process.stderr?.on('data', (data: string) => {
         data.split(/\r?\n/).forEach(line => {
-          outputChannel.appendLine(`${process.pid}:E: ${line}`);
+          Logger.info(`${process.pid}:E: ${line}`);
         });
       });
 
       process.on('error', err => {
-        outputChannel.appendLine(
+        Logger.error(
           `${process.pid}:M: Error executing procces ${process.pid} (${details}): ${err.message}`);
 
-        extensionState.windowManager.showErrorMessage(err.message);
+        vscode.window.showErrorMessage(err.message);
       });
 
       process.on('exit', (code, signal) => {
         if (code) {
-          outputChannel.appendLine(
+          Logger.info(
             `${process.pid}:M: Exited (${[cmd, ...args].join(' ')}) with code: ${code}`);
         } else if (signal) {
-          outputChannel.appendLine(
+          Logger.info(
             `${process.pid}:M: Exited (${[cmd, ...args].join(' ')}) from signal: ${signal}`);
         } else {
-          outputChannel.appendLine(
+          Logger.info(
             `${process.pid}:M: Exited (${[cmd, ...args].join(' ')}) normally.`);
         }
       });
@@ -96,10 +92,10 @@ export async function execCmd(
         });
       }
 
-      outputChannel.appendLine(
+      Logger.info(
         `${process.pid}:M: Started (${[cmd, ...args].join(' ')}) in "${cwd}"`);
       return process;
     }
-    extensionState.windowManager
-      .showErrorMessage(`Unable to start process (${details}) in "${cwd}"`);
+    Logger.error(`${process.pid} Unable to start process (${details}) in "${cwd}"`);
+    vscode.window.showErrorMessage(`Unable to start process (${details}) in "${cwd}"`);
 }

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { Logger } from '../logger';
 
 export interface CommandConfiguration {
   path: {
@@ -97,6 +98,9 @@ export class ConfigurationManager implements vscode.Disposable {
 
   public update(config: vscode.WorkspaceConfiguration): void {
     this.config = config as ExtensionWorkspaceConfiguration;
+
+    Logger.info(`Configuration updated for language "${this.language}"`);
+
     this.onDidChangeConfigurationEmitter.fire();
   }
 

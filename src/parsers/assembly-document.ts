@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { AssemblyLine, ParserState } from './assembly-line';
 import { AssemblyBlock, AssemblyFileReference, appendPath, isTextDocument, isUri } from '../common';
 import { SymbolManager } from '../managers/symbol';
+import { Logger } from '../logger';
 
 export class AssemblyDocument {
   public uri: vscode.Uri;
@@ -103,5 +104,6 @@ export class AssemblyDocument {
       }
       this.processSymbols(asmLine);
     }
+    Logger.debug(`Parsed assembly document: ${this.uri.toString()}`);
   }
 }

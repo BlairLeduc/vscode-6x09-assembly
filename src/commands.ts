@@ -4,6 +4,7 @@ import { OpcodeCase } from './managers/configuration';
 import { WorkspaceManager } from './managers/workspace';
 import { AssemblyLine } from './parsers/assembly-line';
 import { convertToCase } from './utilities';
+import { Logger } from './logger';
 
 export class ChangeCaseOpcodeCommand {
 
@@ -23,6 +24,7 @@ export class ChangeCaseOpcodeCommand {
               line.lineNumber,
               opCode.char + opCode.length),
             convertToCase(opCode.text, this.casing));
+            Logger.info(`Changed opcode case to ${OpcodeCase[this.casing]}`);
         }
       });
     }

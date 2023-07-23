@@ -111,12 +111,18 @@ export class WorkspaceManager implements vscode.Disposable {
 
   public updateDocument(change: vscode.TextDocumentChangeEvent): void {
     const document = change.document;
+    if (isTextDocument(document) && document.languageId !== ASM6X09_LANGUAGE) {
+      return;
+    }
     const uri = document.uri;
     const folder = this.getOrCreateFolder(uri);
-    folder.addAssemblyDocument(document);
+    folder.updateAssemblyDocument(document);
   }
 
   public removeDocument(document: vscode.TextDocument |  vscode.Uri): void {
+    if (isTextDocument(document) && document.languageId !== ASM6X09_LANGUAGE) {
+      return;
+    }
     const folder = this.getOrCreateFolder(document);
     folder.removeAssemblyDocument(document);
   }
