@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
-import { AssemblySymbol, TokenKind } from '../common';
-import { LineParser } from '../parsers/line-parser';
+import { AssemblySymbol } from '../common';
 
 export class SymbolManager implements vscode.Disposable {
   public implementations = new Array<AssemblySymbol>();
