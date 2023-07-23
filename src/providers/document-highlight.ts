@@ -12,24 +12,39 @@ export class DocumentHighlightProvider implements vscode.DocumentHighlightProvid
     cancellationToken: vscode.CancellationToken): Promise<vscode.DocumentHighlight[] | undefined> {
 
     if (!cancellationToken.isCancellationRequested) {
-      const assemblyDocument = this.workspaceManager
-        .getAssemblyDocument(document, cancellationToken);
-
       const symbolManager = this.workspaceManager.getSymbolManager(document);
 
-      if (assemblyDocument && symbolManager) {
-        const assemblyLine = assemblyDocument.lines[position.line];
+      if (symbolManager) {
 
         const symbol = symbolManager.implementations
-          .find(r => r.range.contains(position)) ?? assemblyLine.label;
+          .find(r => r.range.contains(position));
 
-        if (assemblyLine.labelRange && symbol && symbol.range.contains(position)) {
-          const references = symbolManager.references
-            .filter(r => r.text === symbol.text).map(s => new vscode.DocumentHighlight(s.range));
+        if (symbol) {
+          const highlights = symbolManager.references
+            .filter(r => r.text === symbol.text)
+            .map(s => new vscode.DocumentHighlight(s.range));
             
-          return [new vscode.DocumentHighlight(assemblyLine.labelRange), ...references];
+          return [new vscode.DocumentHighlight(symbol.range), ...highlights];
         } else {
-          return [];
+          let reference = symbolManager.references
+            .find(r => r.range.contains(position));
+
+          if (reference) {
+            const implementation = symbolManager.implementations
+              .find(r => r.text === reference!.text);
+            
+            if (implementation) {
+              reference = implementation;
+            }
+
+            const highlights = symbolManager.references
+              .filter(r => r.text === reference!.text)
+              .map(s => new vscode.DocumentHighlight(s.range));
+
+              return [new vscode.DocumentHighlight(reference.range), ...highlights];
+          } else {
+            return [];
+          }
         }
       }
     }
