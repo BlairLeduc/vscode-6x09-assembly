@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
 import { AssemblyLine, ParserState } from './assembly-line';
-import { AssemblyBlock, appendPath, isTextDocument, isUri } from '../common';
+import { AssemblyBlock, AssemblyFileReference, appendPath, isTextDocument, isUri } from '../common';
 import { SymbolManager } from '../managers/symbol';
 
 export class AssemblyDocument {
   public uri: vscode.Uri;
   public lines: AssemblyLine[] = new Array<AssemblyLine>();
-  public referencedDocuments: vscode.Uri[] = new Array<vscode.Uri>();
+  public referencedDocuments: AssemblyFileReference[] = new Array<AssemblyFileReference>();
   public blocks: Map<number, AssemblyBlock> = new Map<number, AssemblyBlock>();
 
   private constructor(
@@ -33,8 +33,8 @@ export class AssemblyDocument {
 
     if (line.file) {
       const uri = appendPath(this.uri, line.file); // TODO: Handle absolute paths and Windows paths
-      if (this.referencedDocuments.indexOf(uri) < 0) {
-        this.referencedDocuments.push(uri);
+      if (!this.referencedDocuments.find(d => d.uri)) {
+        this.referencedDocuments.push(new AssemblyFileReference(uri, line.fileRange!));
       }
     }
 

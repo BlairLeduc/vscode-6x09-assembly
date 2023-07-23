@@ -18,6 +18,7 @@ import { ImplementationProvider } from './providers/implementation';
 import { WorkspaceSymbolProvider } from './providers/workspace-symbol';
 import { FoldingRangeProvider } from './providers/folding-range';
 import { ASM6X09_CONFIG_SECTION, ASM6X09_LANGUAGE, ASM6X09_MODE } from './common';
+import { DocumentLinkProvider } from './providers/document-link';
 
 // import { DebugAdapterDescriptorFactory } from './debug/debug-adapter-descriptor-factory';
 // import { DebugConfigurationProvider } from './providers/debug-configuration';
@@ -63,6 +64,11 @@ export function activate(context: vscode.ExtensionContext): void {
   
   disposables.push(vscode.languages.registerWorkspaceSymbolProvider(
     new WorkspaceSymbolProvider(workspaceManager)
+  ));
+
+  disposables.push(vscode.languages.registerDocumentLinkProvider(
+    ASM6X09_MODE,
+    new DocumentLinkProvider(workspaceManager)
   ));
 
   disposables.push(vscode.languages.registerDocumentHighlightProvider(

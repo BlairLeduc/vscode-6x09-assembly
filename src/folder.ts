@@ -37,15 +37,15 @@ export class Folder implements vscode.Disposable {
     const processedDocuments = new Set<vscode.Uri>();
     processedDocuments.add(uri);
     assemblyDocument.referencedDocuments.forEach(d => {
-      processedDocuments.add(d);
+      processedDocuments.add(d.uri);
     });
 
     for (const referencedDocument of assemblyDocument.referencedDocuments) {
-      if (!processedDocuments.has(referencedDocument)) {
-        (await this.addAssemblyDocument(referencedDocument, token)).forEach(d => {
+      if (!processedDocuments.has(referencedDocument.uri)) {
+        (await this.addAssemblyDocument(referencedDocument.uri, token)).forEach(d => {
           processedDocuments.add(d);
         });
-        processedDocuments.add(referencedDocument);
+        processedDocuments.add(referencedDocument.uri);
       }
     }
     return Array.from(processedDocuments.values());

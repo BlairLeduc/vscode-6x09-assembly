@@ -40,6 +40,7 @@ export class AssemblyLine {
 
   public semanicTokens?: Token[];
   public file?: string;
+  public fileRange?: vscode.Range;
   public references: AssemblySymbol[] = [];
   public properties: AssemblySymbol[] = [];
 
@@ -82,11 +83,7 @@ export class AssemblyLine {
           break;
         case TokenKind.macroOrStruct:
           clearLonelyLabels = true;
-          this.typeRange = new vscode.Range(
-            this.lineNumber,
-            token.char,
-            this.lineNumber,
-            token.char + token.length);
+          this.typeRange = this.getRangeFromToken(token);
           this.type = new AssemblySymbol(token, this.uri, this.lineRange, 0);
           this.updateLabels(label => {
             label.semanticToken.type = TokenType.variable;
@@ -96,11 +93,7 @@ export class AssemblyLine {
           break;
         case TokenKind.opCode:
           clearLonelyLabels = true;
-          this.opCodeRange = new vscode.Range(
-            this.lineNumber,
-            token.char,
-            this.lineNumber,
-            token.char + token.length);
+          this.opCodeRange = this.getRangeFromToken(token);
           this.opCode = token;
           this.processOpCode(token, tokens, index);
           break;
@@ -130,6 +123,7 @@ export class AssemblyLine {
           break;
         case TokenKind.file:
           this.file = token.text;
+          this.fileRange = this.getRangeFromToken(token);
           break;
       }
 

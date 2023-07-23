@@ -344,6 +344,14 @@ export class AssemblyBlock {
   }
 }
 
+export class AssemblyFileReference {
+  constructor(
+    public uri: vscode.Uri,
+    public range: vscode.Range,
+  ) {
+  }
+}
+
   export function isTextDocument(
     document: vscode.TextDocument | vscode.Uri): document is vscode.TextDocument {
 
