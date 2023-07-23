@@ -27,8 +27,19 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
         }
 
         const property = assemblyLine.properties.find(p => p.range.contains(position));
-        if (property && property.parent && property.parent.uri) {
-          return [new vscode.Location(property.parent.uri, property.parent.range)];
+        if (property?.parent?.text) {
+          const struct = symbolManager.implementations
+            .find(i => i.text === property.parent!.text);
+
+          if (struct) {
+            const definition = symbolManager.implementations.find(p => p.text === struct.value);
+            if (definition) {
+              const propertyDefinition = definition.properties.find(p => p.text === property.text);
+              return propertyDefinition
+                ? [new vscode.Location(propertyDefinition.uri, propertyDefinition.range)]
+                : [new vscode.Location(definition.uri, definition.range)];
+            }
+          }
         }
 
         if (assemblyLine.type
