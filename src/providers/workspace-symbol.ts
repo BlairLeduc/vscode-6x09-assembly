@@ -7,25 +7,29 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
   constructor(private workspaceManager: WorkspaceManager) {
   }
 
-  public provideWorkspaceSymbols(query: string, token: vscode.CancellationToken): vscode.ProviderResult<vscode.SymbolInformation[]> {
-    return new Promise((resolve, reject) => {
-      const symbolManager = this.workspaceManager.getSymbolManager();
+  public async provideWorkspaceSymbols(
+    query: string,
+    cancellationToken: vscode.CancellationToken): Promise<vscode.SymbolInformation[] | undefined> {
 
-      if (!token.isCancellationRequested) {
-        resolve(symbolManager.symbols
-          .filter(s => s.uri && !s.isLocal && s.text.startsWith(query))
+    if (!cancellationToken.isCancellationRequested) {
+      const symbolManagers = this.workspaceManager.getAllSymbolManagers();
+
+      if (!cancellationToken.isCancellationRequested) {
+        return symbolManagers
+          .map(sm => sm.implementations)
+          .reduce((v, s) => v.concat(s))
+          .filter(s => !s.isLocal && s.text.startsWith(query))
+          .sort((a, b) => a.text.localeCompare(b.text))
           .map(symbol => {
             const documentSymbol = new vscode.SymbolInformation(
               symbol.text,
               convertToSymbolKind(symbol.kind.toString()),
-              '',
-              new vscode.Location(symbol.uri!, symbol.range)
+              symbol.parent ? symbol.parent.text : '',
+              new vscode.Location(symbol.uri, symbol.range)
             );
             return documentSymbol;
-          }));
-      } else {
-        reject();
+          });
       }
-    });
+    }
   }
 }

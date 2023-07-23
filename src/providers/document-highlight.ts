@@ -6,23 +6,44 @@ export class DocumentHighlightProvider implements vscode.DocumentHighlightProvid
   constructor(private workspaceManager: WorkspaceManager) {
   }
 
-  public provideDocumentHighlights(document: vscode.TextDocument, position: vscode.Position, cancelationToken: vscode.CancellationToken): vscode.ProviderResult<vscode.DocumentHighlight[]> {
-    return new Promise((resolve, reject) => {
-      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, cancelationToken);
+  public async provideDocumentHighlights(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+    cancellationToken: vscode.CancellationToken): Promise<vscode.DocumentHighlight[] | undefined> {
 
-      if (assemblyDocument && !cancelationToken.isCancellationRequested) {
-        const assemblyLine = assemblyDocument.lines[position.line];
+    if (!cancellationToken.isCancellationRequested) {
+      const symbolManager = this.workspaceManager.getSymbolManager(document);
 
-        const symbol = assemblyLine.references.find(r => r.range.contains(position))?.definition ?? assemblyLine.label;
-        if (assemblyLine.labelRange && symbol && symbol.range.contains(position)) {
-          const references = symbol.references.map(s => new vscode.DocumentHighlight(s.range));
-          resolve([new vscode.DocumentHighlight(assemblyLine.labelRange), ...references]);
+      if (symbolManager) {
+        const symbol = symbolManager.implementations
+          .find(r => r.range.contains(position));
+
+        if (symbol) {
+          const highlights = symbolManager.references
+            .filter(r => r.text === symbol.text)
+            .map(s => new vscode.DocumentHighlight(s.range));
+            
+          return [new vscode.DocumentHighlight(symbol.range), ...highlights];
         } else {
-          resolve([]);
+          let reference = symbolManager.references
+            .find(r => r.range.contains(position));
+
+          if (reference) {
+            const implementation = symbolManager.implementations
+              .find(r => r.text === reference!.text);
+            
+            if (implementation) {
+              reference = implementation;
+            }
+
+            const highlights = symbolManager.references
+              .filter(r => r.text === reference!.text)
+              .map(s => new vscode.DocumentHighlight(s.range));
+
+              return [new vscode.DocumentHighlight(reference.range), ...highlights];
+          }
         }
-      } else {
-        reject();
       }
-    });
+    }
   }
 }

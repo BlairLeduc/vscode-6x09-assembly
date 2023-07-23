@@ -1,18 +1,24 @@
-import { Disposable, Uri } from 'vscode';
+import * as vscode from 'vscode';
 import { AssemblySymbol } from '../common';
 
-export class SymbolManager implements Disposable {
-  public symbols = new Array<AssemblySymbol>();
+export class SymbolManager implements vscode.Disposable {
+  public implementations = new Array<AssemblySymbol>();
+  public references = new Array<AssemblySymbol>();
 
   public dispose(): void {
     //TODO
   }
 
-  public clearDocument(uri: Uri): void {
-    this.symbols = this.symbols.filter(t => t.uri !== uri);
+  public clearDocument(uri: vscode.Uri): void {
+    this.implementations = this.implementations.filter(t => t.uri.fsPath !== uri.fsPath);
+    this.references = this.references.filter(t => t.uri.fsPath !== uri.fsPath);
   }
 
-  public addSymbol(symbol: AssemblySymbol): void {
-    this.symbols.push(symbol);
+  public addImplementation(symbol: AssemblySymbol): void {
+    this.implementations.push(symbol);
+  }
+
+  public addReference(symbol: AssemblySymbol): void {
+    this.references.push(symbol);
   }
 }

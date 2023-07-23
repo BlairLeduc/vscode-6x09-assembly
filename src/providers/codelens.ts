@@ -6,7 +6,10 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
   private enabled = true;
   private onDidChangeCodeLensesEmitter = new vscode.EventEmitter<void>();
 
-  constructor(private workspaceManager: WorkspaceManager, private configurationManager: ConfigurationManager) {
+  constructor(
+    private workspaceManager: WorkspaceManager,
+    private configurationManager: ConfigurationManager) {
+
     this.enabled = configurationManager.isCodeLensEnabled;
 
     configurationManager.onDidChangeConfiguration(() => {
@@ -22,55 +25,42 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
     return this.onDidChangeCodeLensesEmitter.event;
   }
 
-  public provideCodeLenses(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.ProviderResult<vscode.CodeLens[]> {
-    return new Promise((resolve, reject) => {
-      if (this.enabled) {
-        if (!token.isCancellationRequested) {
-          const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
-          if (assemblyDocument) {
-            const lenses = new Array<vscode.CodeLens>();
+  public provideCodeLenses(
+    document: vscode.TextDocument,
+    cancellationToken: vscode.CancellationToken): vscode.CodeLens[] | undefined {
 
-            assemblyDocument.symbols.filter(s => s.uri === document.uri).forEach(symbol => {
-              const references = symbol.references.filter(r => r.blockNumber === symbol.blockNumber);
-              const command: vscode.Command = {
-                command: 'editor.action.showReferences',
-                title: `${references.length} reference${references.length !== 1 ? 's' : ''}`,
-                arguments: [document.uri, symbol.range.start, references
-                  .filter(r => r.uri)
-                  .map(r => new vscode.Location(r.uri!, r.range))],
-              };
-              lenses.push({
-                command,
-                range: symbol.range,
-                isResolved: true,
-              });
+    if (this.enabled && !cancellationToken.isCancellationRequested) {
+      const symbolManager = this.workspaceManager.getSymbolManager(document);
+      
+      if (symbolManager) {
+        const lenses = new Array<vscode.CodeLens>();
 
-              // Possible bug in VSCode, this breaks code lens
-              // references.filter(s => s.uri === document.uri).forEach(reference => {
-              //   if (reference.range.start.character === 0) {
-              //     const siblings = reference.parent.children;
-              //     siblings.splice(siblings.indexOf(reference), 1, symbol);
+        symbolManager.implementations
+          .filter(s => s.uri.fsPath === document.uri.fsPath)
+          .forEach(symbol => {
 
-              //     const command: vscode.Command = {
-              //       command: 'editor.action.showReferences',
-              //       title: `${siblings.length} reference${siblings.length !== 1 ? 's' : ''}`,
-              //       arguments: [document.uri, reference.range.start, siblings.map(r => new vscode.Location(r.uri, r.range))],
-              //     };
-              //     lenses.push({
-              //       command,
-              //       range: reference.range,
-              //       isResolved: true,
-              //     }); 
-              //   }
-              // });
-            });
+          const references = symbolManager.references
+            .filter(r => r.text === symbol.text && r.blockNumber === symbol.blockNumber);
+          
+          const command: vscode.Command = {
+            command: 'editor.action.showReferences',
+            title: `${references.length} reference${references.length !== 1 ? 's' : ''}`,
+            arguments: [
+              document.uri,
+              symbol.range.start,
+              references.map(r => new vscode.Location(r.uri, r.range))
+            ],
+          };
 
-            resolve(lenses);
-          }
-        }
-      } else {
-        reject();
+          lenses.push({
+            command,
+            range: symbol.range,
+            isResolved: true,
+          });
+        });
+
+        return lenses;
       }
-    });
+    }
   }
 }

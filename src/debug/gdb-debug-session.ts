@@ -91,7 +91,9 @@ export class GdbDebugSession extends LoggingDebugSession {
       this.sendEvent(new StoppedEvent('exception', GdbDebugSession.threadId));
     });
     this.debugger.on('breakpointValidated', (bp: IGdbBreakpoint) => {
-      this.sendEvent(new BreakpointEvent('changed', { verified: bp.verified, id: bp.id } as DebugProtocol.Breakpoint));
+      this.sendEvent(new BreakpointEvent(
+        'changed',
+        { verified: bp.verified, id: bp.id } as DebugProtocol.Breakpoint));
     });
     this.debugger.on('output', text => {
       const e: DebugProtocol.OutputEvent = new OutputEvent(`${text}\n`);
@@ -106,7 +108,9 @@ export class GdbDebugSession extends LoggingDebugSession {
    * The 'initialize' request is the first request called by the frontend
    * to interrogate the features the debug adapter provides.
    */
-  protected initializeRequest(response: DebugProtocol.InitializeResponse, _: DebugProtocol.InitializeRequestArguments): void {
+  protected initializeRequest(
+    response: DebugProtocol.InitializeResponse,
+    _: DebugProtocol.InitializeRequestArguments): void {
 
     // build and return the capabilities of this debug adapter:
     response.body = response.body || {};
@@ -132,14 +136,19 @@ export class GdbDebugSession extends LoggingDebugSession {
    * Called at the end of the configuration sequence.
    * Indicates that all breakpoints etc. have been sent to the DA and that the 'launch' can start.
    */
-  protected configurationDoneRequest(response: DebugProtocol.ConfigurationDoneResponse, args: DebugProtocol.ConfigurationDoneArguments): void {
+  protected configurationDoneRequest(
+    response: DebugProtocol.ConfigurationDoneResponse,
+    args: DebugProtocol.ConfigurationDoneArguments): void {
+    
     super.configurationDoneRequest(response, args);
 
     // notify the launchRequest that configuration has finished
     //this.configurationDone.notify();
   }
 
-  protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): Promise<void> {
+  protected async launchRequest(
+    response: DebugProtocol.LaunchResponse,
+    args: LaunchRequestArguments): Promise<void> {
 
     // make sure to 'Stop' the buffered logging if 'trace' is not set
     logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
@@ -155,19 +164,24 @@ export class GdbDebugSession extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
+  protected setBreakPointsRequest(
+    response: DebugProtocol.SetBreakpointsResponse,
+    args: DebugProtocol.SetBreakpointsArguments): void {
 
-    const assembplyPath = args.source.path;
+    const assemblyPath = args.source.path;
     const clientLines = args.lines || [];
 
-    if (assembplyPath) {
+    if (assemblyPath) {
       // clear all breakpoints for this file
-      this.debugger.clearBreakpoints(assembplyPath);
+      this.debugger.clearBreakpoints(assemblyPath);
 
       // set and verify breakpoint locations
       const actualBreakpoints = clientLines.map(l => {
-        const { verified, line, id } = this.debugger.setBreakPoint(assembplyPath, this.convertClientLineToDebugger(l));
-        const bp = new Breakpoint(verified, this.convertDebuggerLineToClient(line)) as DebugProtocol.Breakpoint;
+        const { verified, line, id } = this.debugger
+          .setBreakPoint(assemblyPath, this.convertClientLineToDebugger(l));
+        const bp = new Breakpoint(
+          verified,
+          this.convertDebuggerLineToClient(line)) as DebugProtocol.Breakpoint;
         bp.id = id;
         return bp;
       });
@@ -191,7 +205,9 @@ export class GdbDebugSession extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  protected stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments): void {
+  protected stackTraceRequest(
+    response: DebugProtocol.StackTraceResponse,
+    args: DebugProtocol.StackTraceArguments): void {
 
     const startFrame = typeof args.startFrame === 'number' ? args.startFrame : 0;
     const maxLevels = typeof args.levels === 'number' ? args.levels : 1000;
@@ -200,13 +216,20 @@ export class GdbDebugSession extends LoggingDebugSession {
     const stk = this.debugger.stack(startFrame, endFrame);
 
     response.body = {
-      stackFrames: stk.frames.map(f => new StackFrame(f.index, f.name, this.createSource(f.file), this.convertDebuggerLineToClient(f.line))),
+      stackFrames: stk.frames
+        .map(f => new StackFrame(
+          f.index,
+          f.name,
+          this.createSource(f.file),
+          this.convertDebuggerLineToClient(f.line))),
       totalFrames: stk.count,
     };
     this.sendResponse(response);
   }
 
-  protected scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments): void {
+  protected scopesRequest(
+    response: DebugProtocol.ScopesResponse,
+    args: DebugProtocol.ScopesArguments): void {
 
     const frameReference = args.frameId;
     const scopes = new Array<Scope>();
@@ -219,7 +242,9 @@ export class GdbDebugSession extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  protected variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments): void {
+  protected variablesRequest(
+    response: DebugProtocol.VariablesResponse,
+    args: DebugProtocol.VariablesArguments): void {
 
     const variables = new Array<DebugProtocol.Variable>();
     const id = this.variableHandles.get(args.variablesReference);
@@ -256,27 +281,38 @@ export class GdbDebugSession extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  protected continueRequest(response: DebugProtocol.ContinueResponse, _: DebugProtocol.ContinueArguments): void {
+  protected continueRequest(
+    response: DebugProtocol.ContinueResponse,
+    _: DebugProtocol.ContinueArguments): void {
+
     this.debugger.continue();
     this.sendResponse(response);
   }
 
-  protected reverseContinueRequest(response: DebugProtocol.ReverseContinueResponse, _: DebugProtocol.ReverseContinueArguments): void {
+  protected reverseContinueRequest(
+    response: DebugProtocol.ReverseContinueResponse,
+    _: DebugProtocol.ReverseContinueArguments): void {
     this.debugger.continue(true);
     this.sendResponse(response);
   }
 
-  protected nextRequest(response: DebugProtocol.NextResponse, _: DebugProtocol.NextArguments): void {
+  protected nextRequest(
+    response: DebugProtocol.NextResponse,
+    _: DebugProtocol.NextArguments): void {
     this.debugger.step();
     this.sendResponse(response);
   }
 
-  protected stepBackRequest(response: DebugProtocol.StepBackResponse, _: DebugProtocol.StepBackArguments): void {
+  protected stepBackRequest(
+    response: DebugProtocol.StepBackResponse,
+    _: DebugProtocol.StepBackArguments): void {
     this.debugger.step(true);
     this.sendResponse(response);
   }
 
-  protected evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): void {
+  protected evaluateRequest(
+    response: DebugProtocol.EvaluateResponse,
+    args: DebugProtocol.EvaluateArguments): void {
 
     let reply: string | undefined;
 
@@ -316,6 +352,11 @@ export class GdbDebugSession extends LoggingDebugSession {
   // ---- helpers
 
   private createSource(filePath: string): Source {
-    return new Source(path.basename(filePath), this.convertDebuggerPathToClient(filePath), undefined, undefined, 'mock-adapter-data');
+    return new Source(
+      path.basename(filePath),
+      this.convertDebuggerPathToClient(filePath),
+      undefined,
+      undefined,
+      'mock-adapter-data');
   }
 }

@@ -4,7 +4,7 @@
 	"description": "Language support for 6x09 Assembly language.",
 	"author": "Blair Leduc",
 	"license": "MIT",
-	"version": "0.6.9",
+	"version": "0.7.0",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/BlairLeduc/vscode-6x09-assembly"
@@ -225,7 +225,7 @@
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext .ts",
-		"test": "node ./out/test/runTests.js",
+		"test": "node ./out/test/runTest.js",
 		"convert": "npx js-yaml syntaxes/6x09.tmLanguage.yaml > syntaxes/6x09.tmLanguage.json",
 		"update": "npm run convert"
 	},
@@ -241,14 +241,12 @@
 		"@vscode/test-electron": "2",
 		"@vscode/vsce": "2",
 		"eslint": "8",
-		"glob": "8",
+		"glob": "10",
 		"mocha": "10",
 		"typescript": "5"
 	},
 	"dependencies": {
 		"@vscode/debugadapter": "1",
-		"@vscode/debugprotocol": "1",
-		"file-url": "4",
-		"line-reader": "0"
+		"@vscode/debugprotocol": "1"
 	}
 }

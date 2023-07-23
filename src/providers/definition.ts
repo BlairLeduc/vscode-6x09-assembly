@@ -6,30 +6,35 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
   constructor(private workspaceManager: WorkspaceManager) {
   }
 
-  public provideDefinition(document: vscode.TextDocument, position: vscode.Position, cancelationToken: vscode.CancellationToken): vscode.Location[] {
-    const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, cancelationToken);
+  public provideDefinition(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+    cancellationToken: vscode.CancellationToken): vscode.Location[] | undefined {
 
-    if (assemblyDocument) {
+    if (!cancellationToken.isCancellationRequested) {
       const symbolManager = this.workspaceManager.getSymbolManager(document);
-      const assemblyLine = assemblyDocument.lines[position.line];
-      const reference = assemblyLine.references.find(r => r.range.contains(position));
 
-      if (reference && reference.definition && reference.definition.uri) {
-        return [new vscode.Location(reference.definition.uri, reference.definition.range)];
-      }
+      if (symbolManager) {
+        const reference = symbolManager.references
+          .find(r => r.range.contains(position));
 
-      const property = assemblyLine.properties.find(p => p.range.contains(position));
-      if (property && property.definition && property.definition.uri) {
-        return [new vscode.Location(property.definition.uri, property.definition.range)];
-      }
+        if (reference) {
+          const implementation = symbolManager.implementations
+            .find(i => i.text === reference.text && i.blockNumber === reference.blockNumber);
 
-      if (assemblyLine.type && assemblyLine.typeRange && assemblyLine.typeRange.contains(position)) {
-        const type = symbolManager.symbols.find(t => t.text === assemblyLine.type!.text);
-        if (type && type.uri) {
-          return [new vscode.Location(type.uri, type.range)];
+          return implementation
+            ? [new vscode.Location(implementation.uri, implementation.range)]
+            : undefined;
         }
+        
+        // Provide location of definition for labels
+        const implementation = symbolManager.implementations
+          .find(i => i.range.contains(position));
+
+        return implementation
+          ? [new vscode.Location(implementation.uri, implementation.range)]
+          : undefined;
       }
     }
-    return [];
   }
 }
