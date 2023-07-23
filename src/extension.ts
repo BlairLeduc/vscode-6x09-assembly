@@ -15,7 +15,6 @@ import {
   documentSemanticTokensLegend,
   DocumentSemanticTokensProvider } from './providers/document-semantic-tokens';
 import { ImplementationProvider } from './providers/implementation';
-import { SelectionRangeProvider } from './providers/selection-ranges';
 import { WorkspaceSymbolProvider } from './providers/workspace-symbol';
 import { FoldingRangeProvider } from './providers/folding-range';
 import { ASM6X09_CONFIG_SECTION, ASM6X09_LANGUAGE, ASM6X09_MODE } from './common';
@@ -55,11 +54,6 @@ export function activate(context: vscode.ExtensionContext): void {
   disposables.push(vscode.languages.registerImplementationProvider(
     ASM6X09_MODE,
     new ImplementationProvider(workspaceManager)
-  ));
-
-  disposables.push(vscode.languages.registerSelectionRangeProvider(
-    ASM6X09_MODE,
-    new SelectionRangeProvider(workspaceManager)
   ));
 
   disposables.push(vscode.languages.registerFoldingRangeProvider(
