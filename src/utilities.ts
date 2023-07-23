@@ -42,8 +42,12 @@ export function killProcess(process: cp.ChildProcess, details = ''): void {
   }
 }
 
-export function execCmd(cmd: string, args: string[], cwd: string, token?: vscode.CancellationToken): Promise<cp.ChildProcess> {
-  return new Promise((resolve, reject) => {
+export async function execCmd(
+  cmd: string,
+  args: string[],
+  cwd: string,
+  token?: vscode.CancellationToken): Promise<cp.ChildProcess | undefined> {
+
     const outputChannel = extensionState.windowManager.outputChannel;
 
     const details = [cmd, ...args].join(' ');
@@ -65,17 +69,22 @@ export function execCmd(cmd: string, args: string[], cwd: string, token?: vscode
       });
 
       process.on('error', err => {
-        outputChannel.appendLine(`${process.pid}:M: Error executing procces ${process.pid} (${details}): ${err.message}`);
+        outputChannel.appendLine(
+          `${process.pid}:M: Error executing procces ${process.pid} (${details}): ${err.message}`);
+
         extensionState.windowManager.showErrorMessage(err.message);
       });
 
       process.on('exit', (code, signal) => {
         if (code) {
-          outputChannel.appendLine(`${process.pid}:M: Exited (${[cmd, ...args].join(' ')}) with code: ${code}`);
+          outputChannel.appendLine(
+            `${process.pid}:M: Exited (${[cmd, ...args].join(' ')}) with code: ${code}`);
         } else if (signal) {
-          outputChannel.appendLine(`${process.pid}:M: Exited (${[cmd, ...args].join(' ')}) from signal: ${signal}`);
+          outputChannel.appendLine(
+            `${process.pid}:M: Exited (${[cmd, ...args].join(' ')}) from signal: ${signal}`);
         } else {
-          outputChannel.appendLine(`${process.pid}:M: Exited (${[cmd, ...args].join(' ')}) normally.`);
+          outputChannel.appendLine(
+            `${process.pid}:M: Exited (${[cmd, ...args].join(' ')}) normally.`);
         }
       });
 
@@ -87,10 +96,10 @@ export function execCmd(cmd: string, args: string[], cwd: string, token?: vscode
         });
       }
 
-      outputChannel.appendLine(`${process.pid}:M: Started (${[cmd, ...args].join(' ')}) in "${cwd}"`);
-      resolve(process);
-    } else {
-      reject(new Error(`Unable to start process (${details}) in "${cwd}"`));
+      outputChannel.appendLine(
+        `${process.pid}:M: Started (${[cmd, ...args].join(' ')}) in "${cwd}"`);
+      return process;
     }
-  });
+    extensionState.windowManager
+      .showErrorMessage(`Unable to start process (${details}) in "${cwd}"`);
 }

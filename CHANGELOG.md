@@ -2,6 +2,10 @@
 
 All notable changes to the "vscode-6x09-assembly" extension will be documented in this file.
 
+## [0.7]
+- Support for struct
+- Bug fixes and stablisation
+
 ## [0.6.7]
 
 - Improved highlighing using semantic analysis.

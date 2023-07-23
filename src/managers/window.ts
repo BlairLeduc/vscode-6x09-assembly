@@ -15,4 +15,12 @@ export class WindowManager implements vscode.Disposable {
   public showErrorMessage(message: string): void {
     vscode.window.showErrorMessage(message);
   }
+
+  public showInformationMessage(message: string): void {
+    vscode.window.showInformationMessage(message);
+  }
+
+  public showWarningMessage(message: string): void {
+    vscode.window.showWarningMessage(message);
+  }
 }

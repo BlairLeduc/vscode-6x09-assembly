@@ -6,22 +6,26 @@ export class ImplementationProvider implements vscode.ImplementationProvider {
   constructor(private workspaceManager: WorkspaceManager) {
   }
 
-  public provideImplementation(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.ProviderResult<vscode.Location | vscode.Location[] | vscode.LocationLink[]> {
-    return new Promise((resolve, reject) => {
-      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
+  public async provideImplementation(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+    cancellationToken: vscode.CancellationToken)
+      : Promise<vscode.Location | vscode.Location[] | vscode.LocationLink[] | undefined> {
 
-      if (assemblyDocument && !token.isCancellationRequested) {
+    if (!cancellationToken.isCancellationRequested) {
+      const assemblyDocument = this.workspaceManager
+        .getAssemblyDocument(document, cancellationToken);
+
+      if (assemblyDocument && !cancellationToken.isCancellationRequested) {
         const assemblyLine = assemblyDocument.lines[position.line];
 
-        const symbol = assemblyLine.references.find(r => r.range.contains(position))?.definition ?? assemblyLine.label;
-        if (symbol && symbol.uri && symbol.range.contains(position)) {
-          resolve([new vscode.Location(symbol.uri, symbol.range)]);
-        } else {
-          resolve([]);
-        }
-      } else {
-        reject();
+        const symbol = assemblyLine.references
+          .find(r => r.range.contains(position)) ?? assemblyLine.label;
+
+        return symbol && symbol.uri && symbol.range.contains(position)
+          ? [new vscode.Location(symbol.uri, symbol.range)]
+          : [];
       }
-    });
+    }
   }
 }

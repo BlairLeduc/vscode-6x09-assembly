@@ -11,15 +11,14 @@ import { ReferenceProvider } from './providers/reference';
 import { RenameProvider } from './providers/rename';
 import { State } from './state';
 import { TaskProvider } from './providers/task';
-import { documentSemanticTokensLegend, DocumentSemanticTokensProvider } from './providers/documentSemanticTokens';
+import {
+  documentSemanticTokensLegend,
+  DocumentSemanticTokensProvider } from './providers/documentSemanticTokens';
 import { ImplementationProvider } from './providers/implementation';
 import { SelectionRangeProvider } from './providers/selection-ranges';
 import { WorkspaceSymbolProvider } from './providers/workspace-symbol';
 import { FoldingRangeProvider } from './providers/folding-range';
-
-const ASM6X09_LANGUAGE = 'asm6x09';
-const ASM6X09_CONFIG_SECTION = '6x09Assembly';
-const ASM6X09_MODE: vscode.DocumentSelector = { scheme: 'file', language: ASM6X09_LANGUAGE };
+import { ASM6X09_CONFIG_SECTION, ASM6X09_LANGUAGE, ASM6X09_MODE } from './common';
 
 // import { DebugAdapterDescriptorFactory } from './debug/debug-adapter-descriptor-factory';
 // import { DebugConfigurationProvider } from './providers/debug-configuration';

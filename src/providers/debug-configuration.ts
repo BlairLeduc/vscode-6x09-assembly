@@ -2,8 +2,12 @@ import * as vscode from 'vscode';
 
 export class DebugConfigurationProvider implements vscode.DebugConfigurationProvider {
   
-  public resolveDebugConfiguration?(_folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, _token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration> {
-    return new Promise(resolve => {
+  public async resolveDebugConfiguration?(
+    _folder: vscode.WorkspaceFolder | undefined,
+    config: vscode.DebugConfiguration,
+    cancellationToken?: vscode.CancellationToken): Promise<vscode.DebugConfiguration | undefined> {
+
+    if (!cancellationToken?.isCancellationRequested) {
       // if launch.json is missing or empty
       if (!config.type && !config.request && !config.name) {
         const editor = vscode.window.activeTextEditor;
@@ -15,13 +19,11 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         }
       }
 
-      if (!config.assemblyFile) {
-        vscode.window.showInformationMessage('Cannot find a program to debug.').then(_ => {
-          resolve(undefined);	// abort launch
-        });
+      if (config.assemblyFile) {
+        return config;
       }
 
-      resolve(config);
-    });
+      await vscode.window.showInformationMessage('Cannot find a program to debug.');
+    }
   }
 }

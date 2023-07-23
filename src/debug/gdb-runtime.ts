@@ -30,7 +30,10 @@ export class GdbRuntime extends EventEmitter {
   /** Token to cancel the emulator */
   private cancellationTokenSource?: vscode.CancellationTokenSource;
 
-  constructor(private emulatorExe:string, private emulatorOptions: string[], private emulatorWorkingDir: string) {
+  constructor(
+    private emulatorExe:string,
+    private emulatorOptions: string[],
+    private emulatorWorkingDir: string) {
     super();
   }
 
@@ -75,7 +78,10 @@ export class GdbRuntime extends EventEmitter {
     });
   }
 
-  protected startEmulator(emulatorExe: string, emulatorOptions: string[], emulatorWorkingDir: string): Promise<void> {
+  protected startEmulator(
+    emulatorExe: string,
+    emulatorOptions: string[],
+    emulatorWorkingDir: string): Promise<void> {
     return new Promise((resolve, reject) => {
       this.emit('output', `Starting emulator: ${emulatorExe}`);
       if (emulatorExe) {
@@ -83,7 +89,11 @@ export class GdbRuntime extends EventEmitter {
         this.checkEmulator(emulatorExe).then(exists => {
           if (exists) {
             this.cancellationTokenSource = new vscode.CancellationTokenSource();
-            execCmd(emulatorExe, emulatorOptions, emulatorWorkingDir, this.cancellationTokenSource.token).then(() => {
+            execCmd(
+              emulatorExe,
+              emulatorOptions,
+              emulatorWorkingDir,
+              this.cancellationTokenSource.token).then(() => {
               this.emit('end');
               resolve();
             }).catch((err: Error) => {
@@ -94,7 +104,8 @@ export class GdbRuntime extends EventEmitter {
           }
         });
       } else {
-        reject(new Error('The emulator executable file path must be defined in the launch settings.'));
+        reject(new Error(
+          'The emulator executable file path must be defined in the launch settings.'));
       }
     });
   }

@@ -5,38 +5,59 @@ export class RenameProvider implements vscode.RenameProvider {
 
   constructor(private workspaceManager: WorkspaceManager) { }
 
-  public provideRenameEdits(document: vscode.TextDocument, position: vscode.Position, newName: string, token: vscode.CancellationToken): vscode.ProviderResult<vscode.WorkspaceEdit> {
-    return new Promise((resolve, reject) => {
-      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
+  public async provideRenameEdits(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+    newName: string,
+    cancellationToken: vscode.CancellationToken): Promise<vscode.WorkspaceEdit | undefined> {
 
-      if (assemblyDocument && !token.isCancellationRequested) {
+    if (!cancellationToken.isCancellationRequested) {
+      const assemblyDocument = this.workspaceManager
+        .getAssemblyDocument(document, cancellationToken);
+
+      const symbolManager = this.workspaceManager.getSymbolManager(document);
+
+      if (assemblyDocument && symbolManager) {
         const assemblyLine = assemblyDocument.lines[position.line];
-        const symbol = assemblyLine.references.find(r => r.range.contains(position))?.definition ?? assemblyLine.label;
-        if (symbol && symbol.uri && symbol.range.contains(position)) {
-          const edit = new vscode.WorkspaceEdit();
-          edit.replace(symbol.uri, symbol.range, newName);
-          symbol.references.forEach(s => edit.replace(document.uri, s.range, newName));
-          resolve(edit);
+        const reference = assemblyLine.references
+          .find(r => r.range.contains(position)) ?? assemblyLine.label;
+        
+        if (reference && reference.uri && reference.range.contains(position)) {
+          const references = symbolManager.references.filter(r => r.text === reference.text);
+          const symbol = symbolManager.implementations.find(i => i.text === reference.text);
+
+          if (symbol && symbol.uri) {
+            const edit = new vscode.WorkspaceEdit();
+            edit.replace(symbol.uri, symbol.range, newName);
+            references.forEach(s => edit.replace(s.uri, s.range, newName));
+            return edit;
+          }
         }
-      } else {
-        reject();
       }
-    });
+    }
   }
 
-  public prepareRename?(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.ProviderResult<vscode.Range | { range: vscode.Range; placeholder: string; }> {
-    return new Promise((resolve, reject) => {
-      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
+  public async prepareRename?(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+    cancellationToken: vscode.CancellationToken)
+      : Promise<vscode.Range | { range: vscode.Range; placeholder: string; } | undefined> {
 
-      if (assemblyDocument && !token.isCancellationRequested) {
+    if (!cancellationToken.isCancellationRequested) {
+      const assemblyDocument = this.workspaceManager
+        .getAssemblyDocument(document, cancellationToken);
+      
+      const symbolManager = this.workspaceManager.getSymbolManager(document);
+
+      if (assemblyDocument && symbolManager) {
         const assemblyLine = assemblyDocument.lines[position.line];
-        const symbol = assemblyLine.references.find(r => r.range.contains(position))?.definition ?? assemblyLine.label;
+        const symbol = assemblyLine.references
+          .find(r => r.range.contains(position)) ?? assemblyLine.label;
+
         if (symbol && symbol.range.contains(position)) {
-          resolve({range: symbol.range, placeholder: symbol.text});
+          return { range: symbol.range, placeholder: symbol.text };
         }
-      } else {
-        reject();
       }
-    });
+    }
   }
 }

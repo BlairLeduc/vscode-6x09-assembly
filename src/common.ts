@@ -1,6 +1,13 @@
 import * as vscode from 'vscode';
 
-export const registers = new Set(['a', 'b', 'd', 'e', 'f', 'x', 'y', 'w', 'q', 'u', 's', 'v', 'pc', 'dp', 'cc', 'pcr']);
+export const ASM6X09_LANGUAGE = 'asm6x09';
+export const ASM6X09_CONFIG_SECTION = '6x09Assembly';
+export const ASM6X09_MODE: vscode.DocumentSelector = { scheme: 'file', language: ASM6X09_LANGUAGE };
+export const ASM6X09_FILE_EXTENSIONS = ['.asm', '.s', '.d', '.defs'];
+export const ASM6X09_FILE_GLOB_PATTERN = `**/*.{s,d,asm,defs}`;
+
+export const registers = new Set(
+  ['a', 'b', 'd', 'e', 'f', 'x', 'y', 'w', 'q', 'u', 's', 'v', 'pc', 'dp', 'cc', 'pcr']);
 
 export const inherentOpcodes = new Set([
   'abx',
@@ -257,31 +264,34 @@ export function convertTokenKindToTokenType(kind: TokenKind): string {
 export class AssemblySymbol {
   public semanticToken: Token;
   public text: string;
-  public range: vscode.Range;
-  public lineRange: vscode.Range;
+  public range: vscode.Range; // The range of the symbol in the document
   public type: TokenType;
   public kind: vscode.CompletionItemKind;
   public value: string = "";
   public blockNumber: number;
   public parent?: AssemblySymbol;
-  public definition?: AssemblySymbol;
-  public references: AssemblySymbol[];
   public properties: AssemblySymbol[];
   public documentation: string;
-  public uri?: vscode.Uri;
   public isValid: boolean;
   public isLocal: boolean;
 
-  constructor(token: Token, lineRange: vscode.Range, blockNumber: number) {
+  constructor(
+    token: Token,
+    public uri: vscode.Uri,
+    public lineRange: vscode.Range,
+    blockNumber: number) {
+
     this.semanticToken = token;
     this.text = token.text;
-    this.range = new vscode.Range(lineRange.start.line, token.char, lineRange.start.line, token.char + token.length);
-    this.lineRange = lineRange;
+    this.range = new vscode.Range(
+      lineRange.start.line,
+      token.char,
+      lineRange.start.line,
+      token.char + token.length);
     this.kind = convertTokenKindToComplitionItemKind(token.kind);
     this.type = token.type;
     this.isLocal = token.isLocal;
     this.blockNumber = token.isLocal ? blockNumber : 0;
-    this.references = [];
     this.properties = [];
     this.documentation = '';
     this.isValid = token.isValid;
@@ -302,3 +312,25 @@ export class AssemblyBlock {
     this.endLineNumber = startLineNumber;
   }
 }
+
+  export function isTextDocument(
+    document: vscode.TextDocument | vscode.Uri): document is vscode.TextDocument {
+
+    return (document as vscode.TextDocument).lineCount !== undefined;
+  }
+
+  export function isUri(document: vscode.TextDocument | vscode.Uri): document is vscode.Uri {
+    return (document as vscode.Uri).authority !== undefined;
+  }
+
+  export function pathJoin(...paths: string[]): string {
+    return paths.map(p => p.replace(/[\/\s]+$/, '')).join('/');
+  }
+
+  export function basePath(uri: vscode.Uri): string {
+    return uri.path.split('/').slice(0, -1).join('/') || '';
+  }
+
+  export function appendPath(uri: vscode.Uri, ...paths: string[]): vscode.Uri {
+    return uri.with({ path: pathJoin(basePath(uri), ...paths) });
+  }

@@ -1,12 +1,18 @@
-import { CompletionItemKind, Range, Uri } from 'vscode';
-import { AssemblySymbol, constantPseudoOps, Token, TokenKind, TokenModifier, TokenType } from '../common';
+import * as vscode from 'vscode';
+import {
+  AssemblySymbol,
+  constantPseudoOps,
+  Token,
+  TokenKind,
+  TokenModifier,
+  TokenType } from '../common';
 import { LineParser } from './line-parser';
 
 export interface SymbolReference {
   name: string;
-  range: Range;
+  range: vscode.Range;
   definition: AssemblySymbol;
-  uri: Uri;
+  uri: vscode.Uri;
 }
 
 export interface ParserState {
@@ -19,40 +25,34 @@ export interface ParserState {
 export class AssemblyLine {
   private static storageRegExp: RegExp;
 
-  public state: ParserState;
-
   public lineNumber = 0;
-  public lineRange: Range;
+  public lineRange: vscode.Range;
   public blockNumber = 0;
 
   public label?: AssemblySymbol;
-  public labelRange?: Range;
+  public labelRange?: vscode.Range;
   public opCode?: Token;
-  public opCodeRange?: Range;
+  public opCodeRange?: vscode.Range;
   public type?: AssemblySymbol;
-  public typeRange?: Range;
+  public typeRange?: vscode.Range;
   public operand?: Token;
-  public operandRange?: Range;
+  public operandRange?: vscode.Range;
 
   public semanicTokens?: Token[];
   public file?: string;
   public references: AssemblySymbol[] = [];
   public properties: AssemblySymbol[] = [];
 
-  constructor(private rawLine: string, state?: ParserState, rawLineNumber?: number) {
+  constructor(
+    public uri: vscode.Uri,
+    private rawLine: string,
+    public state: ParserState,
+    rawLineNumber?: number) {
+
     if (rawLineNumber) {
       this.lineNumber = rawLineNumber;
     }
     this.lineRange = this.getRange(0, this.rawLine.length);
-
-    this.state = state
-      ? state
-      : state = {
-        lonelyLabels: [],
-        blockNumber: 1,
-        struct: undefined,
-        macro: undefined
-      } as ParserState;
 
     if (!AssemblyLine.storageRegExp) {
       const s1 = '[.](4byte|asci[isz]|blkb|byte|d[bsw]|globl|quad|rs|str[sz]?|word)|f[dq]b|fc[bcns]|import|[zr]m[dbq]';
@@ -77,21 +77,30 @@ export class AssemblyLine {
     this.semanicTokens.forEach((token, index, tokens) => {
       switch (token.kind) {
         case TokenKind.label:
-          this.label = new AssemblySymbol(token, this.lineRange, this.state.blockNumber);
+          this.label = new AssemblySymbol(token, this.uri, this.lineRange, this.state.blockNumber);
           this.state.lonelyLabels.push(this.label);
           break;
         case TokenKind.macroOrStruct:
           clearLonelyLabels = true;
-          this.typeRange = new Range(this.lineNumber, token.char, this.lineNumber, token.char + token.length);
-          this.type = new AssemblySymbol(token, this.lineRange, 0);
+          this.typeRange = new vscode.Range(
+            this.lineNumber,
+            token.char,
+            this.lineNumber,
+            token.char + token.length);
+          this.type = new AssemblySymbol(token, this.uri, this.lineRange, 0);
           this.updateLabels(label => {
             label.semanticToken.type = TokenType.variable;
-            label.kind === CompletionItemKind.Variable;
+            label.kind ===  vscode.CompletionItemKind.Variable;
+            label.value = token.text;
           });
           break;
         case TokenKind.opCode:
           clearLonelyLabels = true;
-          this.opCodeRange = new Range(this.lineNumber, token.char, this.lineNumber, token.char + token.length);
+          this.opCodeRange = new vscode.Range(
+            this.lineNumber,
+            token.char,
+            this.lineNumber,
+            token.char + token.length);
           this.opCode = token;
           this.processOpCode(token, tokens, index);
           break;
@@ -100,20 +109,24 @@ export class AssemblyLine {
           this.operand = token;
           break;
         case TokenKind.reference:
-          lastReference = new AssemblySymbol(token, this.lineRange, this.state.blockNumber);
+          lastReference = new AssemblySymbol(token, this.uri, this.lineRange, this.state.blockNumber);
           this.references.push(lastReference);
           break;
         case TokenKind.property:
           if (lastReference) {
-            const property = new AssemblySymbol(token, this.lineRange, 0);
-            property.definition = lastReference;
+            const property = new AssemblySymbol(token, this.uri, this.lineRange, 0);
+            property.parent = lastReference;
             lastReference.properties.push(property);
             lastReference = undefined;
             this.properties.push(property);
           }
           break;
         case TokenKind.comment:
-          this.updateLabels(label => label.documentation += '  \n' + token.text);
+          if (this.label) {
+            this.label.documentation = token.text;
+          } else if (!clearLonelyLabels) {
+            this.updateLabels(label => label.documentation += '  \n' + token.text);
+          }
           break;
         case TokenKind.file:
           this.file = token.text;
@@ -144,7 +157,9 @@ export class AssemblyLine {
       this.updateLabels(label => {
         label.semanticToken.type = this.state.struct ? TokenType.property : TokenType.variable;
         label.semanticToken.modifiers = TokenModifier.definition;
-        label.kind = this.state.struct ? CompletionItemKind.Property : CompletionItemKind.Variable;
+        label.kind = this.state.struct
+          ? vscode.CompletionItemKind.Property
+          : vscode.CompletionItemKind.Variable;
         if (this.state.struct) {
           label.parent = this.state.struct;
           this.state.struct.properties.push(label);
@@ -156,7 +171,7 @@ export class AssemblyLine {
         this.state.macro = label;
         label.semanticToken.type = TokenType.macro;
         label.semanticToken.modifiers = TokenModifier.definition;
-        label.kind = CompletionItemKind.Method;
+        label.kind = vscode.CompletionItemKind.Method;
       });
     }
     else if (token.text.toLowerCase().startsWith('endm')) {
@@ -167,7 +182,7 @@ export class AssemblyLine {
         this.state.struct = label;
         label.semanticToken.type = TokenType.struct;
         label.semanticToken.modifiers = TokenModifier.definition;
-        label.kind = CompletionItemKind.Struct;
+        label.kind = vscode.CompletionItemKind.Struct;
       });
     }
     else if (token.text.toLowerCase().startsWith('ends')) {
@@ -176,7 +191,7 @@ export class AssemblyLine {
     else if (token.text.toLowerCase() === 'export') {
       this.updateLabels(label => {
         label.semanticToken.type = TokenType.variable;
-        label.kind = CompletionItemKind.Reference;
+        label.kind = vscode.CompletionItemKind.Reference;
       });
     }
   }
@@ -185,11 +200,11 @@ export class AssemblyLine {
     this.state.lonelyLabels.forEach(label => func(label));
   }
 
-  private getRange(char: number, length: number): Range {
-    return new Range(this.lineNumber, char, this.lineNumber, char + length);
+  private getRange(char: number, length: number): vscode.Range {
+    return new vscode.Range(this.lineNumber, char, this.lineNumber, char + length);
   }
 
   private getRangeFromToken(token: Token) {
-    return new Range(this.lineNumber, token.char, this.lineNumber, token.char + token.length);
+    return new vscode.Range(this.lineNumber, token.char, this.lineNumber, token.char + token.length);
   }
 }

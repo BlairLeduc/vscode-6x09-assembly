@@ -7,14 +7,22 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
   constructor(private workspaceManager: WorkspaceManager) {
   }
 
-  public provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.ProviderResult<vscode.SymbolInformation[] | vscode.DocumentSymbol[]> {
-    return new Promise((resolve, reject) => {
-      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document, token);
+  public async provideDocumentSymbols(
+    document: vscode.TextDocument,
+    cancellationToken: vscode.CancellationToken)
+      : Promise<vscode.SymbolInformation[] | vscode.DocumentSymbol[] | undefined> {
 
-      if (assemblyDocument && !token.isCancellationRequested) {
-        resolve(assemblyDocument.symbols
+    if (!cancellationToken.isCancellationRequested) {
+      const assemblyDocument = this.workspaceManager
+        .getAssemblyDocument(document, cancellationToken);
+
+      const symbolManager = this.workspaceManager.getSymbolManager(document);
+
+      if (assemblyDocument && symbolManager) {
+        return symbolManager.implementations
+          .filter(s => s.uri.fsPath === document.uri.fsPath && !s.isLocal)
           .sort((a, b) => a.text.localeCompare(b.text))
-          .filter(s => !s.isLocal && s.uri === document.uri).map(symbol => {
+          .map(symbol => {
             const documentSymbol = new vscode.DocumentSymbol(
               symbol.text,
               symbol.documentation,
@@ -22,12 +30,14 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
               symbol.lineRange,
               symbol.range
             );
+
             if (symbol.kind === vscode.CompletionItemKind.Class && symbol.blockNumber > 0) {
               const block = assemblyDocument.blocks.get(symbol.blockNumber);
               if (block) {
                 documentSymbol.children = block.symbols
                   .sort((a, b) => a.text.localeCompare(b.text))
-                  .filter(s => s.kind !== vscode.CompletionItemKind.Class).map(blockSymbol => {
+                  .filter(s => s.kind !== vscode.CompletionItemKind.Class)
+                  .map(blockSymbol => {
                     return new vscode.DocumentSymbol(
                       blockSymbol.text,
                       blockSymbol.documentation,
@@ -38,11 +48,10 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
                   });
               }
             }
+
             return documentSymbol;
-          }));
-      } else {
-        reject();
+          });
       }
-    });
+    }
   }
 }

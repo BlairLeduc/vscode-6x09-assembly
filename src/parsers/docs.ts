@@ -49,7 +49,8 @@ export class Docs {
   }
 
   public findOpcode(startsWith: string): DocOpcode[] {
-    return [...this.opcodes].filter(opcode => opcode[1].name.startsWith(startsWith)).map(opcode => opcode[1]);
+    return [...this.opcodes]
+      .filter(opcode => opcode[1].name.startsWith(startsWith)).map(opcode => opcode[1]);
   }
 
   public getOpcode(name: string | undefined): DocOpcode | undefined {
