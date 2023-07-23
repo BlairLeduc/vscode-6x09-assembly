@@ -13,7 +13,7 @@ import { State } from './state';
 import { TaskProvider } from './providers/task';
 import {
   documentSemanticTokensLegend,
-  DocumentSemanticTokensProvider } from './providers/documentSemanticTokens';
+  DocumentSemanticTokensProvider } from './providers/document-semantic-tokens';
 import { ImplementationProvider } from './providers/implementation';
 import { SelectionRangeProvider } from './providers/selection-ranges';
 import { WorkspaceSymbolProvider } from './providers/workspace-symbol';
