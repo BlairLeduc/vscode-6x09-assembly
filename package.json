@@ -241,7 +241,7 @@
 		"@vscode/test-electron": "2",
 		"@vscode/vsce": "2",
 		"eslint": "8",
-		"glob": "8",
+		"glob": "10",
 		"mocha": "10",
 		"typescript": "5"
 	},
