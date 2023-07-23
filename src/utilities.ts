@@ -8,7 +8,7 @@ export function convertToCase(name: string, casing: OpcodeCase): string {
     return name.toLowerCase();
   }
   if (casing === OpcodeCase.capitalised) {
-    return name[0].toUpperCase() + name.substr(1).toLowerCase();
+    return name[0].toUpperCase() + name.substring(1).toLowerCase();
   }
   return name.toUpperCase();
 }

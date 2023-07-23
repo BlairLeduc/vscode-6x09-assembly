@@ -15,7 +15,6 @@ export class DocumentHighlightProvider implements vscode.DocumentHighlightProvid
       const symbolManager = this.workspaceManager.getSymbolManager(document);
 
       if (symbolManager) {
-
         const symbol = symbolManager.implementations
           .find(r => r.range.contains(position));
 

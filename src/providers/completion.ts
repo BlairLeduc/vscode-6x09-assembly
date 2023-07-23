@@ -70,12 +70,12 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
   private findWord(line: string, start: number): string {
     let match: RegExpExecArray | null;
-    while (match = /^([a-z_@$.][a-z0-9.$_@?]*)/i.exec(line.substr(start - 1))) {
+    while (match = /^([a-z_@$.][a-z0-9.$_@?]*)/i.exec(line.substring(start - 1))) {
       if (match) {
         start -= 1;
       }
     }
-    return line.substr(start);
+    return line.substring(start);
   }
 
   private createRegisterCompletionItem(register: string): vscode.CompletionItem {
