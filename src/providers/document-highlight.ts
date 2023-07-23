@@ -41,8 +41,6 @@ export class DocumentHighlightProvider implements vscode.DocumentHighlightProvid
               .map(s => new vscode.DocumentHighlight(s.range));
 
               return [new vscode.DocumentHighlight(reference.range), ...highlights];
-          } else {
-            return [];
           }
         }
       }
