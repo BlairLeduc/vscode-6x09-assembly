@@ -35,7 +35,9 @@ export class WorkspaceManager implements vscode.Disposable {
         this.addDocument(document);
       }),
       vscode.workspace.onDidChangeTextDocument(change => {
-        this.updateDocument(change);
+        if (change.contentChanges.length > 0) {
+          this.updateDocument(change);
+        }
       }),
       vscode.workspace.onDidCloseTextDocument(document => {
         this.removeDocument(document);
