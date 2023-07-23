@@ -12,47 +12,29 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
     cancellationToken: vscode.CancellationToken): vscode.Location[] | undefined {
 
     if (!cancellationToken.isCancellationRequested) {
-      const assemblyDocument = this.workspaceManager
-        .getAssemblyDocument(document, cancellationToken);
-
       const symbolManager = this.workspaceManager.getSymbolManager(document);
 
-      if (assemblyDocument && symbolManager) {
-        const assemblyLine = assemblyDocument.lines[position.line];
-        const reference = assemblyLine.references.find(r => r.range.contains(position));
-        const implementation = symbolManager.implementations.find(i => reference?.text === i.text);
+      if (symbolManager) {
+        const reference = symbolManager.references
+          .find(r => r.range.contains(position));
+
+        if (reference) {
+          const implementation = symbolManager.implementations
+            .find(i => i.text === reference.text && i.blockNumber === reference.blockNumber);
+
+          return implementation
+            ? [new vscode.Location(implementation.uri, implementation.range)]
+            : undefined;
+        }
         
-        if (reference && implementation && implementation.uri) {
-          return [new vscode.Location(implementation.uri, implementation.range)];
-        }
+        // Provide location of definition for labels
+        const implementation = symbolManager.implementations
+          .find(i => i.range.contains(position));
 
-        const property = assemblyLine.properties.find(p => p.range.contains(position));
-        if (property?.parent?.text) {
-          const struct = symbolManager.implementations
-            .find(i => i.text === property.parent!.text);
-
-          if (struct) {
-            const definition = symbolManager.implementations.find(p => p.text === struct.value);
-            if (definition) {
-              const propertyDefinition = definition.properties.find(p => p.text === property.text);
-              return propertyDefinition
-                ? [new vscode.Location(propertyDefinition.uri, propertyDefinition.range)]
-                : [new vscode.Location(definition.uri, definition.range)];
-            }
-          }
-        }
-
-        if (assemblyLine.type
-          && assemblyLine.typeRange && assemblyLine.typeRange.contains(position)) {
-
-          const type = symbolManager.implementations.find(t => t.text === assemblyLine.type!.text);
-          if (type && type.uri) {
-            return [new vscode.Location(type.uri, type.range)];
-          }
-        }
+        return implementation
+          ? [new vscode.Location(implementation.uri, implementation.range)]
+          : undefined;
       }
-
-      return [];
     }
   }
 }
