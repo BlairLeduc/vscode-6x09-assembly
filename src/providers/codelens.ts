@@ -30,12 +30,9 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
     cancellationToken: vscode.CancellationToken): vscode.CodeLens[] | undefined {
 
     if (this.enabled && !cancellationToken.isCancellationRequested) {
-      const assemblyDocument = this.workspaceManager
-        .getAssemblyDocument(document, cancellationToken);
-
       const symbolManager = this.workspaceManager.getSymbolManager(document);
       
-      if (assemblyDocument && symbolManager) {
+      if (symbolManager) {
         const lenses = new Array<vscode.CodeLens>();
 
         symbolManager.implementations

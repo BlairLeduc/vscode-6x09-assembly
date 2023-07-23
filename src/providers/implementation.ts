@@ -10,21 +10,23 @@ export class ImplementationProvider implements vscode.ImplementationProvider {
     document: vscode.TextDocument,
     position: vscode.Position,
     cancellationToken: vscode.CancellationToken)
-      : Promise<vscode.Location | vscode.Location[] | vscode.LocationLink[] | undefined> {
+    : Promise<vscode.Location | vscode.Location[] | vscode.LocationLink[] | undefined> {
 
     if (!cancellationToken.isCancellationRequested) {
-      const assemblyDocument = this.workspaceManager
-        .getAssemblyDocument(document, cancellationToken);
+      const symbolManager = this.workspaceManager.getSymbolManager(document);
 
-      if (assemblyDocument && !cancellationToken.isCancellationRequested) {
-        const assemblyLine = assemblyDocument.lines[position.line];
+      if (symbolManager) {
+        const reference = symbolManager.references
+          .find(r => r.range.contains(position));
 
-        const symbol = assemblyLine.references
-          .find(r => r.range.contains(position)) ?? assemblyLine.label;
+        if (reference) {
+          const implementation = symbolManager.implementations
+            .find(i => i.text === reference.text && i.blockNumber === reference.blockNumber);
 
-        return symbol && symbol.uri && symbol.range.contains(position)
-          ? [new vscode.Location(symbol.uri, symbol.range)]
-          : [];
+          return implementation
+            ? new vscode.Location(implementation.uri, implementation.range)
+            : undefined;
+        }
       }
     }
   }

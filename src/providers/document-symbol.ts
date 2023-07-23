@@ -13,12 +13,9 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
     : Promise<vscode.SymbolInformation[] | vscode.DocumentSymbol[] | undefined> {
 
     if (!cancellationToken.isCancellationRequested) {
-      const assemblyDocument = this.workspaceManager
-        .getAssemblyDocument(document, cancellationToken);
-
       const symbolManager = this.workspaceManager.getSymbolManager(document);
 
-      if (assemblyDocument && symbolManager) {
+      if (symbolManager) {
         return symbolManager.implementations
           .filter(s => s.uri.fsPath === document.uri.fsPath && !s.isLocal)
           .sort((a, b) => a.text.localeCompare(b.text))
