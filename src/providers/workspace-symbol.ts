@@ -24,7 +24,7 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
             const documentSymbol = new vscode.SymbolInformation(
               symbol.text,
               convertToSymbolKind(symbol.kind.toString()),
-              '',
+              symbol.parent ? symbol.parent.text : '',
               new vscode.Location(symbol.uri, symbol.range)
             );
             return documentSymbol;
