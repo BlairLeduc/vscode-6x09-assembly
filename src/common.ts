@@ -112,6 +112,37 @@ export const constantPseudoOps = new Set([
   'equ', 'set',
 ]);
 
+// Tokin Kind translations
+//
+// (LineParser)          (AssemblySymbol)
+// TokenKind             CompletionItemKind        SymbolKind
+// ---------             ------------------        ----------
+// ignore                Text                 *    String
+// label                 Variable                  Variable
+// opCode                Function                  Function
+// operand               Variable                  Variable
+// reference             Reference            *    Constant
+// comment               Comment                   Comment
+// file                  File                      File
+// parameter             Variable                  Variable
+// property              Property                  Property
+// macroOrStruct         Class                     Class
+//
+// default:
+//                       Text                 *    String
+
+// Represetation
+//                       TokenKind                TokenType
+// Line Number           ignore                   label
+// Comment               comment                  comment 
+// Symbol                label                    function (local), class (global)             
+// OpCode/PsueodOps      opCode                   keyword
+// Macro/Struct          macroOrStruct            type
+// Operand-String        operand                  string
+// Operand-Pragmas       ignore                   parameter (separated by operator)
+// Operand-File          file                     string
+//
+
 export enum TokenKind {
   ignore,
   label,

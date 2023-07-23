@@ -167,7 +167,7 @@ export class LineParser {
           }
         }
       }
-      // if file operand, match and consume
+      // if pragma operaand, pragma can be separated by commas
       else if (pragmaPseudoOps.has(opcode)) {
         const operandMatch = /^(\s+)([^\s]+)/.exec(text); // match everything until a space
         if (operandMatch) {
@@ -198,7 +198,8 @@ export class LineParser {
             return tokens; // end of the line, return
           }
         }
-      }      // if file operand, match and consume
+      }
+      // if file operand, match and consume
       else if (filePseudoOps.has(opcode)) {
         const operandMatch = /^(\s+)(.*)/.exec(text); // match everything until a space
         if (operandMatch) {
@@ -218,7 +219,7 @@ export class LineParser {
           }
         }
       }
-      // if string operand, match and consume
+      // if string psuedo operand (warning, error, ...), match and consume
       else if (stringPseudoOps.has(opcode)) {
         const operandMatch = /^(\s+)(.*)/.exec(text); // match everything until a space
         if (operandMatch) {

@@ -10,7 +10,7 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
   public async provideDocumentSymbols(
     document: vscode.TextDocument,
     cancellationToken: vscode.CancellationToken)
-      : Promise<vscode.SymbolInformation[] | vscode.DocumentSymbol[] | undefined> {
+    : Promise<vscode.SymbolInformation[] | vscode.DocumentSymbol[] | undefined> {
 
     if (!cancellationToken.isCancellationRequested) {
       const assemblyDocument = this.workspaceManager
@@ -23,6 +23,8 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
           .filter(s => s.uri.fsPath === document.uri.fsPath && !s.isLocal)
           .sort((a, b) => a.text.localeCompare(b.text))
           .map(symbol => {
+
+            // All symbols are converted to DocumentSymbols
             const documentSymbol = new vscode.DocumentSymbol(
               symbol.text,
               symbol.documentation,
@@ -31,22 +33,19 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
               symbol.range
             );
 
-            if (symbol.kind === vscode.CompletionItemKind.Class && symbol.blockNumber > 0) {
-              const block = assemblyDocument.blocks.get(symbol.blockNumber);
-              if (block) {
-                documentSymbol.children = block.symbols
-                  .sort((a, b) => a.text.localeCompare(b.text))
-                  .filter(s => s.kind !== vscode.CompletionItemKind.Class)
-                  .map(blockSymbol => {
-                    return new vscode.DocumentSymbol(
-                      blockSymbol.text,
-                      blockSymbol.documentation,
-                      convertToSymbolKind(blockSymbol.kind.toString()),
-                      symbol.lineRange,
-                      symbol.range
-                    );
-                  });
-              }
+            // Class symbols are struct's and have properties
+            if (symbol.properties.length > 0) {
+              documentSymbol.children = symbol.properties
+                .sort((a, b) => a.text.localeCompare(b.text))
+                .map(property => {
+                  return new vscode.DocumentSymbol(
+                    property.text,
+                    property.documentation,
+                    convertToSymbolKind(property.kind.toString()),
+                    property.lineRange,
+                    property.range
+                  );
+                });
             }
 
             return documentSymbol;
