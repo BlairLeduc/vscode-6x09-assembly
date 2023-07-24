@@ -20,11 +20,11 @@ export class AssemblyDocument {
   public static async create(
     document: vscode.TextDocument | vscode.Uri,
     symbolManager: SymbolManager,
-    cancelationToken?: vscode.CancellationToken): Promise<AssemblyDocument> {  
+    cancelationToken?: vscode.CancellationToken): Promise<AssemblyDocument | undefined> {  
 
     const assemblyDocument = new AssemblyDocument(document, symbolManager);
-    await assemblyDocument.parse(document, cancelationToken);
-    return assemblyDocument;
+    const result = await assemblyDocument.parse(document, cancelationToken);
+    return result ? assemblyDocument : undefined;
   }
 
   private processSymbols(line: AssemblyLine): void {
@@ -54,18 +54,22 @@ export class AssemblyDocument {
 
   private async parse(
     document: vscode.TextDocument | vscode.Uri,
-    cancelationToken?: vscode.CancellationToken): Promise<void> {
+    cancelationToken?: vscode.CancellationToken): Promise<boolean> {
 
     let lines: string[] = [];
     if (isTextDocument(document)) {
       lines = document.getText().split(/\r?\n/);
     } else if (isUri(document)) {
-      const content = await vscode.workspace.fs.readFile(document);
-      lines = content.toString().split(/\r?\n/);
+      try {
+        const content = await vscode.workspace.fs.readFile(document);
+        lines = content.toString().split(/\r?\n/);
+      } catch (error) {
+        Logger.error(`Failed to read file: ${document.toString()}`);
+      }
     }
 
     if (lines.length === 0) {
-      return;
+      return false;
     }
 
     const range = new vscode.Range(
@@ -86,7 +90,7 @@ export class AssemblyDocument {
 
     for (let i = range.start.line; i <= range.end.line; i++) {
       if (cancelationToken && cancelationToken.isCancellationRequested) {
-        return;
+        return false;
       }
 
       const line = lines[i];
@@ -105,5 +109,6 @@ export class AssemblyDocument {
       this.processSymbols(asmLine);
     }
     Logger.debug(`Parsed assembly document: ${this.uri.toString()}`);
+    return true;
   }
 }

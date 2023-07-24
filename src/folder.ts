@@ -14,7 +14,7 @@ export class Folder implements vscode.Disposable {
   constructor(public workspaceFolder?: vscode.WorkspaceFolder) {
     this.symbolManager = new SymbolManager();
     if (this.workspaceFolder) {
-      Logger.info(`Monitoring folder "${this.workspaceFolder?.name ?? "{}"}"`);
+      Logger.info(`Watching folder "${this.workspaceFolder?.name ?? "{}"}"`);
     }
   }
 
@@ -32,43 +32,57 @@ export class Folder implements vscode.Disposable {
 
   public async addAssemblyDocument(
     document: vscode.TextDocument | vscode.Uri,
-    token?: vscode.CancellationToken): Promise<vscode.Uri[]> {
+    token?: vscode.CancellationToken): Promise<void> {
 
-    if (this.containsAssemblyDocument(document)) {
-      return [];
+    if (!this.containsAssemblyDocument(document)) {
+      await this.updateAssemblyDocument(document, token);
     }
-
-    const uri = isTextDocument(document) ? document.uri : document;
-    const workspace = this.workspaceFolder ? ` in workspace "${this.workspaceFolder.name}"` : '';
-    Logger.info(`Monitoring ${uri.toString()}${workspace}`);
-
-    return await this.updateAssemblyDocument(document, token);
   }
 
   public async updateAssemblyDocument(
     document: vscode.TextDocument | vscode.Uri,
-    token?: vscode.CancellationToken): Promise<vscode.Uri[]> {
+    token?: vscode.CancellationToken): Promise<void> {
 
     const uri = isTextDocument(document) ? document.uri : document;
 
-    const assemblyDocument = this.documents
-      .add(uri, await AssemblyDocument.create(document, this.symbolManager, token));
+    const assemblyDocument = await AssemblyDocument.create(document, this.symbolManager, token);
+    if (assemblyDocument) {
+      let updateReferences = true; // By default, update references
+      
+      if (this.containsAssemblyDocument(uri)) {
+        // If the document already exists, check if the references have changed
+        const oldReferences = this.documents
+          .get(uri)
+          .referencedDocuments
+          .map(d => d.uri.toString())
+          .reduce((a, b) => a.concat(b), '');
 
-    const processedDocuments = new Set<vscode.Uri>();
-    processedDocuments.add(uri);
-    assemblyDocument.referencedDocuments.forEach(d => {
-      processedDocuments.add(d.uri);
-    });
+        const newReferences = assemblyDocument
+          .referencedDocuments
+          .map(d => d.uri.toString())
+          .reduce((a, b) => a.concat(b), '');
 
-    for (const referencedDocument of assemblyDocument.referencedDocuments) {
-      if (!processedDocuments.has(referencedDocument.uri)) {
-        (await this.addAssemblyDocument(referencedDocument.uri, token)).forEach(d => {
-          processedDocuments.add(d);
-        });
-        processedDocuments.add(referencedDocument.uri);
+        if (oldReferences === newReferences) {
+          updateReferences = false;
+          Logger.debug("Not updating references because they haven't changed");
+        }
+      } else {
+        // Log that we're watching the document
+        const workspace = this.workspaceFolder ? ` in workspace "${this.workspaceFolder.name}"` : '';
+        Logger.info(`Watching ${uri.toString()}${workspace}`);
+      }
+
+      this.documents.add(uri, assemblyDocument);
+
+      if (updateReferences) {
+        for (const referencedDocument of assemblyDocument.referencedDocuments) {
+          if (!this.documents.containsKey(referencedDocument.uri)) {
+            Logger.debug(`Scanning referenced document ${referencedDocument.uri.toString()}`);
+            await this.addAssemblyDocument(referencedDocument.uri, token);
+          }
+        }
       }
     }
-    return Array.from(processedDocuments.values());
   }
 
   public getAssemblyDocument(uri: vscode.Uri): AssemblyDocument | undefined {
@@ -78,7 +92,7 @@ export class Folder implements vscode.Disposable {
   public removeAssemblyDocument(document: vscode.TextDocument | vscode.Uri): void {
     const uri = isTextDocument(document) ? document.uri : document;
     this.documents.remove(uri);
-    
+
     const workspace = this.workspaceFolder ? ` in workspace "${this.workspaceFolder.name}"` : '';
     Logger.info(`Stopped monitoring ${uri.toString()}${workspace}`);
   }
