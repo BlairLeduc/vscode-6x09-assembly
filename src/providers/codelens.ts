@@ -36,7 +36,7 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
         const lenses = new Array<vscode.CodeLens>();
 
         symbolManager.implementations
-          .filter(s => s.uri.fsPath === document.uri.fsPath)
+          .filter(s => s.uri.toString() === document.uri.toString())
           .forEach(symbol => {
 
           const references = symbolManager.references

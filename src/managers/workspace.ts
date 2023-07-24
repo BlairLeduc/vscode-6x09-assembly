@@ -44,7 +44,7 @@ export class WorkspaceManager implements vscode.Disposable {
       }),
       vscode.workspace.onDidCreateFiles(event => {
         event.files.forEach(file => {
-          const document = vscode.workspace.textDocuments.find(d => d.uri.fsPath === file.fsPath);
+          const document = vscode.workspace.textDocuments.find(d => d.uri.toString() === file.toString());
           if (document) {
             this.addDocument(document);
           }
@@ -52,7 +52,7 @@ export class WorkspaceManager implements vscode.Disposable {
       }),
       vscode.workspace.onDidDeleteFiles(event => {
         event.files.forEach(file => {
-          const document = vscode.workspace.textDocuments.find(d => d.uri.fsPath === file.fsPath);
+          const document = vscode.workspace.textDocuments.find(d => d.uri.toString() === file.toString());
           if (document) {
             this.removeDocument(document);
           }
@@ -62,7 +62,7 @@ export class WorkspaceManager implements vscode.Disposable {
         event.files.forEach(file => {
           const document = vscode.workspace
             .textDocuments
-            .find(d => d.uri.fsPath === file.oldUri.fsPath);
+            .find(d => d.uri.toString() === file.oldUri.toString());
           if (document) {
             this.removeDocument(document);
           }
@@ -70,7 +70,7 @@ export class WorkspaceManager implements vscode.Disposable {
         event.files.forEach(file => {
           const document = vscode.workspace
             .textDocuments
-            .find(d => d.uri.fsPath === file.newUri.fsPath);
+            .find(d => d.uri.toString() === file.newUri.toString());
           if (document) {
             this.addDocument(document);
           }

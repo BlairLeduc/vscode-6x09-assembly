@@ -34,7 +34,7 @@ export class AssemblyDocument {
 
     if (line.file) {
       const uri = appendPath(this.uri, line.file); // TODO: Handle absolute paths and Windows paths
-      if (!this.referencedDocuments.find(d => d.uri)) {
+      if (!this.referencedDocuments.find(d => d.uri.toString() === uri.toString())) {
         this.referencedDocuments.push(new AssemblyFileReference(uri, line.fileRange!));
       }
     }

@@ -58,7 +58,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
           const regs = Array.from(registers).map(r => this.createRegisterCompletionItem(r));
           const symbols = symbolManager.implementations
-            .filter(s => s.uri.fsPath === document.uri.fsPath
+            .filter(s => s.uri.toString() === document.uri.toString()
               && (s.blockNumber === 0 || s.blockNumber === assemblyLine.blockNumber))
             .map(s => this.createSymbolCompletionItem(s));
 

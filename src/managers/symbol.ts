@@ -10,8 +10,8 @@ export class SymbolManager implements vscode.Disposable {
   }
 
   public clearDocument(uri: vscode.Uri): void {
-    this.implementations = this.implementations.filter(t => t.uri.fsPath !== uri.fsPath);
-    this.references = this.references.filter(t => t.uri.fsPath !== uri.fsPath);
+    this.implementations = this.implementations.filter(t => t.uri.toString() !== uri.toString());
+    this.references = this.references.filter(t => t.uri.toString() !== uri.toString());
   }
 
   public addImplementation(symbol: AssemblySymbol): void {
