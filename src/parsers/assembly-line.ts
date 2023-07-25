@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
+import { AssemblySymbol } from '../common';
 import {
-  AssemblySymbol,
   constantPseudoOps,
   Token,
   TokenKind,
   TokenModifier,
-  TokenType } from '../common';
+  TokenType,
+} from '../constants';
 import { LineParser } from './line-parser';
 
 export interface SymbolReference {

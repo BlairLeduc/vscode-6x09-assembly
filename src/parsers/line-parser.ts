@@ -1,5 +1,6 @@
 import {
-  delimitedStringPseudoOps, filePseudoOps,
+  delimitedStringPseudoOps,
+  filePseudoOps,
   inherentOpcodes,
   inherentPseudoOps,
   operandOpcodes,
@@ -10,7 +11,8 @@ import {
   Token,
   TokenKind,
   TokenModifier,
-  TokenType } from '../common';
+  TokenType,
+} from '../constants';
 
 interface FoundInfo { 
   match: RegExpMatchArray | null;

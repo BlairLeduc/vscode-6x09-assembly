@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
-import { convertTokenToName, TokenType } from '../common';
-import { ConfigurationManager, HelpVerbosity, WorkspaceManager } from '../managers';
+import { convertTokenToName } from '../common';
+import { HelpVerbosity, TokenType } from '../constants';
+import { ConfigurationManager, WorkspaceManager } from '../managers';
 import { DocOpcodeType } from '../parsers';
 
 export class HoverProvider implements vscode.HoverProvider {

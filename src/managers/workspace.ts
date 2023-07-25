@@ -2,8 +2,9 @@ import * as vscode from 'vscode';
 import { Collection } from '../collections';
 import { AssemblyDocument, Docs } from '../parsers';
 import { SymbolManager } from './symbol';
-import { Folder } from '../folder';
-import { ASM6X09_FILE_GLOB_PATTERN, ASM6X09_LANGUAGE, isTextDocument } from '../common';
+import { Folder } from './folder';
+import { isTextDocument } from '../common';
+import { ASM6X09_FILE_GLOB_PATTERN, ASM6X09_LANGUAGE } from '../common';
 
 export class WorkspaceManager implements vscode.Disposable {
   private static readonly noWorkspaceUri = 'wsf:none';

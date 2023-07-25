@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { Logger } from '../logger';
+import { Command, HelpVerbosity, OpcodeCase } from '../constants';
 
 export interface CommandConfiguration {
   path: {
@@ -31,29 +32,6 @@ interface ExtensionWorkspaceConfiguration extends vscode.WorkspaceConfiguration 
 
   /** the GDB debug port */
   debugPort: number;
-}
-
-export enum Command {
-  lwasm,
-  xroar
-}
-
-export enum OSPlatform {
-  windows,
-  macOS,
-  linux
-}
-
-export enum OpcodeCase {
-  lowercase = 'lowercase',
-  uppercase = 'uppercase',
-  capitalised = 'capitalised',
-}
-
-export enum HelpVerbosity {
-  none = 'none',
-  light = 'light',
-  full = 'full',
 }
 
 export class ConfigurationManager implements vscode.Disposable {

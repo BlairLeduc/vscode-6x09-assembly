@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
-import { Collection } from './collections';
-import { AssemblyDocument } from './parsers';
-import { SymbolManager } from './managers';
-import { isTextDocument } from './common';
-import { Logger } from './logger';
+import { Collection } from '../collections';
+import { AssemblyDocument } from '../parsers';
+import { SymbolManager } from '.';
+import { isTextDocument } from '../common';
+import { Logger } from '../logger';
 
 // Represents a workspace folder
 export class Folder implements vscode.Disposable {

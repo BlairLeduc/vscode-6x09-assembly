@@ -1,12 +1,14 @@
 import * as vscode from 'vscode';
-import { ConfigurationManager, HelpVerbosity, OpcodeCase, WorkspaceManager } from '../managers';
-import { AssemblySymbol, registers } from '../common';
+import { AssemblySymbol, convertToCase } from '../common';
+import { registers, HelpVerbosity, OpcodeCase } from '../constants';
+import { ConfigurationManager, WorkspaceManager } from '../managers';
 import { DocOpcode } from '../parsers';
-import { convertToCase } from '../utilities';
 
 export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
-  constructor(private workspaceManager: WorkspaceManager, private configurationManager: ConfigurationManager) {
+  constructor(
+    private workspaceManager: WorkspaceManager,
+    private configurationManager: ConfigurationManager) {
   }
 
   public async provideCompletionItems(

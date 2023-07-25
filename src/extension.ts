@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { ChangeCaseOpcodeCommand } from './commands';
-import { OpcodeCase } from './managers';
+import { ASM6X09_CONFIG_SECTION, ASM6X09_LANGUAGE, ASM6X09_MODE } from './common';
+import { OpcodeCase } from './constants';
 import {
   CodeLensProvider,
   CompletionItemProvider,
@@ -19,7 +20,6 @@ import {
   WorkspaceSymbolProvider
 } from './providers';
 import { State } from './state';
-import { ASM6X09_CONFIG_SECTION, ASM6X09_LANGUAGE, ASM6X09_MODE } from './common';
 import { Logger } from './logger';
 
 // import { DebugAdapterDescriptorFactory } from './debug/debug-adapter-descriptor-factory';

@@ -8,7 +8,7 @@ import * as assert from 'assert';
 
 // Classes under test
 
-import { Token, TokenKind, TokenModifier, TokenType } from '../../common';
+import { Token, TokenKind, TokenModifier, TokenType } from '../../constants';
 import { LineParser } from '../../parsers';
 
 suite('LineParser', () => {

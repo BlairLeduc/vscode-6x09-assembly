@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { TokenModifier, TokenType } from '../common';
+import { TokenModifier, TokenType } from '../constants';
 import { WorkspaceManager } from '../managers';
 
 export const documentSemanticTokensLegend = new vscode.SemanticTokensLegend(
