@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
 import { TokenKind } from './common';
-import { OpcodeCase } from './managers/configuration';
-import { WorkspaceManager } from './managers/workspace';
-import { AssemblyLine } from './parsers/assembly-line';
+import { OpcodeCase, WorkspaceManager } from './managers';
+import { AssemblyLine } from './parsers';
 import { convertToCase } from './utilities';
 import { Logger } from './logger';
 

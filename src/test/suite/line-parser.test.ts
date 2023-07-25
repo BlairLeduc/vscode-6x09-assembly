@@ -9,7 +9,7 @@ import * as assert from 'assert';
 // Classes under test
 
 import { Token, TokenKind, TokenModifier, TokenType } from '../../common';
-import { LineParser } from '../../parsers/line-parser';
+import { LineParser } from '../../parsers';
 
 suite('LineParser', () => {
   test('Empty string returns empty token list', () => {

@@ -5,7 +5,7 @@ import {
   Command,
   CommandConfiguration,
   OSPlatform
-} from '../managers/configuration';
+} from '../managers';
 import { getOSPlatform } from '../utilities';
 import { ASM6X09_FILE_EXTENSIONS } from '../common';
 

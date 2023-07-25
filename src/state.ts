@@ -1,7 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { ConfigurationManager } from './managers/configuration';
-import { WorkspaceManager } from './managers/workspace';
+import { ConfigurationManager, WorkspaceManager } from './managers';
 
 export class State implements vscode.Disposable {
   private storage: Map<string, vscode.Disposable> = new Map<string, vscode.Disposable>();

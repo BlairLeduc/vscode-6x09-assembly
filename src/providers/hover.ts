@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
 import { convertTokenToName, TokenType } from '../common';
-import { ConfigurationManager, HelpVerbosity } from '../managers/configuration';
-import { WorkspaceManager } from '../managers/workspace';
-import { DocOpcodeType } from '../parsers/docs';
+import { ConfigurationManager, HelpVerbosity, WorkspaceManager } from '../managers';
+import { DocOpcodeType } from '../parsers';
 
 export class HoverProvider implements vscode.HoverProvider {
   private helpVerbosity = HelpVerbosity.full;

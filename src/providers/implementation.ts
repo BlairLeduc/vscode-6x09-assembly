@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { WorkspaceManager } from '../managers/workspace';
+import { WorkspaceManager } from '../managers';
 
 export class ImplementationProvider implements vscode.ImplementationProvider {
 

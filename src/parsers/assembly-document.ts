@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { AssemblyLine, ParserState } from './assembly-line';
 import { AssemblyBlock, AssemblyFileReference, appendPath, isTextDocument, isUri } from '../common';
-import { SymbolManager } from '../managers/symbol';
+import { SymbolManager } from '../managers';
 import { Logger } from '../logger';
 
 export class AssemblyDocument {

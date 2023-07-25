@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
-import { ConfigurationManager, HelpVerbosity as HelpVerbosity, OpcodeCase } from '../managers/configuration';
-import { WorkspaceManager } from '../managers/workspace';
+import { ConfigurationManager, HelpVerbosity, OpcodeCase, WorkspaceManager } from '../managers';
 import { AssemblySymbol, registers } from '../common';
-import { DocOpcode } from '../parsers/docs';
+import { DocOpcode } from '../parsers';
 import { convertToCase } from '../utilities';
 
 export class CompletionItemProvider implements vscode.CompletionItemProvider {

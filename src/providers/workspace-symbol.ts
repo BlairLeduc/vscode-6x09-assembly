@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { WorkspaceManager } from '../managers/workspace';
+import { WorkspaceManager } from '../managers';
 import { convertToSymbolKind } from '../utilities';
 
 export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {

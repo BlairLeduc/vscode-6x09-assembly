@@ -1,6 +1,6 @@
 import * as cp from 'child_process';
 import * as vscode from 'vscode';
-import { OpcodeCase, OSPlatform } from './managers/configuration';
+import { OpcodeCase, OSPlatform } from './managers';
 import { Logger } from './logger';
 
 export function convertToCase(name: string, casing: OpcodeCase): string {

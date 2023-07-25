@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { Collection } from './collection';
-import { AssemblyDocument } from './parsers/assembly-document';
-import { SymbolManager } from './managers/symbol';
+import { Collection } from './collections';
+import { AssemblyDocument } from './parsers';
+import { SymbolManager } from './managers';
 import { isTextDocument } from './common';
 import { Logger } from './logger';
 

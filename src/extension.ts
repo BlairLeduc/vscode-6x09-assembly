@@ -1,24 +1,25 @@
 import * as vscode from 'vscode';
 import { ChangeCaseOpcodeCommand } from './commands';
-import { OpcodeCase } from './managers/configuration';
-import { CodeLensProvider } from './providers/codelens';
-import { CompletionItemProvider } from './providers/completion';
-import { DefinitionProvider } from './providers/definition';
-import { DocumentHighlightProvider } from './providers/document-highlight';
-import { DocumentSymbolProvider } from './providers/document-symbol';
-import { HoverProvider } from './providers/hover';
-import { ReferenceProvider } from './providers/reference';
-import { RenameProvider } from './providers/rename';
-import { State } from './state';
-import { TaskProvider } from './providers/task';
+import { OpcodeCase } from './managers';
 import {
+  CodeLensProvider,
+  CompletionItemProvider,
+  DefinitionProvider,
+  DocumentHighlightProvider,
+  DocumentLinkProvider,
   documentSemanticTokensLegend,
-  DocumentSemanticTokensProvider } from './providers/document-semantic-tokens';
-import { ImplementationProvider } from './providers/implementation';
-import { WorkspaceSymbolProvider } from './providers/workspace-symbol';
-import { FoldingRangeProvider } from './providers/folding-range';
+  DocumentSemanticTokensProvider,
+  DocumentSymbolProvider,
+  FoldingRangeProvider,
+  HoverProvider,
+  ImplementationProvider,
+  ReferenceProvider,
+  RenameProvider,
+  TaskProvider,
+  WorkspaceSymbolProvider
+} from './providers';
+import { State } from './state';
 import { ASM6X09_CONFIG_SECTION, ASM6X09_LANGUAGE, ASM6X09_MODE } from './common';
-import { DocumentLinkProvider } from './providers/document-link';
 import { Logger } from './logger';
 
 // import { DebugAdapterDescriptorFactory } from './debug/debug-adapter-descriptor-factory';
@@ -65,7 +66,7 @@ export function activate(context: vscode.ExtensionContext): void {
     ASM6X09_MODE,
     new FoldingRangeProvider(workspaceManager)
   ));
-  
+
   disposables.push(vscode.languages.registerWorkspaceSymbolProvider(
     new WorkspaceSymbolProvider(workspaceManager)
   ));

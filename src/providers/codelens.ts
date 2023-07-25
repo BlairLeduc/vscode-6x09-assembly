@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
-import { ConfigurationManager } from '../managers/configuration';
-import { WorkspaceManager } from '../managers/workspace';
+import { ConfigurationManager, WorkspaceManager } from '../managers';
 
 export class CodeLensProvider implements vscode.CodeLensProvider {
   private enabled = true;
