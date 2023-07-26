@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { Collection } from '../collections';
 import { AssemblyDocument } from '../parsers';
 import { SymbolManager } from '.';
 import { isTextDocument } from '../common';
@@ -9,7 +8,7 @@ import { Logger } from '../logger';
 export class Folder implements vscode.Disposable {
   private isDisposed: boolean = false;
   public readonly symbolManager: SymbolManager;
-  public readonly documents: Collection<AssemblyDocument> = new Collection<AssemblyDocument>();
+  public readonly documents: Map<string, AssemblyDocument> = new Map<string, AssemblyDocument>();
 
   constructor(public workspaceFolder?: vscode.WorkspaceFolder) {
     this.symbolManager = new SymbolManager();
@@ -27,7 +26,7 @@ export class Folder implements vscode.Disposable {
 
   public containsAssemblyDocument(document: vscode.TextDocument | vscode.Uri): boolean {
     const uri = isTextDocument(document) ? document.uri : document;
-    return this.documents.containsKey(uri);
+    return this.documents.has(uri.toString());
   }
 
   public async addAssemblyDocument(
@@ -49,10 +48,10 @@ export class Folder implements vscode.Disposable {
     if (assemblyDocument) {
       let updateReferences = true; // By default, update references
       
-      if (this.containsAssemblyDocument(uri)) {
+      const original = this.documents.get(uri.toString());
+      if (original) {
         // If the document already exists, check if the references have changed
-        const oldReferences = this.documents
-          .get(uri)
+        const oldReferences = original
           .referencedDocuments
           .map(d => d.uri.toString())
           .reduce((a, b) => a.concat(b), '');
@@ -72,11 +71,11 @@ export class Folder implements vscode.Disposable {
         Logger.info(`Watching ${uri.toString()}${workspace}`);
       }
 
-      this.documents.add(uri, assemblyDocument);
+      this.documents.set(uri.toString(), assemblyDocument);
 
       if (updateReferences) {
         for (const referencedDocument of assemblyDocument.referencedDocuments) {
-          if (!this.documents.containsKey(referencedDocument.uri)) {
+          if (!this.documents.has(referencedDocument.uri.toString())) {
             Logger.debug(`Scanning referenced document ${referencedDocument.uri.toString()}`);
             await this.addAssemblyDocument(referencedDocument.uri, token);
           }
@@ -86,12 +85,12 @@ export class Folder implements vscode.Disposable {
   }
 
   public getAssemblyDocument(uri: vscode.Uri): AssemblyDocument | undefined {
-    return this.containsAssemblyDocument(uri) ? this.documents.get(uri) : undefined;
+    return this.containsAssemblyDocument(uri) ? this.documents.get(uri.toString()) : undefined;
   }
 
   public removeAssemblyDocument(document: vscode.TextDocument | vscode.Uri): void {
     const uri = isTextDocument(document) ? document.uri : document;
-    this.documents.remove(uri);
+    this.documents.delete(uri.toString());
 
     const workspace = this.workspaceFolder ? ` in workspace "${this.workspaceFolder.name}"` : '';
     Logger.info(`Stopped monitoring ${uri.toString()}${workspace}`);

@@ -15,7 +15,7 @@ export enum OpcodeCase {
   capitalised = 'capitalised',
 }
 
-export enum HelpVerbosity {
+export enum HelpLevel {
   none = 'none',
   light = 'light',
   full = 'full',

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { Logger } from '../logger';
-import { Command, HelpVerbosity, OpcodeCase } from '../constants';
+import { Command, HelpLevel, OpcodeCase } from '../constants';
 
 export interface CommandConfiguration {
   path: {
@@ -40,7 +40,7 @@ export class ConfigurationManager implements vscode.Disposable {
   private defaultConfiguration = {
     opcode: {
       casing: OpcodeCase.lowercase,
-      help: HelpVerbosity.full,
+      help: HelpLevel.full,
     },
     enableCodeLens: true,
     lwasm: {
@@ -92,9 +92,9 @@ export class ConfigurationManager implements vscode.Disposable {
     return this.config?.enableCodeLens ?? this.defaultConfiguration.enableCodeLens;
   }
 
-  public get helpVerbosity(): HelpVerbosity {
+  public get helpVerbosity(): HelpLevel {
     return this.config
-      ? HelpVerbosity[this.config.opcode.help as keyof typeof HelpVerbosity]
+      ? HelpLevel[this.config.opcode.help as keyof typeof HelpLevel]
       : this.defaultConfiguration.opcode.help;
   }
 

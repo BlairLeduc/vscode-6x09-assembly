@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { Collection } from '../collections';
 import { AssemblyDocument, Docs } from '../parsers';
 import { SymbolManager } from './symbol';
 import { Folder } from './folder';
@@ -11,7 +10,7 @@ export class WorkspaceManager implements vscode.Disposable {
   private isDisposed: boolean = false;
   public readonly opcodeDocs: Docs;
 
-  private folders: Collection<Folder> = new Collection<Folder>();
+  private folders: Map<string, Folder> = new Map<string, Folder>();
   private disposables: Array<vscode.Disposable>;
 
   constructor(extensionPath: string) {
@@ -81,7 +80,7 @@ export class WorkspaceManager implements vscode.Disposable {
 
   public dispose(): void {
     if (!this.isDisposed) {
-      this.folders.values().forEach(f => f.dispose());
+      this.folders.forEach(f => f.dispose());
       this.folders.clear();
       this.disposables.forEach(d => d.dispose());
       this.disposables = [];
@@ -130,12 +129,17 @@ export class WorkspaceManager implements vscode.Disposable {
   }
 
   public addFolder(workspaceFolder: vscode.WorkspaceFolder): Folder {
-    return this.folders.add(workspaceFolder.uri, new Folder(workspaceFolder));
+    const folder = new Folder(workspaceFolder);
+    this.folders.set(workspaceFolder.uri.toString(), folder);
+    return folder;
   }
 
   public removeFolder(workspaceFolder: vscode.WorkspaceFolder): void {
-    this.folders.get(workspaceFolder.uri).dispose();
-    this.folders.remove(workspaceFolder.uri);
+    const folder = this.folders.get(workspaceFolder.uri.toString());
+    if (folder) {
+      folder.dispose();
+      this.folders.delete(workspaceFolder.uri.toString());
+    }
   }
 
   public getSymbolManager(document: vscode.TextDocument | vscode.Uri): SymbolManager {
@@ -148,7 +152,7 @@ export class WorkspaceManager implements vscode.Disposable {
   }
 
   public getAllSymbolManagers(): SymbolManager[] {
-    return this.folders.values().map(f => f.symbolManager);
+    return [...this.folders.values()].map(f => f.symbolManager);
   }
 
   private getOrCreateFolder(document: vscode.TextDocument | vscode.Uri): Folder {
@@ -158,9 +162,11 @@ export class WorkspaceManager implements vscode.Disposable {
       ? workspaceFolder.uri
       : vscode.Uri.parse(WorkspaceManager.noWorkspaceUri);
 
-    if (!this.folders.containsKey(folderUri)) {
-      return this.folders.add(folderUri, new Folder(workspaceFolder));
+    if (!this.folders.has(folderUri.toString())) {
+      const folder = new Folder(workspaceFolder);
+      this.folders.set(folderUri.toString(), folder);
+      return folder; 
     }
-    return this.folders.get(folderUri);
+    return this.folders.get(folderUri.toString())!;
   }
 }

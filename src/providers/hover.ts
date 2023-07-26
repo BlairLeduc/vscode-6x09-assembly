@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
 import { convertTokenToName } from '../common';
-import { HelpVerbosity, TokenType } from '../constants';
+import { HelpLevel, TokenType } from '../constants';
 import { ConfigurationManager, WorkspaceManager } from '../managers';
 import { DocOpcodeType } from '../parsers';
 
 export class HoverProvider implements vscode.HoverProvider {
-  private helpVerbosity = HelpVerbosity.full;
+  private helpVerbosity = HelpLevel.full;
   private onDidChangeHelpVerbosityEmitter = new vscode.EventEmitter<void>();
 
   constructor(
@@ -28,7 +28,7 @@ export class HoverProvider implements vscode.HoverProvider {
     position: vscode.Position,
     cancellationToken: vscode.CancellationToken): Promise<vscode.Hover | undefined> {
 
-    if (this.helpVerbosity !== HelpVerbosity.none && !cancellationToken.isCancellationRequested) {
+    if (this.helpVerbosity !== HelpLevel.none && !cancellationToken.isCancellationRequested) {
       const assemblyDocument = this.workspaceManager
         .getAssemblyDocument(document, cancellationToken);
 
@@ -57,7 +57,7 @@ export class HoverProvider implements vscode.HoverProvider {
               ? `${opCodeDocs.notation}　⸺　${opCodeDocs.conditionCodes}`
               : '';
 
-            if (this.configurationManager.helpVerbosity === HelpVerbosity.full
+            if (this.configurationManager.helpVerbosity === HelpLevel.full
               && opCodeDocs.documentation) {
 
               documentation += `  \n  \n${opCodeDocs.documentation}`;

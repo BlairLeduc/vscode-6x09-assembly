@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { AssemblySymbol, convertToCase } from '../common';
-import { registers, HelpVerbosity, OpcodeCase } from '../constants';
+import { registers, HelpLevel, OpcodeCase } from '../constants';
 import { ConfigurationManager, WorkspaceManager } from '../managers';
 import { DocOpcode } from '../parsers';
 
@@ -117,7 +117,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
       item.detail += ' (6309)';
     }
 
-    if (this.configurationManager.helpVerbosity === HelpVerbosity.full && opcode.documentation) {
+    if (this.configurationManager.helpVerbosity === HelpLevel.full && opcode.documentation) {
       item.documentation = new vscode.MarkdownString(opcode.documentation);
     }
 
