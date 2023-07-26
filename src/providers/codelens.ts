@@ -39,22 +39,22 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
           .filter(s => s.uri.toString() === document.uri.toString())
           .forEach(symbol => {
 
-          const references = symbolManager.references
-            .filter(r => r.text === symbol.text && r.blockNumber === symbol.blockNumber);
-          
-          const command: vscode.Command = {
-            command: 'editor.action.showReferences',
-            title: `${references.length} reference${references.length !== 1 ? 's' : ''}`,
-            arguments: [
-              document.uri,
-              symbol.range.start,
-              references.map(r => new vscode.Location(r.uri, r.range))
-            ],
-          };
+            const references = symbolManager.references
+              .filter(r => r.text === symbol.text && r.blockNumber === symbol.blockNumber);
+            
+            const command: vscode.Command = {
+              command: 'editor.action.showReferences',
+              title: `${references.length} reference${references.length !== 1 ? 's' : ''}`,
+              arguments: [
+                document.uri,
+                symbol.range.start,
+                references.map(r => new vscode.Location(r.uri, r.range))
+              ],
+            };
 
-          lenses.push({
-            command,
-            range: symbol.range,
+            lenses.push({
+              command,
+              range: symbol.range,
             isResolved: true,
           });
         });

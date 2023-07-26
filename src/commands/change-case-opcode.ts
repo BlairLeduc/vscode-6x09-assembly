@@ -17,6 +17,7 @@ export class ChangeCaseOpcodeCommand {
     if (assemblyDocument) {
       assemblyDocument.lines.forEach((line: AssemblyLine) => {
         const opCode = line.opCode;
+
         if (opCode && opCode.kind === TokenKind.opCode) {
           edit.replace(
             new vscode.Range(
