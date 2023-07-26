@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+
 import { AssemblyDocument } from '../parsers';
 import { SymbolManager } from '.';
 import { isTextDocument } from '../common';
@@ -67,7 +68,9 @@ export class Folder implements vscode.Disposable {
         }
       } else {
         // Log that we're watching the document
-        const workspace = this.workspaceFolder ? ` in workspace "${this.workspaceFolder.name}"` : '';
+        const workspace = this.workspaceFolder
+          ? ` in workspace "${this.workspaceFolder.name}"`
+          : '';
         Logger.info(`Watching ${uri.toString()}${workspace}`);
       }
 

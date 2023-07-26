@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+
 import { AssemblySymbol, convertToCase } from '../common';
 import { registers, HelpLevel, OpcodeCase } from '../constants';
 import { ConfigurationManager, WorkspaceManager } from '../managers';
@@ -48,8 +49,10 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
           if (parts.length > 1) {
             const symbol = symbolManager.implementations.find(s => s.text === parts[0]);
+
             if (symbol && symbol.kind === vscode.CompletionItemKind.Variable) {
               const definition = symbolManager.implementations.find(s => s.text === symbol.value);
+
               if (definition && definition.properties) {
                 return new vscode.CompletionList(definition.properties
                   .map(p => this.createSymbolCompletionItem(p)));

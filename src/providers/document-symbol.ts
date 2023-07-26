@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+
 import { convertToSymbolKind } from '../common';
 import { WorkspaceManager } from '../managers';
 

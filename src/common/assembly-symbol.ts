@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+
 import { Token, TokenType } from "../constants";
 import { convertTokenKindToComplitionItemKind } from "./convert";
 

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { WorkspaceManager } from '../managers';
 
+import { WorkspaceManager } from '../managers';
 
 export class ReferenceProvider implements vscode.ReferenceProvider {
 

@@ -11,6 +11,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       // if launch.json is missing or empty
       if (!config.type && !config.request && !config.name) {
         const editor = vscode.window.activeTextEditor;
+
         if (editor && editor.document.languageId === 'asm6x09') {
           config.type = 'asm6x09';
           config.name = 'Launch';

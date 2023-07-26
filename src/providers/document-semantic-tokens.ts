@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+
 import { TokenModifier, TokenType } from '../constants';
 import { WorkspaceManager } from '../managers';
 

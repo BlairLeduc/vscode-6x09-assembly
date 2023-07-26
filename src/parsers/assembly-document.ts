@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+
 import { AssemblyLine, ParserState } from './assembly-line';
 import { AssemblyBlock, AssemblyFileReference, appendPath, isTextDocument, isUri } from '../common';
 import { SymbolManager } from '../managers';
@@ -57,6 +58,7 @@ export class AssemblyDocument {
     cancelationToken?: vscode.CancellationToken): Promise<boolean> {
 
     let lines: string[] = [];
+    
     if (isTextDocument(document)) {
       lines = document.getText().split(/\r?\n/);
     } else if (isUri(document)) {
@@ -98,14 +100,18 @@ export class AssemblyDocument {
       this.lines.push(asmLine);
 
       state = asmLine.state;
+      
       if (state.blockNumber > blockNumber) {
         block.endLineNumber = i - 1;
+
         if (block.endLineNumber - block.startLineNumber > 0) {
           this.blocks.set(blockNumber, block);
         }
+        
         block = new AssemblyBlock(state.blockNumber, i + 1);
         blockNumber = state.blockNumber;
       }
+
       this.processSymbols(asmLine);
     }
     Logger.debug(`Parsed assembly document: ${this.uri.toString()}`);

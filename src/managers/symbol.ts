@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+
 import { AssemblySymbol } from '../common';
 
 export class SymbolManager implements vscode.Disposable {

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as cp from 'child_process';
+
 import { OSPlatform } from '../constants';
 import { Logger } from '../logger';
 

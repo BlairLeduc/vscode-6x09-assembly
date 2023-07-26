@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
+
+import { ASM6X09_FILE_GLOB_PATTERN, ASM6X09_LANGUAGE, isTextDocument  } from '../common';
+import { Folder } from './folder';
 import { AssemblyDocument, Docs } from '../parsers';
 import { SymbolManager } from './symbol';
-import { Folder } from './folder';
-import { isTextDocument } from '../common';
-import { ASM6X09_FILE_GLOB_PATTERN, ASM6X09_LANGUAGE } from '../common';
 
 export class WorkspaceManager implements vscode.Disposable {
+
   private static readonly noWorkspaceUri = 'wsf:none';
   private isDisposed: boolean = false;
   public readonly opcodeDocs: Docs;
@@ -43,7 +44,8 @@ export class WorkspaceManager implements vscode.Disposable {
       }),
       vscode.workspace.onDidCreateFiles(event => {
         event.files.forEach(file => {
-          const document = vscode.workspace.textDocuments.find(d => d.uri.toString() === file.toString());
+          const document = vscode.workspace.textDocuments
+            .find(d => d.uri.toString() === file.toString());
           if (document) {
             this.addDocument(document);
           }
@@ -51,7 +53,8 @@ export class WorkspaceManager implements vscode.Disposable {
       }),
       vscode.workspace.onDidDeleteFiles(event => {
         event.files.forEach(file => {
-          const document = vscode.workspace.textDocuments.find(d => d.uri.toString() === file.toString());
+          const document = vscode.workspace.textDocuments
+            .find(d => d.uri.toString() === file.toString());
           if (document) {
             this.removeDocument(document);
           }
@@ -59,16 +62,14 @@ export class WorkspaceManager implements vscode.Disposable {
       }),
       vscode.workspace.onDidRenameFiles(event => {
         event.files.forEach(file => {
-          const document = vscode.workspace
-            .textDocuments
+          const document = vscode.workspace.textDocuments
             .find(d => d.uri.toString() === file.oldUri.toString());
           if (document) {
             this.removeDocument(document);
           }
         });
         event.files.forEach(file => {
-          const document = vscode.workspace
-            .textDocuments
+          const document = vscode.workspace.textDocuments
             .find(d => d.uri.toString() === file.newUri.toString());
           if (document) {
             this.addDocument(document);
@@ -91,9 +92,11 @@ export class WorkspaceManager implements vscode.Disposable {
   public async addDocument(
     document: vscode.TextDocument | vscode.Uri,
     token?: vscode.CancellationToken): Promise<void> {
+
     if (isTextDocument(document) && document.languageId !== ASM6X09_LANGUAGE) {
       return;
     }
+
     const folder = this.getOrCreateFolder(document);
     await folder.addAssemblyDocument(document, token);
   }
@@ -101,20 +104,25 @@ export class WorkspaceManager implements vscode.Disposable {
   public getAssemblyDocument(
     document: vscode.TextDocument | vscode.Uri,
     token?: vscode.CancellationToken): AssemblyDocument | undefined {
+
     const uri = isTextDocument(document) ? document.uri : document;
     const folder = this.getOrCreateFolder(uri);
+    
     if (folder.containsAssemblyDocument(uri)) {
       return folder.getAssemblyDocument(uri);
     }
+
     folder.addAssemblyDocument(document, token);
     return folder.getAssemblyDocument(uri);
   }
 
   public updateDocument(change: vscode.TextDocumentChangeEvent): void {
     const document = change.document;
+    
     if (isTextDocument(document) && document.languageId !== ASM6X09_LANGUAGE) {
       return;
     }
+
     const uri = document.uri;
     const folder = this.getOrCreateFolder(uri);
     folder.updateAssemblyDocument(document);
@@ -124,6 +132,7 @@ export class WorkspaceManager implements vscode.Disposable {
     if (isTextDocument(document) && document.languageId !== ASM6X09_LANGUAGE) {
       return;
     }
+
     const folder = this.getOrCreateFolder(document);
     folder.removeAssemblyDocument(document);
   }
@@ -136,6 +145,7 @@ export class WorkspaceManager implements vscode.Disposable {
 
   public removeFolder(workspaceFolder: vscode.WorkspaceFolder): void {
     const folder = this.folders.get(workspaceFolder.uri.toString());
+
     if (folder) {
       folder.dispose();
       this.folders.delete(workspaceFolder.uri.toString());
@@ -148,6 +158,7 @@ export class WorkspaceManager implements vscode.Disposable {
     if (!folder.containsAssemblyDocument(document)) {
       folder.addAssemblyDocument(document);
     }
+
     return folder.symbolManager;
   }
 
@@ -167,6 +178,7 @@ export class WorkspaceManager implements vscode.Disposable {
       this.folders.set(folderUri.toString(), folder);
       return folder; 
     }
+
     return this.folders.get(folderUri.toString())!;
   }
 }

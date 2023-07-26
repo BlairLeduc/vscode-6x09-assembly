@@ -1,5 +1,6 @@
-import * as path from 'path';
 import * as vscode from 'vscode';
+import * as path from 'path';
+
 import { ConfigurationManager, WorkspaceManager } from './managers';
 
 export class State implements vscode.Disposable {

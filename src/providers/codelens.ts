@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+
 import { ConfigurationManager, WorkspaceManager } from '../managers';
 
 export class CodeLensProvider implements vscode.CodeLensProvider {

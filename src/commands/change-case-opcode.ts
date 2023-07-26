@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
+
 import { convertToCase } from '../common';
 import { OpcodeCase, TokenKind } from '../constants';
 import { WorkspaceManager } from '../managers';
 import { AssemblyLine } from '../parsers';
+
 import { Logger } from '../logger';
 
 export class ChangeCaseOpcodeCommand {

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
-import { Logger } from '../logger';
+
 import { Command, HelpLevel, OpcodeCase } from '../constants';
+import { Logger } from '../logger';
 
 export interface CommandConfiguration {
   path: {

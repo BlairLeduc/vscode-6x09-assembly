@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+
 import { convertTokenToName } from '../common';
 import { HelpLevel, TokenType } from '../constants';
 import { ConfigurationManager, WorkspaceManager } from '../managers';
@@ -16,6 +17,7 @@ export class HoverProvider implements vscode.HoverProvider {
 
     configurationManager.onDidChangeConfiguration(() => {
       const helpVerbosity = this.configurationManager.helpVerbosity;
+
       if (this.helpVerbosity !== helpVerbosity) {
         this.helpVerbosity = helpVerbosity;
         this.onDidChangeHelpVerbosityEmitter.fire();
@@ -101,6 +103,7 @@ export class HoverProvider implements vscode.HoverProvider {
             const value = symbol.value;
             const parentName = symbol.parent ? `${symbol.parent.text}.` : '';
             let header = `(${convertTokenToName(symbol.semanticToken)}) ${parentName}${symbol.text}`;
+            
             if (value) {
               header += ` ${value}`;
             }

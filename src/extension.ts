@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+
 import { ChangeCaseOpcodeCommand } from './commands';
 import { ASM6X09_CONFIG_SECTION, ASM6X09_LANGUAGE, ASM6X09_MODE } from './common';
 import { OpcodeCase } from './constants';

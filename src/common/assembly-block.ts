@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+
 import { AssemblySymbol } from './assembly-symbol';
 
 export class AssemblyBlock {
