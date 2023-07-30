@@ -1,21 +1,8 @@
-import * as cp from 'child_process';
 import * as vscode from 'vscode';
-import { OpcodeCase, OSPlatform } from './managers/configuration';
-import { Logger } from './logger';
+import * as cp from 'child_process';
 
-export function convertToCase(name: string, casing: OpcodeCase): string {
-  if (casing === OpcodeCase.lowercase) {
-    return name.toLowerCase();
-  }
-  if (casing === OpcodeCase.capitalised) {
-    return name[0].toUpperCase() + name.substring(1).toLowerCase();
-  }
-  return name.toUpperCase();
-}
-
-export function convertToSymbolKind(kind: string): vscode.SymbolKind {
-  return vscode.SymbolKind[kind as keyof typeof vscode.SymbolKind];
-}
+import { OSPlatform } from '../constants';
+import { Logger } from '../logger';
 
 export function getOSPlatform(): OSPlatform {
   switch(process.platform) {
@@ -27,7 +14,6 @@ export function getOSPlatform(): OSPlatform {
         return OSPlatform.linux;
   }
 }
-
 
 export function killProcess(process: cp.ChildProcess, details = ''): void {
   if (process) {

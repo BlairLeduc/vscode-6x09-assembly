@@ -1,13 +1,16 @@
 import * as vscode from 'vscode';
+
+import { AssemblyBlock } from './assembly-block';
+import { AssemblyFileReference } from './assembly-file-reference';
 import { AssemblyLine, ParserState } from './assembly-line';
-import { AssemblyBlock, AssemblyFileReference, appendPath, isTextDocument, isUri } from '../common';
-import { SymbolManager } from '../managers/symbol';
+import { appendPath, isTextDocument, isUri } from '../common';
+import { SymbolManager } from '../managers';
 import { Logger } from '../logger';
 
 export class AssemblyDocument {
   public uri: vscode.Uri;
-  public lines: AssemblyLine[] = new Array<AssemblyLine>();
-  public referencedDocuments: AssemblyFileReference[] = new Array<AssemblyFileReference>();
+  public lines: AssemblyLine[] = [];
+  public referencedDocuments: AssemblyFileReference[] = [];
   public blocks: Map<number, AssemblyBlock> = new Map<number, AssemblyBlock>();
 
   private constructor(
@@ -20,11 +23,11 @@ export class AssemblyDocument {
   public static async create(
     document: vscode.TextDocument | vscode.Uri,
     symbolManager: SymbolManager,
-    cancelationToken?: vscode.CancellationToken): Promise<AssemblyDocument> {  
+    cancelationToken?: vscode.CancellationToken): Promise<AssemblyDocument | undefined> {  
 
     const assemblyDocument = new AssemblyDocument(document, symbolManager);
-    await assemblyDocument.parse(document, cancelationToken);
-    return assemblyDocument;
+    const result = await assemblyDocument.parse(document, cancelationToken);
+    return result ? assemblyDocument : undefined;
   }
 
   private processSymbols(line: AssemblyLine): void {
@@ -34,7 +37,7 @@ export class AssemblyDocument {
 
     if (line.file) {
       const uri = appendPath(this.uri, line.file); // TODO: Handle absolute paths and Windows paths
-      if (!this.referencedDocuments.find(d => d.uri)) {
+      if (!this.referencedDocuments.find(d => d.uri.toString() === uri.toString())) {
         this.referencedDocuments.push(new AssemblyFileReference(uri, line.fileRange!));
       }
     }
@@ -54,18 +57,23 @@ export class AssemblyDocument {
 
   private async parse(
     document: vscode.TextDocument | vscode.Uri,
-    cancelationToken?: vscode.CancellationToken): Promise<void> {
+    cancelationToken?: vscode.CancellationToken): Promise<boolean> {
 
     let lines: string[] = [];
+    
     if (isTextDocument(document)) {
       lines = document.getText().split(/\r?\n/);
     } else if (isUri(document)) {
-      const content = await vscode.workspace.fs.readFile(document);
-      lines = content.toString().split(/\r?\n/);
+      try {
+        const content = await vscode.workspace.fs.readFile(document);
+        lines = content.toString().split(/\r?\n/);
+      } catch (error) {
+        Logger.error(`Failed to read file: ${document.toString()}`);
+      }
     }
 
     if (lines.length === 0) {
-      return;
+      return false;
     }
 
     const range = new vscode.Range(
@@ -86,7 +94,7 @@ export class AssemblyDocument {
 
     for (let i = range.start.line; i <= range.end.line; i++) {
       if (cancelationToken && cancelationToken.isCancellationRequested) {
-        return;
+        return false;
       }
 
       const line = lines[i];
@@ -94,16 +102,21 @@ export class AssemblyDocument {
       this.lines.push(asmLine);
 
       state = asmLine.state;
+      
       if (state.blockNumber > blockNumber) {
         block.endLineNumber = i - 1;
+
         if (block.endLineNumber - block.startLineNumber > 0) {
           this.blocks.set(blockNumber, block);
         }
+        
         block = new AssemblyBlock(state.blockNumber, i + 1);
         blockNumber = state.blockNumber;
       }
+
       this.processSymbols(asmLine);
     }
     Logger.debug(`Parsed assembly document: ${this.uri.toString()}`);
+    return true;
   }
 }

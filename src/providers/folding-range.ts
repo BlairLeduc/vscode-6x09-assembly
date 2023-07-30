@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import { WorkspaceManager } from '../managers/workspace';
+
+import { WorkspaceManager } from '../managers';
 
 export class FoldingRangeProvider implements vscode.FoldingRangeProvider {
 

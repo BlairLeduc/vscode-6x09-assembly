@@ -1,13 +1,15 @@
 import * as vscode from 'vscode';
-import { ConfigurationManager, HelpVerbosity as HelpVerbosity, OpcodeCase } from '../managers/configuration';
-import { WorkspaceManager } from '../managers/workspace';
-import { AssemblySymbol, registers } from '../common';
-import { DocOpcode } from '../parsers/docs';
-import { convertToCase } from '../utilities';
+
+import { convertToCase } from '../common';
+import { registers, HelpLevel, OpcodeCase } from '../constants';
+import { ConfigurationManager, WorkspaceManager } from '../managers';
+import { AssemblySymbol, DocOpcode } from '../parsers';
 
 export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
-  constructor(private workspaceManager: WorkspaceManager, private configurationManager: ConfigurationManager) {
+  constructor(
+    private workspaceManager: WorkspaceManager,
+    private configurationManager: ConfigurationManager) {
   }
 
   public async provideCompletionItems(
@@ -47,8 +49,10 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
           if (parts.length > 1) {
             const symbol = symbolManager.implementations.find(s => s.text === parts[0]);
+
             if (symbol && symbol.kind === vscode.CompletionItemKind.Variable) {
               const definition = symbolManager.implementations.find(s => s.text === symbol.value);
+
               if (definition && definition.properties) {
                 return new vscode.CompletionList(definition.properties
                   .map(p => this.createSymbolCompletionItem(p)));
@@ -58,7 +62,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
           const regs = Array.from(registers).map(r => this.createRegisterCompletionItem(r));
           const symbols = symbolManager.implementations
-            .filter(s => s.uri.fsPath === document.uri.fsPath
+            .filter(s => s.uri.toString() === document.uri.toString()
               && (s.blockNumber === 0 || s.blockNumber === assemblyLine.blockNumber))
             .map(s => this.createSymbolCompletionItem(s));
 
@@ -116,7 +120,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
       item.detail += ' (6309)';
     }
 
-    if (this.configurationManager.helpVerbosity === HelpVerbosity.full && opcode.documentation) {
+    if (this.configurationManager.helpVerbosity === HelpLevel.full && opcode.documentation) {
       item.documentation = new vscode.MarkdownString(opcode.documentation);
     }
 

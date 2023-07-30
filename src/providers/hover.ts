@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
-import { convertTokenToName, TokenType } from '../common';
-import { ConfigurationManager, HelpVerbosity } from '../managers/configuration';
-import { WorkspaceManager } from '../managers/workspace';
-import { DocOpcodeType } from '../parsers/docs';
+
+import { convertTokenToName } from '../common';
+import { HelpLevel, TokenType } from '../constants';
+import { ConfigurationManager, WorkspaceManager } from '../managers';
+import { DocOpcodeType } from '../parsers';
 
 export class HoverProvider implements vscode.HoverProvider {
-  private helpVerbosity = HelpVerbosity.full;
+  private helpVerbosity = HelpLevel.full;
   private onDidChangeHelpVerbosityEmitter = new vscode.EventEmitter<void>();
 
   constructor(
@@ -16,6 +17,7 @@ export class HoverProvider implements vscode.HoverProvider {
 
     configurationManager.onDidChangeConfiguration(() => {
       const helpVerbosity = this.configurationManager.helpVerbosity;
+
       if (this.helpVerbosity !== helpVerbosity) {
         this.helpVerbosity = helpVerbosity;
         this.onDidChangeHelpVerbosityEmitter.fire();
@@ -28,7 +30,7 @@ export class HoverProvider implements vscode.HoverProvider {
     position: vscode.Position,
     cancellationToken: vscode.CancellationToken): Promise<vscode.Hover | undefined> {
 
-    if (this.helpVerbosity !== HelpVerbosity.none && !cancellationToken.isCancellationRequested) {
+    if (this.helpVerbosity !== HelpLevel.none && !cancellationToken.isCancellationRequested) {
       const assemblyDocument = this.workspaceManager
         .getAssemblyDocument(document, cancellationToken);
 
@@ -57,7 +59,7 @@ export class HoverProvider implements vscode.HoverProvider {
               ? `${opCodeDocs.notation}　⸺　${opCodeDocs.conditionCodes}`
               : '';
 
-            if (this.configurationManager.helpVerbosity === HelpVerbosity.full
+            if (this.configurationManager.helpVerbosity === HelpLevel.full
               && opCodeDocs.documentation) {
 
               documentation += `  \n  \n${opCodeDocs.documentation}`;
@@ -101,6 +103,7 @@ export class HoverProvider implements vscode.HoverProvider {
             const value = symbol.value;
             const parentName = symbol.parent ? `${symbol.parent.text}.` : '';
             let header = `(${convertTokenToName(symbol.semanticToken)}) ${parentName}${symbol.text}`;
+            
             if (value) {
               header += ` ${value}`;
             }

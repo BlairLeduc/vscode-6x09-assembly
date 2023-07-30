@@ -3,7 +3,7 @@ import * as fs from 'fs';
 //import * as Net from 'net';
 import * as vscode from 'vscode';
 
-import { execCmd } from '../utilities';
+import { execCmd } from '../common';
 
 export interface IGdbBreakpoint {
   id: number;

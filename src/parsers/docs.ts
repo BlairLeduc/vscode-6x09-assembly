@@ -14,8 +14,10 @@ export class DocOpcode {
 
   public static parse(line: string, type: DocOpcodeType): DocOpcode | null {
     const columns = line.replace(/\!/g, '\n').split('\t');
+    
     if (columns.length > 1) {
       const opcode = new DocOpcode();
+      
       if (type === DocOpcodeType.opcode) {
         opcode.name = columns[0];
         opcode.processor = columns[1];
@@ -28,8 +30,10 @@ export class DocOpcode {
         opcode.summary = columns[1];
         opcode.documentation = columns[2];
       }
+      
       return opcode;
     }
+
     return null;
   }
 }
@@ -68,8 +72,10 @@ export class Docs {
         // header row
         continue;
       }
+
       if (line.length > 0) {
         const opcode = DocOpcode.parse(line, type);
+
         if (opcode) {
           opcode.type = type;
           const key = opcode.name.toUpperCase();
@@ -79,6 +85,7 @@ export class Docs {
           console.error(`\'${this.opcodesFile}\':${lineNumber} Cannot parse line.`);
         }
       }
+
       lineNumber += 1;
     }
   }

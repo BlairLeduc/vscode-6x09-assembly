@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
-import { TokenKind } from './common';
-import { OpcodeCase } from './managers/configuration';
-import { WorkspaceManager } from './managers/workspace';
-import { AssemblyLine } from './parsers/assembly-line';
-import { convertToCase } from './utilities';
-import { Logger } from './logger';
+
+import { convertToCase } from '../common';
+import { OpcodeCase, TokenKind } from '../constants';
+import { WorkspaceManager } from '../managers';
+import { AssemblyLine } from '../parsers';
+
+import { Logger } from '../logger';
 
 export class ChangeCaseOpcodeCommand {
 
@@ -16,6 +17,7 @@ export class ChangeCaseOpcodeCommand {
     if (assemblyDocument) {
       assemblyDocument.lines.forEach((line: AssemblyLine) => {
         const opCode = line.opCode;
+
         if (opCode && opCode.kind === TokenKind.opCode) {
           edit.replace(
             new vscode.Range(

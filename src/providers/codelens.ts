@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { ConfigurationManager } from '../managers/configuration';
-import { WorkspaceManager } from '../managers/workspace';
+
+import { ConfigurationManager, WorkspaceManager } from '../managers';
 
 export class CodeLensProvider implements vscode.CodeLensProvider {
   private enabled = true;
@@ -33,28 +33,28 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
       const symbolManager = this.workspaceManager.getSymbolManager(document);
       
       if (symbolManager) {
-        const lenses = new Array<vscode.CodeLens>();
+        const lenses: vscode.CodeLens[] = [];
 
         symbolManager.implementations
-          .filter(s => s.uri.fsPath === document.uri.fsPath)
+          .filter(s => s.uri.toString() === document.uri.toString())
           .forEach(symbol => {
 
-          const references = symbolManager.references
-            .filter(r => r.text === symbol.text && r.blockNumber === symbol.blockNumber);
-          
-          const command: vscode.Command = {
-            command: 'editor.action.showReferences',
-            title: `${references.length} reference${references.length !== 1 ? 's' : ''}`,
-            arguments: [
-              document.uri,
-              symbol.range.start,
-              references.map(r => new vscode.Location(r.uri, r.range))
-            ],
-          };
+            const references = symbolManager.references
+              .filter(r => r.text === symbol.text && r.blockNumber === symbol.blockNumber);
+            
+            const command: vscode.Command = {
+              command: 'editor.action.showReferences',
+              title: `${references.length} reference${references.length !== 1 ? 's' : ''}`,
+              arguments: [
+                document.uri,
+                symbol.range.start,
+                references.map(r => new vscode.Location(r.uri, r.range))
+              ],
+            };
 
-          lenses.push({
-            command,
-            range: symbol.range,
+            lenses.push({
+              command,
+              range: symbol.range,
             isResolved: true,
           });
         });

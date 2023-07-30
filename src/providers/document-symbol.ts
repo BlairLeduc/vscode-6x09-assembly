@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
-import { WorkspaceManager } from '../managers/workspace';
-import { convertToSymbolKind } from '../utilities';
+
+import { convertToSymbolKind } from '../common';
+import { WorkspaceManager } from '../managers';
 
 export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 
@@ -17,7 +18,7 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 
       if (symbolManager) {
         return symbolManager.implementations
-          .filter(s => s.uri.fsPath === document.uri.fsPath && !s.isLocal)
+          .filter(s => s.uri.toString() === document.uri.toString() && !s.isLocal)
           .sort((a, b) => a.text.localeCompare(b.text))
           .map(symbol => {
 

@@ -1,11 +1,13 @@
 import * as vscode from 'vscode';
+
+import { AssemblySymbol } from './assembly-symbol';
 import {
-  AssemblySymbol,
   constantPseudoOps,
   Token,
   TokenKind,
   TokenModifier,
-  TokenType } from '../common';
+  TokenType,
+} from '../constants';
 import { LineParser } from './line-parser';
 
 export interface SymbolReference {
@@ -53,6 +55,7 @@ export class AssemblyLine {
     if (rawLineNumber) {
       this.lineNumber = rawLineNumber;
     }
+
     this.lineRange = this.getRange(0, this.rawLine.length);
 
     if (!AssemblyLine.storageRegExp) {
@@ -60,6 +63,7 @@ export class AssemblyLine {
       const s2 = '|includebin|fill';
       AssemblyLine.storageRegExp = new RegExp('^(' + s1 + s2 + ')$', 'i');
     }
+    
     this.parse();
   }
 
@@ -154,6 +158,7 @@ export class AssemblyLine {
         label.kind = this.state.struct
           ? vscode.CompletionItemKind.Property
           : vscode.CompletionItemKind.Variable;
+
         if (this.state.struct) {
           label.parent = this.state.struct;
           this.state.struct.properties.push(label);
