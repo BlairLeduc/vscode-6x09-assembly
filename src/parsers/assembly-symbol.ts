@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 
 import { Token, TokenType } from "../constants";
-import { convertTokenKindToComplitionItemKind } from "./convert";
+import { convertTokenKindToComplitionItemKind } from "../common/convert";
 
 export class AssemblySymbol {
   public semanticToken: Token;

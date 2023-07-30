@@ -1,14 +1,16 @@
 import * as vscode from 'vscode';
 
+import { AssemblyBlock } from './assembly-block';
+import { AssemblyFileReference } from './assembly-file-reference';
 import { AssemblyLine, ParserState } from './assembly-line';
-import { AssemblyBlock, AssemblyFileReference, appendPath, isTextDocument, isUri } from '../common';
+import { appendPath, isTextDocument, isUri } from '../common';
 import { SymbolManager } from '../managers';
 import { Logger } from '../logger';
 
 export class AssemblyDocument {
   public uri: vscode.Uri;
-  public lines: AssemblyLine[] = new Array<AssemblyLine>();
-  public referencedDocuments: AssemblyFileReference[] = new Array<AssemblyFileReference>();
+  public lines: AssemblyLine[] = [];
+  public referencedDocuments: AssemblyFileReference[] = [];
   public blocks: Map<number, AssemblyBlock> = new Map<number, AssemblyBlock>();
 
   private constructor(

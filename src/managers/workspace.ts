@@ -12,7 +12,7 @@ export class WorkspaceManager implements vscode.Disposable {
   public readonly opcodeDocs: Docs;
 
   private folders: Map<string, Folder> = new Map<string, Folder>();
-  private disposables: Array<vscode.Disposable>;
+  private disposables: vscode.Disposable[];
 
   constructor(extensionPath: string) {
     this.opcodeDocs = new Docs(extensionPath);

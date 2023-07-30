@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 
-import { AssemblySymbol, convertToCase } from '../common';
+import { convertToCase } from '../common';
 import { registers, HelpLevel, OpcodeCase } from '../constants';
 import { ConfigurationManager, WorkspaceManager } from '../managers';
-import { DocOpcode } from '../parsers';
+import { AssemblySymbol, DocOpcode } from '../parsers';
 
 export class CompletionItemProvider implements vscode.CompletionItemProvider {
 

@@ -232,7 +232,7 @@ export class GdbDebugSession extends LoggingDebugSession {
     args: DebugProtocol.ScopesArguments): void {
 
     const frameReference = args.frameId;
-    const scopes = new Array<Scope>();
+    const scopes: Scope[] = [];
     scopes.push(new Scope('Local', this.variableHandles.create('local_' + frameReference), false));
     scopes.push(new Scope('Global', this.variableHandles.create('global_' + frameReference), true));
 
@@ -246,7 +246,7 @@ export class GdbDebugSession extends LoggingDebugSession {
     response: DebugProtocol.VariablesResponse,
     args: DebugProtocol.VariablesArguments): void {
 
-    const variables = new Array<DebugProtocol.Variable>();
+    const variables :DebugProtocol.Variable[] = [];
     const id = this.variableHandles.get(args.variablesReference);
     if (id !== null) {
       variables.push({

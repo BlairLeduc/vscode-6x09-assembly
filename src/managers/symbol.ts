@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 
-import { AssemblySymbol } from '../common';
+import { AssemblySymbol } from '../parsers';
 
 export class SymbolManager implements vscode.Disposable {
-  public implementations = new Array<AssemblySymbol>();
-  public references = new Array<AssemblySymbol>();
+  public implementations: AssemblySymbol[] = [];
+  public references: AssemblySymbol[] = [];
 
   public dispose(): void {
     //TODO

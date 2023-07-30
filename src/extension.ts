@@ -27,7 +27,7 @@ import { Logger } from './logger';
 // import { DebugConfigurationProvider } from './providers/debug-configuration';
 // const ASM6X09_DEBUG_TYPE: string = ASM6X09_LANGUAGE;
 
-const disposables: Array<vscode.Disposable> = new Array<vscode.Disposable>();
+const disposables: vscode.Disposable[] = [];
 
 export let extensionState: State;
 

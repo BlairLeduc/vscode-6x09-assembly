@@ -33,7 +33,7 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
       const symbolManager = this.workspaceManager.getSymbolManager(document);
       
       if (symbolManager) {
-        const lenses = new Array<vscode.CodeLens>();
+        const lenses: vscode.CodeLens[] = [];
 
         symbolManager.implementations
           .filter(s => s.uri.toString() === document.uri.toString())

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import { AssemblySymbol } from '../common';
+import { AssemblySymbol } from './assembly-symbol';
 import {
   constantPseudoOps,
   Token,
