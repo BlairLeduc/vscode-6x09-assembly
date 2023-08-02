@@ -64,7 +64,7 @@ RMQ	Reserve a Number of Double Words
 SECT	Begins a New Section
 SECTION	Begins a New Section
 SET	Define Value to Symbol (Mutable)
-SETDP	Define the Value of DP
+SETDP	Define the Value of Direct Page Register
 STRUCT	Mark Start of Struct
 USE	Include Contents of File
 WARNING	Print Custom Warning Message

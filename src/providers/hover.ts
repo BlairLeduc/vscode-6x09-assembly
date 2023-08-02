@@ -105,7 +105,7 @@ export class HoverProvider implements vscode.HoverProvider {
             let header = `(${convertTokenToName(symbol.semanticToken)}) ${parentName}${symbol.text}`;
             
             if (value) {
-              header += ` ${value}`;
+              header += ` = ${value}`;
             }
             const help = new vscode.MarkdownString();
 

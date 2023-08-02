@@ -102,5 +102,8 @@ export const pseudoOps = new Set([
 
 export const constantPseudoOps = new Set([
   'equ', 'set',
+  'fcc', 'fcn', 'fcs',
+  '.ascii', '.asciz', '.ascis',
+  '.str', '.strz', '.strs',
 ]);
 
