@@ -24,7 +24,6 @@
 	],
 	"icon": "media/6x09-Assembly.png",
 	"galleryBanner": {
-		"color": "#00FF00",
 		"theme": "light"
 	},
 	"engines": {
@@ -230,19 +229,23 @@
 		"update": "npm run convert"
 	},
 	"devDependencies": {
+		"@types/chai": "4",
 		"@types/glob": "8",
 		"@types/line-reader": "0",
 		"@types/mocha": "10",
 		"@types/node": "20",
+		"@types/sinon": "10",
 		"@types/vscode": "1",
 		"@typescript-eslint/eslint-plugin": "6",
 		"@typescript-eslint/parser": "6",
 		"@typescript-eslint/scope-manager": "6",
 		"@vscode/test-electron": "2",
 		"@vscode/vsce": "2",
+		"chai": "4",
 		"eslint": "8",
 		"glob": "10",
 		"mocha": "10",
+		"sinon": "15",
 		"typescript": "5"
 	},
 	"dependencies": {

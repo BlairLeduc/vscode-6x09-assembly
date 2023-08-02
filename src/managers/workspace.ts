@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
-import { ASM6X09_FILE_GLOB_PATTERN, ASM6X09_LANGUAGE, isTextDocument  } from '../common';
+import { isTextDocument  } from '../common';
+import { ASM6X09_FILE_GLOB_PATTERN, ASM6X09_LANGUAGE } from '../constants';
 import { Folder } from './folder';
 import { AssemblyDocument, Docs } from '../parsers';
 import { SymbolManager } from './symbol';
