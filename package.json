@@ -224,7 +224,8 @@
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext .ts",
-		"test": "node ./out/test/runTest.js",
+		"int-test": "node ./out/test/runTest.js",
+		"test": "mocha \"./out/test/unit/**/*.js\"",
 		"convert": "npx js-yaml syntaxes/6x09.tmLanguage.yaml > syntaxes/6x09.tmLanguage.json",
 		"update": "npm run convert"
 	},
