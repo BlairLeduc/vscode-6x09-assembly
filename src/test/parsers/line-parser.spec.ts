@@ -1,55 +1,45 @@
-//
-// Note: This test is leveraging the Mocha test framework.
-// Please refer to their documentation on https://mochajs.org/ for help.
-//
-
-// The module 'assert' provides assertion methods from node
-import * as assert from 'assert';
-
-// Classes under test
-
 import { Token, TokenKind, TokenModifier, TokenType } from '../../constants';
-import { LineParser } from '../../parsers';
+import { LineParser } from '../../parsers/line-parser';
 
-suite('LineParser', () => {
-  test('Empty string returns empty token list', () => {
+describe('LineParser', () => {
+  it('Empty string returns empty token list', () => {
     const line = '';
     const tokens = LineParser.parse(line);
 
-    assert.ok(tokens);
-    assert.strictEqual(tokens.length, 0);
+    expect(tokens).toBeTruthy();
+    expect(tokens.length).toBe(0);
   });
 
-  test('String with whitespace returns empty token list', () => {
+  it('String with whitespace returns empty token list', () => {
     const line = '\t   \n\n   ';
     const tokens = LineParser.parse(line);
 
-    assert.ok(tokens);
-    assert.strictEqual(tokens.length, 0);
+    expect(tokens).toBeTruthy();
+    expect(tokens.length).toBe(0);
   });
 
-  test('Line with only line number returns empty token list', () => {
+  it('Line with only line number returns empty token list', () => {
     const line = '00010';
     const expectedToken = new Token(line, 0, line.length, TokenKind.ignore, TokenType.label);
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0], expectedToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedToken);
   });
 
-  test('Line with only global symbol returns global symbol token', () => {
+  it('Line with only global symbol returns global symbol token', () => {
     const expectedSymbol = 'GlobalSymbol';
     const line = `${expectedSymbol}`;
     const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.class);
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0], expectedToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedToken);
   });
 
-  test('Line with line number, global symbol returns global symbol token', () => {
+  it('Line with line number, global symbol returns global symbol token', () => {
     const expectedLineNumber = '12345';
     const expectedSymbol = 'GlobalSymbol';
     const line = `${expectedLineNumber} ${expectedSymbol}`;
@@ -68,123 +58,123 @@ suite('LineParser', () => {
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 2);
-    assert.deepStrictEqual(tokens[0], expectedLineNumberToken);
-    assert.deepStrictEqual(tokens[1], expectedToken);
+    expect(tokens.length).toBe(2);
+    expect(tokens[0]).toEqual(expectedLineNumberToken);
+    expect(tokens[1]).toEqual(expectedToken);
   });
 
-  test('Line with only local Symbol Local@Symbol returns single local symbol token', () => {
+  it('Line with only local Symbol Local@Symbol returns single local symbol token', () => {
     const expectedSymbol = 'Local@Symbol';
     const line = `${expectedSymbol}`;
     const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.function, true, true);
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0], expectedToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedToken);
   });
 
-  test('Line with only local Symbol LocalSymbol? returns single local symbol token', () => {
+  it('Line with only local Symbol LocalSymbol? returns single local symbol token', () => {
     const expectedSymbol = 'LocalSymbol?';
     const line = `${expectedSymbol}`;
     const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.function, true, true);
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0], expectedToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedToken);
   });
 
-  test('Line with only local Symbol LocalSymbol returns single local symbol token', () => {
+  it('Line with only local Symbol LocalSymbol returns single local symbol token', () => {
     const expectedSymbol = '$LocalSymbol';
     const line = `${expectedSymbol}`;
     const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.function, true, true);
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0], expectedToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedToken);
   });
 
 
-  test('Line with only local Symbol _?$@. returns single local symbol token', () => {
+  it('Line with only local Symbol _?$@. returns single local symbol token', () => {
     const expectedSymbol = '_?$@.';
     const line = `${expectedSymbol}`;
     const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.function, true, true);
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0], expectedToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedToken);
   });
 
-  test('Line with global symbol followed by whitespace returns single global symbol token', () => {
+  it('Line with global symbol followed by whitespace returns single global symbol token', () => {
     const expectedSymbol = 'GlobalSymbol';
     const line = `${expectedSymbol}\t`;
     const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.class);
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0], expectedToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedToken);
   });
 
-  test('Line with local symbol Local?Symbol followed by whitespace returns single local symbol token', () => {
+  it('Line with local symbol Local?Symbol followed by whitespace returns single local symbol token', () => {
     const expectedSymbol = 'Local?Symbol';
     const line = `${expectedSymbol}\t`;
     const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.function, true, true);
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0], expectedToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedToken);
   });
 
-  test('Line with invalid local symbol ?LocalSymbol followed by whitespace returns invalid local symbol token', () => {
+  it('Line with invalid local symbol ?LocalSymbol followed by whitespace returns invalid local symbol token', () => {
     const expectedSymbol = '?LocalSymbol';
     const line = `${expectedSymbol}\t`;
     const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.function, false, true);
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0], expectedToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedToken);
   });
 
-  test('Line with invalid local symbol .LocalSymbol followed by whitespace returns invalid local symbol token', () => {
+  it('Line with invalid local symbol .LocalSymbol followed by whitespace returns invalid local symbol token', () => {
     const expectedSymbol = '.LocalSymbol';
     const line = `${expectedSymbol}\t`;
     const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.class, false);
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0], expectedToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedToken);
   });
 
-  test('Line with invalid global symbol followed by whitespace returns invalid global symbol token', () => {
+  it('Line with invalid global symbol followed by whitespace returns invalid global symbol token', () => {
     const expectedSymbol = 'foo-bar';
     const line = `${expectedSymbol}\t`;
     const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.class, false);
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0], expectedToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedToken);
   });
 
-  test('Line with invalid global symbol (*) followed by whitespace returns invalid global symbol token', () => {
+  it('Line with invalid global symbol (*) followed by whitespace returns invalid global symbol token', () => {
     const expectedSymbol = 'foo*bar';
     const line = `${expectedSymbol}\t`;
     const expectedToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.class, false);
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0], expectedToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedToken);
   });
 
-  test('Line with invalid global symbol starting with a colon followed by whitespace returns invalid global symbol token', () => {
+  it('Line with invalid global symbol starting with a colon followed by whitespace returns invalid global symbol token', () => {
     const expectedSymbol = ':';
     const line = `${expectedSymbol}\t`;
     const expectedSymbolToken = new Token('', 0, 0, TokenKind.label, TokenType.class, false);
@@ -192,25 +182,25 @@ suite('LineParser', () => {
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 2);
-    assert.deepStrictEqual(tokens[0], expectedSymbolToken);
-    assert.deepStrictEqual(tokens[1], expectedColonToken);
+    expect(tokens.length).toBe(2);
+    expect(tokens[0]).toEqual(expectedSymbolToken);
+    expect(tokens[1]).toEqual(expectedColonToken);
   });
 
-  test('Line with global symbol followed by colon returns a global symbol and operator token', () => {
+  it('Line with global symbol followed by colon returns a global symbol and operator token', () => {
     const expectedSymbol = 'GlobalSymbol';
     const line = `${expectedSymbol}:`;
     const expectedSymbolToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.class);
     const expectedColonToken = new Token(':', expectedSymbol.length, 1, TokenKind.ignore, TokenType.operator);
 
     const tokens = LineParser.parse(line);
-    
-    assert.strictEqual(tokens.length, 2);
-    assert.deepStrictEqual(tokens[0], expectedSymbolToken);
-    assert.deepStrictEqual(tokens[1], expectedColonToken);
+
+    expect(tokens.length).toBe(2);
+    expect(tokens[0]).toEqual(expectedSymbolToken);
+    expect(tokens[1]).toEqual(expectedColonToken);
   });
 
-  test('Line with invalid local symbol followed by colon returns invalid local symbol and operator token', () => {
+  it('Line with invalid local symbol followed by colon returns invalid local symbol and operator token', () => {
     const expectedSymbol = 'foo-bar@';
     const line = `${expectedSymbol}:`;
     const expectedSymbolToken = new Token(expectedSymbol, 0, expectedSymbol.length, TokenKind.label, TokenType.function, false, true);
@@ -218,12 +208,12 @@ suite('LineParser', () => {
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 2);
-    assert.deepStrictEqual(tokens[0], expectedSymbolToken);
-    assert.deepStrictEqual(tokens[1], expectedColonToken);
+    expect(tokens.length).toBe(2);
+    expect(tokens[0]).toEqual(expectedSymbolToken);
+    expect(tokens[1]).toEqual(expectedColonToken);
   });
 
-  test('* Comment at start of the line returns comment token', () => {
+  it('* Comment at start of the line returns comment token', () => {
     const expectedComment = 'Hello there';
     const commentString = `*${expectedComment}`;
     const line = commentString;
@@ -236,11 +226,11 @@ suite('LineParser', () => {
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0],expectedCommentToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedCommentToken);
   });
 
-  test('Line number followed by * Comment returns comment token', () => {
+  it('Line number followed by * Comment returns comment token', () => {
     const expectedLineNumber = '42';
     const expectedComment = 'Hello there';
     const commentString = `*${expectedComment}`;
@@ -260,12 +250,12 @@ suite('LineParser', () => {
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 2);
-    assert.deepStrictEqual(tokens[0],expectedLineNumberToken);
-    assert.deepStrictEqual(tokens[1],expectedCommentToken);
+    expect(tokens.length).toBe(2);
+    expect(tokens[0]).toEqual(expectedLineNumberToken);
+    expect(tokens[1]).toEqual(expectedCommentToken);
   });
 
-  test('* Comment at start of the line followed by whitespace returns comment token', () => {
+  it('* Comment at start of the line followed by whitespace returns comment token', () => {
     const expectedComment = 'Hello Bob!';
     const commentString = `* ${expectedComment}`;
     const line = `${commentString}\t   `;
@@ -278,11 +268,11 @@ suite('LineParser', () => {
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0],expectedCommentToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedCommentToken);
   });
 
-  test('; Comment at start of the line returns comment token', () => {
+  it('; Comment at start of the line returns comment token', () => {
     const expectedComment = 'This is a comment';
     const commentString = `; ${expectedComment}`;
     const line = commentString;
@@ -295,11 +285,11 @@ suite('LineParser', () => {
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0],expectedCommentToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedCommentToken);
   });
 
-  test('; Comment at start of the line followed by whitespace returns comment token', () => {
+  it('; Comment at start of the line followed by whitespace returns comment token', () => {
     const expectedComment = 'Loop around the world';
     const commentString = `;${expectedComment}`;
     const line = `${commentString}\t   `;
@@ -312,11 +302,11 @@ suite('LineParser', () => {
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0],expectedCommentToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedCommentToken);
   });
 
-  test('* Only comment in the line returns comment token', () => {
+  it('* Only comment in the line returns comment token', () => {
     const expectedComment = 'Hello';
     const commentString = `* ${expectedComment}`;
     const line = `\t${commentString}`;
@@ -329,11 +319,11 @@ suite('LineParser', () => {
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0],expectedCommentToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedCommentToken);
   });
 
-  test('* Only comment in the line followed by whitespace returns comment token', () => {
+  it('* Only comment in the line followed by whitespace returns comment token', () => {
     const expectedComment = 'Bob\'s your uncle';
     const commentString = `*${expectedComment}`;
     const line = `           ${commentString}\t   `;
@@ -346,11 +336,11 @@ suite('LineParser', () => {
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0],expectedCommentToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedCommentToken);
   });
 
-  test('; Only comment in the line returns comment token', () => {
+  it('; Only comment in the line returns comment token', () => {
     const expectedComment = 'Hello';
     const commentString = `; ${expectedComment}`;
     const line = `\t     ${commentString}`;
@@ -363,11 +353,11 @@ suite('LineParser', () => {
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0],expectedCommentToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedCommentToken);
   });
 
-  test('; Only comment in the line followed by whitespace returns comment token', () => {
+  it('; Only comment in the line followed by whitespace returns comment token', () => {
     const expectedComment = ';;;;;;;;;;;;;;;;;;;;;;;';
     const commentString = `;${expectedComment}`;
     const line = `\t\t${commentString}\t   `;
@@ -380,11 +370,11 @@ suite('LineParser', () => {
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 1);
-    assert.deepStrictEqual(tokens[0],expectedCommentToken);
+    expect(tokens.length).toBe(1);
+    expect(tokens[0]).toEqual(expectedCommentToken);
   });
 
-  test('Global Symbol followed by comment returns global symbol and comment token', () => {
+  it('Global Symbol followed by comment returns global symbol and comment token', () => {
     const expectedSymbol = 'GlobalSymbol';
     const expectedComment = 'Egad, a comment';
     const commentString = `*${expectedComment}`;
@@ -404,12 +394,12 @@ suite('LineParser', () => {
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 2);
-    assert.deepStrictEqual(tokens[0],expectedSymbolToken);
-    assert.deepStrictEqual(tokens[1],expectedCommentToken);
+    expect(tokens.length).toBe(2);
+    expect(tokens[0]).toEqual(expectedSymbolToken);
+    expect(tokens[1]).toEqual(expectedCommentToken);
   });
 
-  test('Local Symbol, colon, comment returns local symbol, colon, comment tokens', () => {
+  it('Local Symbol, colon, comment returns local symbol, colon, comment tokens', () => {
     const expectedSymbol = 'Local@Symbol';
     const expectedComment = '372hf7bv7 62736v-=][;/,';
     const commentString = `; ${expectedComment}`;
@@ -433,15 +423,15 @@ suite('LineParser', () => {
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 3);
-    assert.deepStrictEqual(tokens[0],expectedSymbolToken);
-    assert.deepStrictEqual(tokens[1],expectedColonToken);
-    assert.deepStrictEqual(tokens[2],expectedCommentToken);
+    expect(tokens.length).toBe(3);
+    expect(tokens[0]).toEqual(expectedSymbolToken);
+    expect(tokens[1]).toEqual(expectedColonToken);
+    expect(tokens[2]).toEqual(expectedCommentToken);
   });
 
-  ['abx'].forEach(opcode => {
+  ['abx', 'struct'].forEach(opcode => {
 
-    test(`Inherent opcode ${opcode} returns opcode token`, () => {
+    it(`Inherent opcode ${opcode} returns opcode token`, () => {
       const expectedOpcode = opcode;
       const line = ` ${expectedOpcode}`;
       const expectedOpcodeToken = new Token(
@@ -453,11 +443,11 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 1);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      expect(tokens.length).toBe(1);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
     });
 
-    test(`Inherent opcode ${opcode.toUpperCase()} returns opcode (in lowercase) token`, () => {
+    it(`Inherent opcode ${opcode.toUpperCase()} returns opcode (in lowercase) token`, () => {
       const expectedOpcode = opcode;
       const line = ` ${expectedOpcode.toUpperCase()}`;
       const expectedOpcodeToken = new Token(
@@ -469,11 +459,11 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 1);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
+      expect(tokens.length).toBe(1);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
     });
 
-    test(`Inherent opcode ${opcode}, comment returns opcode, comment tokens`, () => {
+    it(`Inherent opcode ${opcode}, comment returns opcode, comment tokens`, () => {
       const expectedOpcode = opcode;
       const expectedComment = 'Hello there';
       const commentString = `${expectedComment}`;
@@ -493,12 +483,12 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 2);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedCommentToken);
+      expect(tokens.length).toBe(2);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedCommentToken);
     });
 
-    test(`Symbol, inherent opcode ${opcode}, comment returns symbol, opcode, comment tokens`, () => {
+    it(`Symbol, inherent opcode ${opcode}, comment returns symbol, opcode, comment tokens`, () => {
       const expectedSymbol = 'GlobalSymbol';
       const expectedOpcode = opcode;
       const expectedComment = 'Hello there';
@@ -525,13 +515,13 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedSymbolToken);
-      assert.deepStrictEqual(tokens[1], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[2], expectedCommentToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedSymbolToken);
+      expect(tokens[1]).toEqual(expectedOpcodeToken);
+      expect(tokens[2]).toEqual(expectedCommentToken);
     });
 
-    test(`Inherent opcode ${opcode}, * comment returns inherent opcode, comment tokens`, () => {
+    it(`Inherent opcode ${opcode}, * comment returns inherent opcode, comment tokens`, () => {
       const expectedOpcode = opcode;
       const expectedComment = 'Hello there';
       const commentString = `* ${expectedComment}`;
@@ -552,12 +542,12 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 2);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedCommentToken);
+      expect(tokens.length).toBe(2);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedCommentToken);
     });
 
-    test(`Symbol, inherent opcode ${opcode}, comment returns symbol, opcode, comment tokens`, () => {
+    it(`Symbol, inherent opcode ${opcode}, comment returns symbol, opcode, comment tokens`, () => {
       const expectedSymbol = 'GlobalSymbol';
       const expectedOpcode = opcode;
       const expectedComment = 'Hello there';
@@ -590,17 +580,17 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 4);
-      assert.deepStrictEqual(tokens[0], expectedSymbolToken);
-      assert.deepStrictEqual(tokens[1], expectedColonToken);
-      assert.deepStrictEqual(tokens[2], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[3], expectedCommentToken);
+      expect(tokens.length).toBe(4);
+      expect(tokens[0]).toEqual(expectedSymbolToken);
+      expect(tokens[1]).toEqual(expectedColonToken);
+      expect(tokens[2]).toEqual(expectedOpcodeToken);
+      expect(tokens[3]).toEqual(expectedCommentToken);
     });
   });
 
   ['clr'].forEach(opcode => {
 
-    test(`Operand opcode ${opcode}, operand returns opcode, operand tokens`, () => {
+    it(`Operand opcode ${opcode}, operand returns opcode, operand tokens`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = '42';
       const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -625,13 +615,13 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
     });
 
-    test(`Operand opcode ${opcode.toUpperCase()}, operand returns opcode, operand tokens`, () => {
+    it(`Operand opcode ${opcode.toUpperCase()}, operand returns opcode, operand tokens`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = '42';
       const line = ` ${expectedOpcode.toUpperCase()} ${expectedOperand}`;
@@ -656,13 +646,13 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
     });
 
-    test(`Operand opcode ${opcode}, comment returns opcode, operand, comment tokens`, () => {
+    it(`Operand opcode ${opcode}, comment returns opcode, operand, comment tokens`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = '42';
       const expectedComment = 'Hello there';
@@ -695,14 +685,14 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 4);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
-      assert.deepStrictEqual(tokens[3], expectedCommentToken);
+      expect(tokens.length).toBe(4);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
+      expect(tokens[3]).toEqual(expectedCommentToken);
     });
 
-    test(`Symbol, operand opcode ${opcode}, comment returns symbol, opcode, operand, comment tokens`, () => {
+    it(`Symbol, operand opcode ${opcode}, comment returns symbol, opcode, operand, comment tokens`, () => {
       const expectedSymbol = 'GlobalSymbol';
       const expectedOpcode = opcode;
       const expectedOperand = '42';
@@ -742,15 +732,15 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 5);
-      assert.deepStrictEqual(tokens[0], expectedSymbolToken);
-      assert.deepStrictEqual(tokens[1], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[2], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[3], expectedOperandToken);
-      assert.deepStrictEqual(tokens[4], expectedCommentToken);
+      expect(tokens.length).toBe(5);
+      expect(tokens[0]).toEqual(expectedSymbolToken);
+      expect(tokens[1]).toEqual(expectedOpcodeToken);
+      expect(tokens[2]).toEqual(expectedAllOperandToken);
+      expect(tokens[3]).toEqual(expectedOperandToken);
+      expect(tokens[4]).toEqual(expectedCommentToken);
     });
 
-    test(`Binary % operand returns opcode, operand tokens`, () => {
+    it(`Binary % operand returns opcode, operand tokens`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = '%11001010';
       const line = `  ${expectedOpcode} ${expectedOperand}`;
@@ -775,13 +765,13 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
     });
 
-    test(`Binary b operand returns opcode, operand tokens`, () => {
+    it(`Binary b operand returns opcode, operand tokens`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = '10101100b';
       const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -806,13 +796,13 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
     });
 
-    test(`Octal @ operand returns opcode, operand tokens`, () => {
+    it(`Octal @ operand returns opcode, operand tokens`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = '@755';
       const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -837,13 +827,13 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
     });
 
-    test(`Octal o operand returns opcode, operand tokens`, () => {
+    it(`Octal o operand returns opcode, operand tokens`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = '755o';
       const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -868,13 +858,13 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
     });
 
-    test(`Octal q operand returns opcode, operand tokens`, () => {
+    it(`Octal q operand returns opcode, operand tokens`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = '755q';
       const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -899,13 +889,13 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
     });
 
-    test(`Hexidecimal $ operand returns opcode, operand tokens`, () => {
+    it(`Hexidecimal $ operand returns opcode, operand tokens`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = '$7F80';
       const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -930,13 +920,13 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
     });
 
-    test(`Hexidecimal 0x operand returns opcode, operand tokens`, () => {
+    it(`Hexidecimal 0x operand returns opcode, operand tokens`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = '0x7F80';
       const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -961,13 +951,13 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
     });
 
-    test(`Hexidecimal H operand returns opcode, operand tokens`, () => {
+    it(`Hexidecimal H operand returns opcode, operand tokens`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = '7F80H';
       const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -992,13 +982,13 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
     });
 
-    test(`Hexidecimal start 0 end H operand returns opcode, operand tokens`, () => {
+    it(`Hexidecimal start 0 end H operand returns opcode, operand tokens`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = '0FFH';
       const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -1020,16 +1010,16 @@ suite('LineParser', () => {
         expectedOperand.length,
         TokenKind.ignore,
         TokenType.number);
-  
+
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
     });
 
-    test(`Decimal operand returns opcode, operand tokens`, () => {
+    it(`Decimal operand returns opcode, operand tokens`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = '42';
       const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -1051,16 +1041,16 @@ suite('LineParser', () => {
         expectedOperand.length,
         TokenKind.ignore,
         TokenType.number);
-  
+
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
     });
 
-    test(`Decimal & operand returns opcode, operand tokens`, () => {
+    it(`Decimal & operand returns opcode, operand tokens`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = '&42';
       const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -1082,16 +1072,16 @@ suite('LineParser', () => {
         expectedOperand.length,
         TokenKind.ignore,
         TokenType.number);
-  
+
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
     });
 
-    test(`Symbol * operand returns opcode, operand tokens`, () => {
+    it(`Symbol * operand returns opcode, operand tokens`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = '*';
       const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -1113,16 +1103,16 @@ suite('LineParser', () => {
         expectedOperand.length,
         TokenKind.ignore,
         TokenType.operator);
-  
+
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
     });
 
-    test(`Character ' operand returns opcode, operand tokens`, () => {
+    it(`Character ' operand returns opcode, operand tokens`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = "'A";
       const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -1144,16 +1134,16 @@ suite('LineParser', () => {
         expectedOperand.length,
         TokenKind.ignore,
         TokenType.number);
-  
+
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
     });
 
-    test(`Character " operand returns opcode, operand tokens`, () => {
+    it(`Character " operand returns opcode, operand tokens`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = '"AB';
       const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -1175,16 +1165,16 @@ suite('LineParser', () => {
         expectedOperand.length,
         TokenKind.ignore,
         TokenType.number);
-  
+
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
     });
 
-    test(`Immediate operand returns opcode, Operator, numeric token`, () => {
+    it(`Immediate operand returns opcode, Operator, numeric token`, () => {
       const expectedOpcode = opcode;
       const immediate = '#';
       const number = '42';
@@ -1217,14 +1207,14 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 4);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedImmediateToken);
-      assert.deepStrictEqual(tokens[3], expectedNumberToken);
+      expect(tokens.length).toBe(4);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedImmediateToken);
+      expect(tokens[3]).toEqual(expectedNumberToken);
     });
 
-    test(`Immediate reference operand returns opcode, Operator, numeric token`, () => {
+    it(`Immediate reference operand returns opcode, Operator, numeric token`, () => {
       const expectedOpcode = opcode;
       const immediate = '#';
       const reference = 'hello';
@@ -1257,14 +1247,14 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 4);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedImmediateToken);
-      assert.deepStrictEqual(tokens[3], expectedReferenceToken);
+      expect(tokens.length).toBe(4);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedImmediateToken);
+      expect(tokens[3]).toEqual(expectedReferenceToken);
     });
 
-    test(`Immediate register inc operand returns opcode, Operator, numeric token`, () => {
+    it(`Immediate register inc operand returns opcode, Operator, numeric token`, () => {
       const expectedOpcode = opcode;
       const comma = ',';
       const register = 'x';
@@ -1282,7 +1272,7 @@ suite('LineParser', () => {
         line.indexOf(expectedOperand),
         expectedOperand.length,
         TokenKind.operand,
-        TokenType.namespace);  
+        TokenType.namespace);
       const expectedCommaToken = new Token(
         comma,
         line.indexOf(comma),
@@ -1305,15 +1295,15 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 5);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedCommaToken);
-      assert.deepStrictEqual(tokens[3], expectedRegisterToken);
-      assert.deepStrictEqual(tokens[4], expectedIncrementToken);
+      expect(tokens.length).toBe(5);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedCommaToken);
+      expect(tokens[3]).toEqual(expectedRegisterToken);
+      expect(tokens[4]).toEqual(expectedIncrementToken);
     });
-    
-    test(`&& operator operand returns opcode, Operator token`, () => {
+
+    it(`&& operator operand returns opcode, Operator token`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = '&&';
       const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -1335,17 +1325,17 @@ suite('LineParser', () => {
         expectedOperand.length,
         TokenKind.ignore,
         TokenType.operator);
-  
+
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
     });
 
-    test(`Bad operator operand returns opcode, Operator token`, () => {
+    it(`Bad operator operand returns opcode, Operator token`, () => {
       const expectedOpcode = opcode;
       const expectedOperand = '}';
       const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -1370,15 +1360,15 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 3);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedAllOperandToken);
-      assert.deepStrictEqual(tokens[2], expectedOperandToken);
+      expect(tokens.length).toBe(3);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedOperandToken);
     });
   });
 
   ['fcc', 'fcn', 'fcs'].forEach(pseudo => {
-    test(`${pseudo} string, operand returns opcode, string tokens`, () => {
+    it(`${pseudo} string, operand returns opcode, string tokens`, () => {
       const expectedOpcode = pseudo;
       const expectedOperand = '/this is a string/';
       const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -1397,13 +1387,122 @@ suite('LineParser', () => {
 
       const tokens = LineParser.parse(line);
 
-      assert.strictEqual(tokens.length, 2);
-      assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-      assert.deepStrictEqual(tokens[1], expectedOperandToken);
+      expect(tokens.length).toBe(2);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedOperandToken);
     });
   });
 
-  test(`include string, operand returns opcode, string tokens`, () => {
+  it('pramga string, returns opcode, single pragma', () => {
+    const expectedOpcode = 'pragma';
+    const expectedOperand = 'this';
+    const line = ` ${expectedOpcode} ${expectedOperand}`;
+    const expectedOpcodeToken = new Token(
+      expectedOpcode,
+      line.indexOf(expectedOpcode),
+      expectedOpcode.length,
+      TokenKind.opCode,
+      TokenType.keyword);
+    const expectedOperandToken = new Token(
+      expectedOperand,
+      line.indexOf(expectedOperand),
+      expectedOperand.length,
+      TokenKind.ignore,
+      TokenType.parameter);
+
+    const tokens = LineParser.parse(line);
+
+    expect(tokens.length).toBe(2);
+    expect(tokens[0]).toEqual(expectedOpcodeToken);
+    expect(tokens[1]).toEqual(expectedOperandToken);
+  });
+
+  it('pramga string, returns opcode, multiple pragmas', () => {
+    const expectedOpcode = 'pragma';
+    const expectedFirstPragma = 'this';
+    const expectedSecondPragma = 'that';
+    const line = ` ${expectedOpcode} ${expectedFirstPragma},${expectedSecondPragma}`;
+    const expectedOpcodeToken = new Token(
+      expectedOpcode,
+      line.indexOf(expectedOpcode),
+      expectedOpcode.length,
+      TokenKind.opCode,
+      TokenType.keyword);
+    const expectedFirstPragmaToken = new Token(
+      expectedFirstPragma,
+      line.indexOf(expectedFirstPragma),
+      expectedFirstPragma.length,
+      TokenKind.ignore,
+      TokenType.parameter);
+    const expectedColonToken = new Token(
+      ',',
+      line.indexOf(','),
+      1,
+      TokenKind.ignore, TokenType.operator);
+    const expectedSecondPragmaToken = new Token(
+      expectedSecondPragma,
+      line.indexOf(expectedSecondPragma),
+      expectedSecondPragma.length,
+      TokenKind.ignore,
+      TokenType.parameter);
+
+    const tokens = LineParser.parse(line);
+
+    expect(tokens.length).toBe(4);
+    expect(tokens[0]).toEqual(expectedOpcodeToken);
+    expect(tokens[1]).toEqual(expectedFirstPragmaToken);
+    expect(tokens[2]).toEqual(expectedColonToken);
+    expect(tokens[3]).toEqual(expectedSecondPragmaToken);
+  });
+  // sta	rightJoystick.button
+
+  it('opcode struct.property, returns opcode, struct, dot, porperty', () => {
+    const expectedOpcode = 'sta';
+    const expectedStruct = 'this';
+    const expectedProperty = 'that';
+    const expectedVariable = `${expectedStruct}.${expectedProperty}`;
+    const line = ` ${expectedOpcode} ${expectedVariable}`;
+    const expectedOpcodeToken = new Token(
+      expectedOpcode,
+      line.indexOf(expectedOpcode),
+      expectedOpcode.length,
+      TokenKind.opCode,
+      TokenType.keyword);
+    const expectedVariableToken = new Token(
+      expectedVariable,
+      line.indexOf(expectedVariable),
+      expectedVariable.length,
+      TokenKind.operand,
+      TokenType.namespace);
+    const expectedStructToken = new Token(
+      expectedStruct,
+      line.indexOf(expectedStruct),
+      expectedStruct.length,
+      TokenKind.reference,
+      TokenType.variable);
+    const expectedDotToken = new Token(
+      '.',
+      line.indexOf('.'),
+      1,
+      TokenKind.ignore, TokenType.operator);
+    const expectedPropertyToken = new Token(
+      expectedProperty,
+      line.indexOf(expectedProperty),
+      expectedProperty.length,
+      TokenKind.property,
+      TokenType.property);
+
+    const tokens = LineParser.parse(line);
+
+    expect(tokens.length).toBe(5);
+    expect(tokens[0]).toEqual(expectedOpcodeToken);
+    expect(tokens[1]).toEqual(expectedVariableToken);
+    expect(tokens[2]).toEqual(expectedStructToken);
+    expect(tokens[3]).toEqual(expectedDotToken);
+    expect(tokens[4]).toEqual(expectedPropertyToken);
+  });
+
+  it(`include string, operand returns opcode, string tokens`, () => {
     const expectedOpcode = 'include';
     const expectedOperand = '/usr/local/var/file.asm';
     const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -1422,12 +1521,12 @@ suite('LineParser', () => {
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 2);
-    assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-    assert.deepStrictEqual(tokens[1], expectedOperandToken);
+    expect(tokens.length).toBe(2);
+    expect(tokens[0]).toEqual(expectedOpcodeToken);
+    expect(tokens[1]).toEqual(expectedOperandToken);
   });
 
-  test(`warning string, operand returns opcode, string tokens`, () => {
+  it(`warning string, operand returns opcode, string tokens`, () => {
     const expectedOpcode = 'warning';
     const expectedOperand = 'Watch your head!';
     const line = ` ${expectedOpcode} ${expectedOperand}`;
@@ -1446,9 +1545,9 @@ suite('LineParser', () => {
 
     const tokens = LineParser.parse(line);
 
-    assert.strictEqual(tokens.length, 2);
-    assert.deepStrictEqual(tokens[0], expectedOpcodeToken);
-    assert.deepStrictEqual(tokens[1], expectedOperandToken);
+    expect(tokens.length).toBe(2);
+    expect(tokens[0]).toEqual(expectedOpcodeToken);
+    expect(tokens[1]).toEqual(expectedOperandToken);
   });
 
 });

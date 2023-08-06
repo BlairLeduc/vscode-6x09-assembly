@@ -15,23 +15,27 @@ export class DocOpcode {
 
   public static parse(line: string, type: DocOpcodeType): DocOpcode | null {
     const columns = line.replace(/\!/g, '\n').split('\t');
-    
-    if (columns.length > 1) {
+
+    if (type === DocOpcodeType.opcode && columns.length > 5) {
       const opcode = new DocOpcode();
       
-      if (type === DocOpcodeType.opcode) {
-        opcode.name = columns[0];
-        opcode.processor = columns[1];
-        opcode.conditionCodes = columns[2];
-        opcode.summary = columns[3];
-        opcode.notation = columns[4];
-        opcode.documentation = columns[5];
-      } else {
-        opcode.name = columns[0];
-        opcode.summary = columns[1];
-        opcode.documentation = columns[2];
-      }
-      
+      opcode.name = columns[0];
+      opcode.processor = columns[1];
+      opcode.conditionCodes = columns[2];
+      opcode.summary = columns[3];
+      opcode.notation = columns[4];
+      opcode.documentation = columns[5];
+
+      return opcode;
+    }
+    
+    if (type === DocOpcodeType.pseudo && columns.length > 2) {
+      const opcode = new DocOpcode();
+
+      opcode.name = columns[0];
+      opcode.summary = columns[1];
+      opcode.documentation = columns[2];
+
       return opcode;
     }
 
@@ -62,7 +66,7 @@ export class Docs {
   }
 
   public getOpcode(name: string | undefined): DocOpcode | undefined {
-    return name 
+    return name
       ? this.opcodes.get(name.toUpperCase())
       : undefined;
   }
@@ -87,7 +91,6 @@ export class Docs {
           const key = opcode.name.toUpperCase();
           this.opcodes.set(key, opcode);
         } else {
-          // tslint:disable-next-line: no-console
           Logger.error(`Internal: \'${this.opcodesFile}\':${lineNumber} Cannot parse line.`);
         }
       }
