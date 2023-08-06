@@ -5,9 +5,6 @@ import { Docs } from '../../parsers';
 describe('Docs', () => {
   describe('single doc', () => {
   const docs = new Docs('valid');
-  // beforeAll(async () => {
-  //   await docs.init();
-  // });
     it('should get pseudo-op EQU', async () => {
       await docs.init();
       const pseudoOp = docs.getOpcode('EQU');
