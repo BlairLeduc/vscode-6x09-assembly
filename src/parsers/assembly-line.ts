@@ -82,13 +82,13 @@ export class AssemblyLine {
     this.semanicTokens.forEach((token, index, tokens) => {
       switch (token.kind) {
         case TokenKind.label:
-          this.label = new AssemblySymbol(token, this.uri, this.lineRange, this.state.blockNumber);
+          this.label = new AssemblySymbol(token, this.uri, this.lineNumber, this.state.blockNumber);
           this.state.lonelyLabels.push(this.label);
           break;
         case TokenKind.macroOrStruct:
           clearLonelyLabels = true;
           this.typeRange = this.getRangeFromToken(token);
-          this.type = new AssemblySymbol(token, this.uri, this.lineRange, 0);
+          this.type = new AssemblySymbol(token, this.uri, this.lineNumber, 0);
           this.updateLabels(label => {
             label.semanticToken.type = TokenType.variable;
             label.kind ===  vscode.CompletionItemKind.Variable;
@@ -106,12 +106,12 @@ export class AssemblyLine {
           this.operand = token;
           break;
         case TokenKind.reference:
-          lastReference = new AssemblySymbol(token, this.uri, this.lineRange, this.state.blockNumber);
+          lastReference = new AssemblySymbol(token, this.uri, this.lineNumber, this.state.blockNumber);
           this.references.push(lastReference);
           break;
         case TokenKind.property:
           if (lastReference) {
-            const property = new AssemblySymbol(token, this.uri, this.lineRange, 0);
+            const property = new AssemblySymbol(token, this.uri, this.lineNumber, 0);
             property.parent = lastReference;
             lastReference.properties.push(property);
             lastReference = undefined;

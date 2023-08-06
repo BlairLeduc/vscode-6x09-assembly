@@ -27,7 +27,7 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
               symbol.text,
               symbol.documentation,
               convertToSymbolKind(symbol.kind.toString()),
-              symbol.lineRange,
+              symbol.range,
               symbol.range
             );
 
@@ -40,7 +40,7 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
                     property.text,
                     property.documentation,
                     convertToSymbolKind(property.kind.toString()),
-                    property.lineRange,
+                    property.range,
                     property.range
                   );
                 });
