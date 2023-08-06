@@ -50,12 +50,9 @@ export class AssemblyLine {
     public uri: vscode.Uri,
     private rawLine: string,
     public state: ParserState,
-    rawLineNumber?: number) {
+    rawLineNumber: number) {
 
-    if (rawLineNumber) {
-      this.lineNumber = rawLineNumber;
-    }
-
+    this.lineNumber = rawLineNumber;
     this.lineRange = this.getRange(0, this.rawLine.length);
 
     if (!AssemblyLine.storageRegExp) {
@@ -63,7 +60,7 @@ export class AssemblyLine {
       const s2 = '|includebin|fill';
       AssemblyLine.storageRegExp = new RegExp('^(' + s1 + s2 + ')$', 'i');
     }
-    
+
     this.parse();
   }
 
@@ -84,16 +81,6 @@ export class AssemblyLine {
         case TokenKind.label:
           this.label = new AssemblySymbol(token, this.uri, this.lineNumber, this.state.blockNumber);
           this.state.lonelyLabels.push(this.label);
-          break;
-        case TokenKind.macroOrStruct:
-          clearLonelyLabels = true;
-          this.typeRange = this.getRangeFromToken(token);
-          this.type = new AssemblySymbol(token, this.uri, this.lineNumber, 0);
-          this.updateLabels(label => {
-            label.semanticToken.type = TokenType.variable;
-            label.kind ===  vscode.CompletionItemKind.Variable;
-            label.value = token.text;
-          });
           break;
         case TokenKind.opCode:
           clearLonelyLabels = true;
@@ -147,7 +134,7 @@ export class AssemblyLine {
     if (constantPseudoOps.has(token.text) && tokens.length > index) {
       this.updateLabels(label => {
         label.semanticToken.type = TokenType.variable;
-        label.semanticToken.modifiers = TokenModifier.readonly || TokenModifier.definition;
+        label.semanticToken.modifiers = TokenModifier.readonly | TokenModifier.definition;
         label.value = tokens[index + 1].text;
       });
     }
