@@ -26,4 +26,8 @@ export class Logger {
   public static error(msg: string): void {
     Logger.channel.error(msg);
   }
+
+  public static get isInitialized(): boolean {
+    return Logger.channel !== undefined;
+  }
 }

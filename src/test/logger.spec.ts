@@ -6,7 +6,7 @@ describe('Logger', () => {
     it('should create a channel', () => {
       Logger.init();
 
-      expect(Logger.channel).toBeTruthy();
+      expect(Logger.isInitialized).toBeTruthy();
     });
   });
   describe('channel passed to init', () => {
