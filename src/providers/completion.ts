@@ -31,7 +31,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         if ((assemblyLine.opCodeRange && assemblyLine.opCodeRange.contains(position))
           || (assemblyLine.typeRange && assemblyLine.typeRange.contains(position))) {
           const text = assemblyLine.opCode?.text ?? assemblyLine.type?.text ?? '';
-          const opcodes = this.workspaceManager.opcodeDocs.findOpcode(text.toUpperCase())
+          const opcodes = this.workspaceManager.docs.findOpcode(text.toUpperCase())
             .map(opcode => this.createOpcodeCompletionItem(opcode, casing));
 
           const types = symbolManager.implementations

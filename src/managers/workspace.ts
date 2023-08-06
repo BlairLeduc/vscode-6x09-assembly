@@ -10,13 +10,18 @@ export class WorkspaceManager implements vscode.Disposable {
 
   private static readonly noWorkspaceUri = 'wsf:none';
   private isDisposed: boolean = false;
-  public readonly opcodeDocs: Docs;
+  public readonly docs: Docs;
 
   private folders: Map<string, Folder> = new Map<string, Folder>();
-  private disposables: vscode.Disposable[];
+  private disposables: vscode.Disposable[] = [];
 
   constructor(extensionPath: string) {
-    this.opcodeDocs = new Docs(extensionPath);
+    this.docs = new Docs(extensionPath);
+  }
+
+  public async init(): Promise<void> {
+    // Load the docs from the extension path
+    await this.docs.init();
 
     // Add the workspace folders if there are any
     vscode.workspace.workspaceFolders?.forEach(wf => this.addFolder(wf));
@@ -27,22 +32,26 @@ export class WorkspaceManager implements vscode.Disposable {
     });
 
     // Add the workspace folder listeners
-    this.disposables = [
+    this.disposables.push(
       vscode.workspace.onDidChangeWorkspaceFolders(change => {
         change.added.forEach(folder => this.addFolder(folder));
         change.removed.forEach(folder => this.removeFolder(folder));
-      }),
+      }));
+    this.disposables.push(
       vscode.workspace.onDidOpenTextDocument(document => {
         this.addDocument(document);
-      }),
+      }));
+    this.disposables.push(
       vscode.workspace.onDidChangeTextDocument(change => {
         if (change.contentChanges.length > 0) {
           this.updateDocument(change);
         }
-      }),
+      }));
+    this.disposables.push(
       vscode.workspace.onDidCloseTextDocument(document => {
         this.removeDocument(document);
-      }),
+      }));
+    this.disposables.push(
       vscode.workspace.onDidCreateFiles(event => {
         event.files.forEach(file => {
           const document = vscode.workspace.textDocuments
@@ -51,7 +60,8 @@ export class WorkspaceManager implements vscode.Disposable {
             this.addDocument(document);
           }
         });
-      }),
+      }));
+    this.disposables.push(
       vscode.workspace.onDidDeleteFiles(event => {
         event.files.forEach(file => {
           const document = vscode.workspace.textDocuments
@@ -60,7 +70,8 @@ export class WorkspaceManager implements vscode.Disposable {
             this.removeDocument(document);
           }
         });
-      }),
+      }));
+    this.disposables.push(
       vscode.workspace.onDidRenameFiles(event => {
         event.files.forEach(file => {
           const document = vscode.workspace.textDocuments
@@ -76,8 +87,7 @@ export class WorkspaceManager implements vscode.Disposable {
             this.addDocument(document);
           }
         });
-      }),
-    ];
+      }));
   }
 
   public dispose(): void {

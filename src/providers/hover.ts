@@ -41,7 +41,7 @@ export class HoverProvider implements vscode.HoverProvider {
 
         if (assemblyLine.opCodeRange && assemblyLine.opCodeRange.contains(position)) {
           const opCode = assemblyLine.opCode;
-          const opCodeDocs = this.workspaceManager.opcodeDocs.getOpcode(opCode?.text);
+          const opCodeDocs = this.workspaceManager.docs.getOpcode(opCode?.text);
 
           if (opCodeDocs) {
             const help = new vscode.MarkdownString();
