@@ -7,7 +7,8 @@ export class SymbolManager implements vscode.Disposable {
   public references: AssemblySymbol[] = [];
 
   public dispose(): void {
-    //TODO
+    this.implementations = [];
+    this.references = [];
   }
 
   public clearDocument(uri: vscode.Uri): void {
