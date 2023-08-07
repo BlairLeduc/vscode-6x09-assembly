@@ -11,6 +11,7 @@ describe('AssemblyBlock', () => {
     expect(block.label).toBeFalsy();
     expect(block.symbols.length).toBe(0);
   });
+
   it('should create with label', () => {
     const token = new Token('foo', 0, 3, TokenKind.label, TokenType.label);
     const label = new AssemblySymbol(token, vscode.Uri.file('foo'), 0, 0);

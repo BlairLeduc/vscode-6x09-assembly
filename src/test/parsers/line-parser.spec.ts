@@ -1550,4 +1550,27 @@ describe('LineParser', () => {
     expect(tokens[1]).toEqual(expectedOperandToken);
   });
 
+  it('unknown opcode should be a macro or struct', () => {
+    const expectedLabel = 'label';
+    const expectedOpcode = 'unknown';
+    const line = `${expectedLabel} ${expectedOpcode}`;
+    const expectedLabelToken = new Token(
+      expectedLabel,
+      line.indexOf(expectedLabel),
+      expectedLabel.length,
+      TokenKind.label,
+      TokenType.class);
+    const expectedOpcodeToken = new Token(
+      expectedOpcode,
+      line.indexOf(expectedOpcode),
+      expectedOpcode.length,
+      TokenKind.opCode,
+      TokenType.keyword);
+
+    const tokens = LineParser.parse(line);
+
+    expect(tokens.length).toBe(2);
+    expect(tokens[0]).toEqual(expectedLabelToken);
+    expect(tokens[1]).toEqual(expectedOpcodeToken);
+  });
 });

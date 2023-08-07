@@ -3,6 +3,8 @@ import * as vscode from 'vscode';
 import { AssemblySymbol } from './assembly-symbol';
 import {
   constantPseudoOps,
+  inherentOpcodes,
+  operandOpcodes,
   Token,
   TokenKind,
   TokenModifier,
@@ -26,6 +28,7 @@ export interface ParserState {
 
 export class AssemblyLine {
   private static storageRegExp: RegExp;
+  private static knownOpcodes: Set<string>;
 
   public lineNumber = 0;
   public lineRange: vscode.Range;
@@ -60,6 +63,9 @@ export class AssemblyLine {
       const s2 = '|includebin|fill';
       AssemblyLine.storageRegExp = new RegExp('^(' + s1 + s2 + ')$', 'i');
     }
+    if (!AssemblyLine.knownOpcodes) {
+      AssemblyLine.knownOpcodes = new Set([...inherentOpcodes, ...operandOpcodes]);
+    }
 
     this.parse();
   }
@@ -82,11 +88,32 @@ export class AssemblyLine {
           this.label = new AssemblySymbol(token, this.uri, this.lineNumber, this.state.blockNumber);
           this.state.lonelyLabels.push(this.label);
           break;
+        case TokenKind.macroOrStruct:
+          clearLonelyLabels = true;
+          this.typeRange = this.getRangeFromToken(token);
+          this.type = new AssemblySymbol(token, this.uri, this.lineNumber, 0);
+          this.updateLabels(label => {
+            label.semanticToken.type = TokenType.variable;
+            label.kind === vscode.CompletionItemKind.Variable;
+            label.value = token.text;
+          });
+          break;
         case TokenKind.opCode:
           clearLonelyLabels = true;
-          this.opCodeRange = this.getRangeFromToken(token);
-          this.opCode = token;
-          this.processOpCode(token, tokens, index);
+          if (!AssemblyLine.knownOpcodes.has(token.text)) {
+            this.typeRange = this.getRangeFromToken(token);
+            this.type = new AssemblySymbol(token, this.uri, this.lineNumber, 0);
+            this.type.semanticToken.type = TokenType.function;
+            this.updateLabels(label => {
+              label.semanticToken.type = TokenType.variable;
+              label.kind === vscode.CompletionItemKind.Variable;
+              label.value = token.text;
+            });
+          } else {
+            this.opCodeRange = this.getRangeFromToken(token);
+            this.opCode = token;
+            this.processOpCode(token, tokens, index);
+          }
           break;
         case TokenKind.operand:
           this.operandRange = this.getRangeFromToken(token);
@@ -114,6 +141,12 @@ export class AssemblyLine {
           break;
         case TokenKind.file:
           this.file = token.text;
+          if (this.file.startsWith('"')) {
+            this.file = this.file.substring(1);
+          }
+          if (this.file.endsWith('"')) {
+            this.file = this.file.substring(0, this.file.length - 1);
+          }
           this.fileRange = this.getRangeFromToken(token);
           break;
       }

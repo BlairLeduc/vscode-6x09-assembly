@@ -69,11 +69,8 @@ export class AssemblyDocument {
         lines = content.toString().split(/\r?\n/);
       } catch (error) {
         Logger.error(`Failed to read file: ${document.toString()}`);
+        return false;
       }
-    }
-
-    if (lines.length === 0) {
-      return false;
     }
 
     const range = new vscode.Range(

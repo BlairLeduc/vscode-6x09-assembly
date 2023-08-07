@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { Logger } from '../logger';
 
 export enum DocOpcodeType { unknown, opcode, pseudo }
@@ -29,12 +28,11 @@ export class DocOpcode {
       return opcode;
     }
     
-    if (type === DocOpcodeType.pseudo && columns.length > 2) {
+    if (type === DocOpcodeType.pseudo && columns.length > 1) {
       const opcode = new DocOpcode();
 
       opcode.name = columns[0];
       opcode.summary = columns[1];
-      opcode.documentation = columns[2];
 
       return opcode;
     }
@@ -53,11 +51,12 @@ export class Docs {
   }
 
   public async init(): Promise<void> {
-    const opcodesFilePath = path.join(this.extensionPath, this.docsPath, this.opcodesFile);
-    await this.parse(opcodesFilePath, DocOpcodeType.opcode);
+    const extensionUri = vscode.Uri.file(this.extensionPath);
+    const opcodesUri = vscode.Uri.joinPath(extensionUri, this.docsPath, this.opcodesFile);
+    await this.parse(opcodesUri, DocOpcodeType.opcode);
 
-    const pseudoOpsFilePath = path.join(this.extensionPath, this.docsPath, this.pseudoOpsFile);
-    await this.parse(pseudoOpsFilePath, DocOpcodeType.pseudo);
+    const pseudoOpsUri = vscode.Uri.joinPath(extensionUri, this.docsPath, this.pseudoOpsFile);
+    await this.parse(pseudoOpsUri, DocOpcodeType.pseudo);
   }
 
   public findOpcode(startsWith: string): DocOpcode[] {
@@ -71,8 +70,7 @@ export class Docs {
       : undefined;
   }
 
-  private async parse(filePath: string, type: DocOpcodeType): Promise<void> {
-    const uri = vscode.Uri.file(filePath);
+  private async parse(uri: vscode.Uri, type: DocOpcodeType): Promise<void> {
     const content = (await vscode.workspace.fs.readFile(uri)).toString();
     const lines = content.split(/\r\n|\r|\n/g);
 

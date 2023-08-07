@@ -21,7 +21,7 @@ export const inherentOpcodes = new Set([
   'sync',
   'tsta', 'tstb', 'tstd', 'tste', 'tstf', 'tstw',
   'reorg', 'else', 'endc', 'emod', 'endm', 'endstruct', 'ends', 'endsection', 'endsect',
-  'extern', 'external', 'import', 'export', '.globl', 'extdep',
+  'extern', 'external', 'import', 'export', '.globl', 'extdep', 'struct',
 ]);
 
 export const operandOpcodes = new Set([
@@ -54,7 +54,7 @@ export const operandOpcodes = new Set([
   'suba', 'subb', 'subd', 'sube', 'subf', 'subr', 'subw',
   'tfm', 'tfr', 'tim', 'tst',
   '.4byte', '.area', '.ascii', '.ascis', '.asciz', '.blkb', '.byte',
-  '.db', '.ds', '.dw', '.quad', '.rs', '.str', '.strs', '.strz', '.word',
+  '.db', '.ds', '.dw', '.module', '.quad', '.rs', '.str', '.strs', '.strz', '.word',
   '*pragma', '*pragmapop', '*pragmapush',
   'align', 'end', 'equ', 'error',
   'fcb', 'fcc', 'fcn', 'fcs', 'fdb', 'fill',

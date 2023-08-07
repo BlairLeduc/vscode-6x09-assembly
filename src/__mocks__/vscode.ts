@@ -2,7 +2,7 @@
 // vscode.js
 
 import { LogOutputChannel } from "vscode";
-
+import * as path from 'path';
 /**
  * Completion item kinds.
  */
@@ -101,7 +101,8 @@ const window = {
 };
 
 const fs = {
-  readFile: (fileName: string) => {
+  readFile: (uri: Uri) => {
+    const fileName = uri.fsPath;
     if (fileName.startsWith('valid')) {
       if (fileName.includes('opcodes.tsv')) {
         return Promise.resolve(Buffer.from(
@@ -111,11 +112,41 @@ const fs = {
       }
       if (fileName.includes('pseudo-ops.tsv')) {
         return Promise.resolve(Buffer.from(
-          'Name\tSummary\tDocumentation\n' +
-          'EQU\tSet a Symbol to a Value\tDefines a symbol to have a value.\n' +
-          'FCB\tDefine Byte(s)\tDefines one or more bytes.\n'));
+          'Name\tSummary\n' +
+          'EQU\tSet a Symbol to a Value\n' +
+          'FCB\tDefine Byte(s)\n'));
       }
-    } else if (fileName.startsWith('invalid')) {
+      if (fileName.includes('hello.asm')) {
+        return Promise.resolve(Buffer.from(
+          '  include "6809.inc"\n' +
+          '  org $1000\n' +
+          'start\n' +
+          '  ldx #message\n' +
+          '\n' +
+          'loop\n' +
+          '  lda ,x+\n' +
+          '  beq done\n' +
+          '  jsr $FFD2\n' +
+          '  bra loop\n' +
+          '\n' +
+          'done\n' +
+          '  rts\n' +
+          '\n' +
+          'message\n' +
+          '  fcc "Hello, world!"\n' +
+          '  fcb 0\n'));
+      }
+      if (fileName.includes('struct.asm')) {
+        return Promise.resolve(Buffer.from(
+          'things struct\n' +
+          'one rmb 1\n' +
+          'two rmb 1\n' +
+          ' ends\n' +
+          'test things\n' +
+          ' lda #test.one\n'));
+      }
+    }
+    if (fileName.startsWith('invalid')) {
       if (fileName.includes('opcodes.tsv')) {
         return Promise.resolve(Buffer.from(
           'Name\tProcessor\tCondition\tCodes\tSummary\tNotation\tDocumentation\n' +
@@ -128,6 +159,12 @@ const fs = {
           'BAD' // missing columns
         ));
       }
+    }
+    if (fileName.startsWith('empty')) {
+      return Promise.resolve(Buffer.from(''));
+    }
+    if (fileName.startsWith("throw")) {
+      return Promise.reject(new Error('test'));
     }
     return Promise.resolve(Buffer.from(''));
   },
@@ -144,11 +181,47 @@ const OverviewRulerLane = {
   Left: null
 };
 
-const Uri = {
-  file: (f: string) => f,
-  parse: jest.fn()
+class Uri {
+  readonly scheme: string = 'file';
+  readonly authority: string = '';
+  readonly path: string = '';
+  readonly query: string = '';
+  readonly fragment: string = '';
+
+  private constructor(public readonly fsPath: string) {
+    this.path = fsPath;
+  }
+
+  with(change: { scheme?: string; authority?: string; path?: string; query?: string; fragment?: string }): Uri {
+    return new Uri(change.path || this.fsPath);
+  }
+  toString(_skipEncoding?: boolean): string {
+    return `${this.scheme}://${this.fsPath}`;
+  }
+  toJSON(): any {
+    return JSON.stringify(this);
+  }
+  static file(path: string) {
+    return new Uri(path); 
+  }
+  static parse(value: string, _strict?: boolean) {
+    return new Uri(value.substring(7));
+  }
+  static joinPath(base: Uri, ...pathSegments: string[]) {
+    return new Uri(path.join(base.fsPath, ...pathSegments));
+  }
 };
-const Range = jest.fn();
+
+class Position {
+  constructor(public readonly line: number, public readonly character: number) {
+  }
+}
+
+class Range {
+  constructor(public readonly start: Position, public readonly end: Position) {
+  }
+}
+
 const Diagnostic = jest.fn();
 const DiagnosticSeverity = { Error: 0, Warning: 1, Information: 2, Hint: 3 };
 
@@ -161,20 +234,35 @@ const commands = {
   executeCommand: jest.fn()
 };
 
+interface CancellationToken {
+  isCancellationRequested: boolean;
+}
+
+class CancellationTokenSource {
+  token: CancellationToken = {
+    isCancellationRequested: false,
+  };
+  cancel() {
+    this.token.isCancellationRequested = true;
+  }
+}
+
 const vscode = {
+  CancellationTokenSource,
+  commands,
   CompletionItemKind,
-  SymbolKind,
-  languages,
-  StatusBarAlignment,
-  window,
-  workspace,
-  OverviewRulerLane,
-  Uri,
-  Range,
+  debug,
   Diagnostic,
   DiagnosticSeverity,
-  debug,
-  commands
+  languages,
+  OverviewRulerLane,
+  Position,
+  Range,
+  StatusBarAlignment,
+  SymbolKind,
+  Uri,
+  window,
+  workspace,
 };
 
 module.exports = vscode;
