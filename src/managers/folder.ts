@@ -14,7 +14,7 @@ export class Folder implements vscode.Disposable {
   constructor(public workspaceFolder?: vscode.WorkspaceFolder) {
     this.symbolManager = new SymbolManager();
     if (this.workspaceFolder) {
-      Logger.info(`Watching folder "${this.workspaceFolder?.name ?? "{}"}"`);
+      Logger.info(`Watching folder "${this.workspaceFolder.name}"`);
     }
   }
 
@@ -25,21 +25,21 @@ export class Folder implements vscode.Disposable {
     }
   }
 
-  public containsAssemblyDocument(document: vscode.TextDocument | vscode.Uri): boolean {
+  public contains(document: vscode.TextDocument | vscode.Uri): boolean {
     const uri = isTextDocument(document) ? document.uri : document;
     return this.documents.has(uri.toString());
   }
 
-  public async addAssemblyDocument(
+  public async add(
     document: vscode.TextDocument | vscode.Uri,
     token?: vscode.CancellationToken): Promise<void> {
 
-    if (!this.containsAssemblyDocument(document)) {
-      await this.updateAssemblyDocument(document, token);
+    if (!this.contains(document)) {
+      await this.update(document, token);
     }
   }
 
-  public async updateAssemblyDocument(
+  public async update(
     document: vscode.TextDocument | vscode.Uri,
     token?: vscode.CancellationToken): Promise<void> {
 
@@ -47,7 +47,7 @@ export class Folder implements vscode.Disposable {
 
     const assemblyDocument = await AssemblyDocument.create(document, this.symbolManager, token);
     if (assemblyDocument) {
-      let updateReferences = true; // By default, update references
+      let updateReferences = assemblyDocument.referencedDocuments.length > 0;
       
       const original = this.documents.get(uri.toString());
       if (original) {
@@ -80,18 +80,19 @@ export class Folder implements vscode.Disposable {
         for (const referencedDocument of assemblyDocument.referencedDocuments) {
           if (!this.documents.has(referencedDocument.uri.toString())) {
             Logger.debug(`Scanning referenced document ${referencedDocument.uri.toString()}`);
-            await this.addAssemblyDocument(referencedDocument.uri, token);
+            await this.add(referencedDocument.uri, token);
           }
         }
       }
     }
+    return;
   }
 
-  public getAssemblyDocument(uri: vscode.Uri): AssemblyDocument | undefined {
-    return this.containsAssemblyDocument(uri) ? this.documents.get(uri.toString()) : undefined;
+  public get(uri: vscode.Uri): AssemblyDocument | undefined {
+    return this.contains(uri) ? this.documents.get(uri.toString()) : undefined;
   }
 
-  public removeAssemblyDocument(document: vscode.TextDocument | vscode.Uri): void {
+  public remove(document: vscode.TextDocument | vscode.Uri): void {
     const uri = isTextDocument(document) ? document.uri : document;
     this.documents.delete(uri.toString());
 

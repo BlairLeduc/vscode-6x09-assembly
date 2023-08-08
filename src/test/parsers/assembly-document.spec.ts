@@ -12,7 +12,7 @@ describe('AssemblyDocument', () => {
 
   describe('using url', () => {
     it('should create', async () => {
-      const uri = vscode.Uri.file('test.asm');
+      const uri = vscode.Uri.file('valid/hello.asm');
       const symbolManager = new SymbolManager();
       const cancellationSource = new vscode.CancellationTokenSource();
       const document = await AssemblyDocument.create(uri, symbolManager, cancellationSource.token);
@@ -50,17 +50,17 @@ describe('AssemblyDocument', () => {
       expect(document).toBeTruthy();
       expect(logOutputChannel.debug).toBeCalledWith(`Parsed assembly document: ${uri.toString()}`);
 
-      expect(document?.lines.length).toBe(18);
+      expect(document?.lines.length).toBe(17);
 
       expect(document?.blocks.size).toBe(4);
       expect(document?.blocks.get(1)?.startLineNumber).toBe(0);
-      expect(document?.blocks.get(1)?.endLineNumber).toBe(3);
-      expect(document?.blocks.get(2)?.startLineNumber).toBe(5);
-      expect(document?.blocks.get(2)?.endLineNumber).toBe(9);
-      expect(document?.blocks.get(3)?.startLineNumber).toBe(11);
-      expect(document?.blocks.get(3)?.endLineNumber).toBe(12);
-      expect(document?.blocks.get(4)?.startLineNumber).toBe(14);
-      expect(document?.blocks.get(4)?.endLineNumber).toBe(16);
+      expect(document?.blocks.get(1)?.endLineNumber).toBe(2);
+      expect(document?.blocks.get(2)?.startLineNumber).toBe(4);
+      expect(document?.blocks.get(2)?.endLineNumber).toBe(8);
+      expect(document?.blocks.get(3)?.startLineNumber).toBe(10);
+      expect(document?.blocks.get(3)?.endLineNumber).toBe(11);
+      expect(document?.blocks.get(4)?.startLineNumber).toBe(13);
+      expect(document?.blocks.get(4)?.endLineNumber).toBe(15);
     });
 
     it('should process labels in hello.asm', async () => {
@@ -79,8 +79,8 @@ describe('AssemblyDocument', () => {
       expect(symbolManager.implementations[3].text).toBe('message');
     });
 
-    it('should process new file references in hello.asm', async () => {
-      const uri = vscode.Uri.file('valid/hello.asm');
+    it('should process new file references in refs.asm', async () => {
+      const uri = vscode.Uri.file('valid/refs.asm');
       const symbolManager = new SymbolManager();
       const cancellationSource = new vscode.CancellationTokenSource();
       const document = await AssemblyDocument.create(uri, symbolManager, cancellationSource.token);
@@ -89,7 +89,7 @@ describe('AssemblyDocument', () => {
       expect(logOutputChannel.debug).toBeCalledWith(`Parsed assembly document: ${uri.toString()}`);
 
       expect(document?.referencedDocuments.length).toBe(1);
-      expect(document?.referencedDocuments[0].uri.toString()).toBe('file://valid/6809.inc');
+      expect(document?.referencedDocuments[0].uri.toString()).toBe('file://valid/6809-0.inc');
     });
 
     it('should process references in hello.asm', async () => {

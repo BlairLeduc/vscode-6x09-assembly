@@ -3,6 +3,7 @@
 
 import { LogOutputChannel } from "vscode";
 import * as path from 'path';
+import { ASM6X09_LANGUAGE } from "../../constants";
 /**
  * Completion item kinds.
  */
@@ -100,8 +101,9 @@ const window = {
   createOutputChannel: () => logOutputChannel,
 };
 
-const fs = {
-  readFile: (uri: Uri) => {
+class fs {
+  static id: number = 0;
+  static readFile(uri: Uri): Promise<Buffer> {
     const fileName = uri.fsPath;
     if (fileName.startsWith('valid')) {
       if (fileName.includes('opcodes.tsv')) {
@@ -118,7 +120,6 @@ const fs = {
       }
       if (fileName.includes('hello.asm')) {
         return Promise.resolve(Buffer.from(
-          '  include "6809.inc"\n' +
           '  org $1000\n' +
           'start\n' +
           '  ldx #message\n' +
@@ -135,6 +136,15 @@ const fs = {
           'message\n' +
           '  fcc "Hello, world!"\n' +
           '  fcb 0\n'));
+      }
+      if (fileName.includes('refs.asm')) {
+        return Promise.resolve(Buffer.from(
+          ` include "6809-${this.id++}.inc"\n` +
+          'start\n' +
+          ' ldx #$DEAD\n' +
+          '\n' +
+          'done\n' +
+          ' rts\n')); 
       }
       if (fileName.includes('struct.asm')) {
         return Promise.resolve(Buffer.from(
@@ -166,15 +176,18 @@ const fs = {
     if (fileName.startsWith("throw")) {
       return Promise.reject(new Error('test'));
     }
-    return Promise.resolve(Buffer.from(''));
-  },
+    return Promise.reject(new Error(`Unknown file: ${fileName}`));
+  }
 };
 
 const workspace = {
   fs,
   getConfiguration: jest.fn(),
   workspaceFolders: [],
-  onDidSaveTextDocument: jest.fn()
+  onDidSaveTextDocument: jest.fn(),
+  openTextDocument: async (uri: Uri) => {
+    return await TextDocument.create(uri.fsPath);
+  }
 };
 
 const OverviewRulerLane = {
@@ -202,7 +215,7 @@ class Uri {
     return JSON.stringify(this);
   }
   static file(path: string) {
-    return new Uri(path); 
+    return new Uri(path);
   }
   static parse(value: string, _strict?: boolean) {
     return new Uri(value.substring(7));
@@ -215,10 +228,78 @@ class Uri {
 class Position {
   constructor(public readonly line: number, public readonly character: number) {
   }
+
+  isBefore(other: Position): boolean {
+    return this.line < other.line || (this.line === other.line && this.character < other.character);
+  }
+
+  isBeforeOrEqual(other: Position): boolean {
+    return this.line < other.line || (this.line === other.line && this.character <= other.character);
+  }
+
+  isAfter(other: Position): boolean {
+    return this.line > other.line || (this.line === other.line && this.character > other.character);
+  }
+
+  isAfterOrEqual(other: Position): boolean {
+    return this.line > other.line || (this.line === other.line && this.character >= other.character);
+  }
+
+  isEqual(other: Position): boolean {
+    return this.line === other.line && this.character === other.character;
+  }
 }
 
 class Range {
   constructor(public readonly start: Position, public readonly end: Position) {
+  }
+
+  get isEmpty(): boolean {
+    return this.start.line === this.end.line && this.start.character === this.end.character;
+  }
+
+  get isSingleLine(): boolean {
+    return this.start.line === this.end.line;
+  }
+
+  contains(positionOrRange: Position | Range): boolean {
+    if (positionOrRange instanceof Position) {
+      return this.start.isBeforeOrEqual(positionOrRange) && this.end.isAfterOrEqual(positionOrRange);
+    }
+    return this.contains(positionOrRange.start) && this.contains(positionOrRange.end);
+  }
+
+  isEqual(other: Range): boolean {
+    return this.start.isEqual(other.start) && this.end.isEqual(other.end);
+  }
+
+  intersection(range: Range): Range | undefined {
+    const start = range.start.isBefore(this.start) ? this.start : range.start;
+    const end = this.end.isBefore(range.end) ? this.end : range.end;
+
+    if (end.isBefore(start)) {
+      return undefined;
+    }
+    return new Range(start, end);
+  }
+
+  union(other: Range): Range {
+    const start = other.start.isBefore(this.start) ? other.start : this.start;
+    const end = this.end.isBefore(other.end) ? other.end : this.end;
+    return new Range(start, end);
+  }
+
+  with(start?: Position, end?: Position): Range {
+    if (start === undefined) {
+      start = this.start;
+    }
+    if (end === undefined) {
+      end = this.end;
+    }
+    if (start === this.start && end === this.end) {
+      return this;
+    }
+    return new Range(start, end);
   }
 }
 
@@ -247,6 +328,51 @@ class CancellationTokenSource {
   }
 }
 
+class TextDocument {
+  private content: string[] = [];
+
+  constructor(
+    public readonly uri: Uri,
+    public readonly fileName: string,
+    public readonly languageId: string,
+    public readonly version: number,
+    public readonly isDirty: boolean,
+    public readonly isUntitled: boolean,
+    public readonly isClosed: boolean,
+    public readonly eol: string,
+    public readonly lineCount: number) {
+  }
+
+  static async create(filename: string) {
+    const uri = Uri.file(filename);
+    const text = await fs.readFile(uri);
+    const lines = text.toString().split(/\r?\n/);
+
+    const document = new TextDocument(
+      uri,
+      filename,
+      ASM6X09_LANGUAGE,
+      1,
+      false,
+      false,
+      false,
+      '\n',
+      lines.length);
+
+    document.putText(lines);
+
+    return document;
+  }
+
+  private putText(lines: string[]) {
+    this.content = lines;
+  }
+
+  getText(_range?: Range): string {
+    return this.content.join('\n');
+  }
+}
+
 const vscode = {
   CancellationTokenSource,
   commands,
@@ -260,6 +386,7 @@ const vscode = {
   Range,
   StatusBarAlignment,
   SymbolKind,
+  TextDocument,
   Uri,
   window,
   workspace,

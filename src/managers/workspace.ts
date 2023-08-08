@@ -109,7 +109,7 @@ export class WorkspaceManager implements vscode.Disposable {
     }
 
     const folder = this.getOrCreateFolder(document);
-    await folder.addAssemblyDocument(document, token);
+    await folder.add(document, token);
   }
 
   public getAssemblyDocument(
@@ -119,12 +119,12 @@ export class WorkspaceManager implements vscode.Disposable {
     const uri = isTextDocument(document) ? document.uri : document;
     const folder = this.getOrCreateFolder(uri);
     
-    if (folder.containsAssemblyDocument(uri)) {
-      return folder.getAssemblyDocument(uri);
+    if (folder.contains(uri)) {
+      return folder.get(uri);
     }
 
-    folder.addAssemblyDocument(document, token);
-    return folder.getAssemblyDocument(uri);
+    folder.add(document, token);
+    return folder.get(uri);
   }
 
   public updateDocument(change: vscode.TextDocumentChangeEvent): void {
@@ -136,7 +136,7 @@ export class WorkspaceManager implements vscode.Disposable {
 
     const uri = document.uri;
     const folder = this.getOrCreateFolder(uri);
-    folder.updateAssemblyDocument(document);
+    folder.update(document);
   }
 
   public removeDocument(document: vscode.TextDocument |  vscode.Uri): void {
@@ -145,7 +145,7 @@ export class WorkspaceManager implements vscode.Disposable {
     }
 
     const folder = this.getOrCreateFolder(document);
-    folder.removeAssemblyDocument(document);
+    folder.remove(document);
   }
 
   public addFolder(workspaceFolder: vscode.WorkspaceFolder): Folder {
@@ -166,8 +166,8 @@ export class WorkspaceManager implements vscode.Disposable {
   public getSymbolManager(document: vscode.TextDocument | vscode.Uri): SymbolManager {
     const folder = this.getOrCreateFolder(document);
 
-    if (!folder.containsAssemblyDocument(document)) {
-      folder.addAssemblyDocument(document);
+    if (!folder.contains(document)) {
+      folder.add(document);
     }
 
     return folder.symbolManager;
