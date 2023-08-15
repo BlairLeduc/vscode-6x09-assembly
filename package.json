@@ -236,7 +236,6 @@
 		"@types/jest": "29",
 		"@types/line-reader": "0",
 		"@types/node": "20",
-		"@types/sinon": "10",
 		"@types/vscode": "1",
 		"@typescript-eslint/eslint-plugin": "6",
 		"@typescript-eslint/parser": "6",

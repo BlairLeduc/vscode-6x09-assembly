@@ -120,7 +120,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
       item.detail += ' (6309)';
     }
 
-    if (this.configurationManager.helpVerbosity === HelpLevel.full && opcode.documentation) {
+    if (this.configurationManager.helpLevel === HelpLevel.full && opcode.documentation) {
       item.documentation = new vscode.MarkdownString(opcode.documentation);
     }
 

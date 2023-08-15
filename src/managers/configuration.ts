@@ -12,15 +12,17 @@ export interface CommandConfiguration {
   arguments: string;
 }
 
-interface ExtensionWorkspaceConfiguration extends vscode.WorkspaceConfiguration {
+export interface OpcodeConfiguration {
+  /** the casing of the opcodes */
+  casing: string;
 
-  opcode: {
-    /** the casing of the opcodes */
-    casing: string,
+  /** the level of detail when providing help */
+  help: string;
+}
 
-    /** the level of detail when providing help */
-    help: string,
-  };
+export interface ExtensionWorkspaceConfiguration extends vscode.WorkspaceConfiguration {
+
+  opcode: OpcodeConfiguration;
 
   /** whether Codelens is enabled */
   enableCodeLens: boolean;
@@ -37,7 +39,7 @@ interface ExtensionWorkspaceConfiguration extends vscode.WorkspaceConfiguration 
 
 export class ConfigurationManager implements vscode.Disposable {
   private onDidChangeConfigurationEmitter = new vscode.EventEmitter<void>();
-  private config?: ExtensionWorkspaceConfiguration;
+  private config: ExtensionWorkspaceConfiguration;
   private defaultConfiguration = {
     opcode: {
       casing: OpcodeCase.lowercase,
@@ -64,7 +66,7 @@ export class ConfigurationManager implements vscode.Disposable {
   };
 
   constructor(private language: string) {
-    this.update(vscode.workspace.getConfiguration(language));
+    this.config = vscode.workspace.getConfiguration(language) as ExtensionWorkspaceConfiguration;
   }
 
   public dispose(): void {
@@ -84,23 +86,23 @@ export class ConfigurationManager implements vscode.Disposable {
   }
 
   public get opcodeCasing(): OpcodeCase {
-    return this.config
+    return this.config.opcode?.casing
       ? OpcodeCase[this.config.opcode.casing as keyof typeof OpcodeCase]
       : this.defaultConfiguration.opcode.casing;
   }
 
   public get isCodeLensEnabled(): boolean {
-    return this.config?.enableCodeLens ?? this.defaultConfiguration.enableCodeLens;
+    return this.config.enableCodeLens ?? this.defaultConfiguration.enableCodeLens;
   }
 
-  public get helpVerbosity(): HelpLevel {
-    return this.config
+  public get helpLevel(): HelpLevel {
+    return this.config.opcode?.help
       ? HelpLevel[this.config.opcode.help as keyof typeof HelpLevel]
       : this.defaultConfiguration.opcode.help;
   }
 
   public getCommandConfiguration(command: Command): CommandConfiguration | undefined {
-    if (this.config && this.config[Command[command]]) {
+    if (this.config[Command[command]]) {
       return this.config[Command[command]];
     }
 
@@ -116,6 +118,6 @@ export class ConfigurationManager implements vscode.Disposable {
   }
 
   public get debugPort(): number {
-    return this.config?.debugPort ?? this.defaultConfiguration.debugPort;
+    return this.config.debugPort ?? this.defaultConfiguration.debugPort;
   }
 }

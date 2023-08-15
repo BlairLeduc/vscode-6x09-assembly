@@ -144,7 +144,7 @@ class fs {
           ' ldx #$DEAD\n' +
           '\n' +
           'done\n' +
-          ' rts\n')); 
+          ' rts\n'));
       }
       if (fileName.includes('struct.asm')) {
         return Promise.resolve(Buffer.from(
@@ -180,9 +180,29 @@ class fs {
   }
 };
 
+const testConfig = {
+  enableCodeLens: false,
+  opcode: {
+    casing: 'uppercase',
+    help: 'none',
+  },
+  lwasm: {
+    path: 'lwasm',
+    arguments: '--test',
+  },
+  xroar: {
+    path: 'xroar',
+    arguments: '-machine test',
+  },
+  debugPort: 6809,
+};
+
+
 const workspace = {
   fs,
-  getConfiguration: jest.fn(),
+  getConfiguration: (_language: string) => {
+    return testConfig;
+  },
   workspaceFolders: [],
   onDidSaveTextDocument: jest.fn(),
   openTextDocument: async (uri: Uri) => {
@@ -373,6 +393,38 @@ class TextDocument {
   }
 }
 
+export interface Disposable {
+  dispose(): any;
+}
+
+export interface Event<T> {
+
+  /**
+   * A function that represents an event to which you subscribe by calling it with
+   * a listener function as argument.
+   *
+   * @param listener The listener function will be called when the event happens.
+   * @param thisArgs The `this`-argument which will be used when calling the event listener.
+   * @param disposables An array to which a {@link Disposable} will be added.
+   * @return A disposable which unsubscribes the event listener.
+   */
+  (listener: (e: T) => any, thisArgs?: any, disposables?: Disposable[]): Disposable;
+}
+
+class EventEmitter<T> implements Disposable {
+  private handler: (e: T) => any = () => { };
+  event: Event<T> = (listener: (e: T) => any, _thisArgs?: any, _disposables?: Disposable[]) => {
+    this.handler = listener;
+    return this;
+  };
+  fire(data: T) {
+    this.handler(data);
+  }
+  dispose() {
+    this.handler(undefined as T);
+  }
+}
+
 const vscode = {
   CancellationTokenSource,
   commands,
@@ -380,6 +432,7 @@ const vscode = {
   debug,
   Diagnostic,
   DiagnosticSeverity,
+  EventEmitter,
   languages,
   OverviewRulerLane,
   Position,

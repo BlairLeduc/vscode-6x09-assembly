@@ -13,10 +13,10 @@ export class HoverProvider implements vscode.HoverProvider {
     private workspaceManager: WorkspaceManager,
     private configurationManager: ConfigurationManager) {
 
-    this.helpVerbosity = configurationManager.helpVerbosity;
+    this.helpVerbosity = configurationManager.helpLevel;
 
     configurationManager.onDidChangeConfiguration(() => {
-      const helpVerbosity = this.configurationManager.helpVerbosity;
+      const helpVerbosity = this.configurationManager.helpLevel;
 
       if (this.helpVerbosity !== helpVerbosity) {
         this.helpVerbosity = helpVerbosity;
@@ -59,7 +59,7 @@ export class HoverProvider implements vscode.HoverProvider {
               ? `${opCodeDocs.notation}　⸺　${opCodeDocs.conditionCodes}`
               : '';
 
-            if (this.configurationManager.helpVerbosity === HelpLevel.full
+            if (this.configurationManager.helpLevel === HelpLevel.full
               && opCodeDocs.documentation) {
 
               documentation += `  \n  \n${opCodeDocs.documentation}`;
