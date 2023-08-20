@@ -9,7 +9,7 @@ import { SymbolManager } from './symbol';
 export class WorkspaceManager implements vscode.Disposable {
 
   private static readonly noWorkspaceUri = 'wsf:none';
-  private isDisposed: boolean = false;
+  public isDisposed: boolean = false;
   public readonly docs: Docs;
 
   private folders: Map<string, Folder> = new Map<string, Folder>();
@@ -26,8 +26,8 @@ export class WorkspaceManager implements vscode.Disposable {
     // Add the workspace folders if there are any
     vscode.workspace.workspaceFolders?.forEach(wf => this.addFolder(wf));
     vscode.workspace.findFiles(ASM6X09_FILE_GLOB_PATTERN).then(files => {
-      files.forEach(file => {
-        this.addDocument(file);
+      files.forEach(async file => {
+        await this.addDocument(file);
       });
     });
 
@@ -112,7 +112,7 @@ export class WorkspaceManager implements vscode.Disposable {
     await folder.add(document, token);
   }
 
-  public getAssemblyDocument(
+  public getDocument(
     document: vscode.TextDocument | vscode.Uri,
     token?: vscode.CancellationToken): AssemblyDocument | undefined {
 

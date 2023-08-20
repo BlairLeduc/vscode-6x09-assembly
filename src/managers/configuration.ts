@@ -65,12 +65,17 @@ export class ConfigurationManager implements vscode.Disposable {
     debugPort: 65520,
   };
 
+  public isDisposed = false;
+
   constructor(private language: string) {
     this.config = vscode.workspace.getConfiguration(language) as ExtensionWorkspaceConfiguration;
   }
 
   public dispose(): void {
-    this.onDidChangeConfigurationEmitter.dispose();
+    if (!this.isDisposed) {
+      this.onDidChangeConfigurationEmitter.dispose();
+      this.isDisposed = true;
+    }
   }
 
   public get onDidChangeConfiguration(): vscode.Event<void> {

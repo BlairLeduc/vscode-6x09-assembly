@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
-import { ASM6X09_LANGUAGE,Command,HelpLevel,/*, Command, HelpLevel, OpcodeCase*/ 
-OpcodeCase} from '../../constants';
+import { ASM6X09_LANGUAGE, Command, HelpLevel, OpcodeCase } from '../../constants';
 import { ExtensionWorkspaceConfiguration, ConfigurationManager } from '../../managers';
 import { Logger } from '../../logger';
 
@@ -17,11 +16,9 @@ describe('ConfigurationManager', () => {
   });
 
   it('should dispose', () => {
-    const updateHandler = jest.fn();
     const configurationManager = new ConfigurationManager(ASM6X09_LANGUAGE);
-    configurationManager.onDidChangeConfiguration(updateHandler);
     configurationManager.dispose();
-    expect(updateHandler).toBeCalledWith(undefined);
+    expect(configurationManager.isDisposed).toBe(true);
   });
 
   it('should update', () => {

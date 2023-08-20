@@ -16,7 +16,7 @@ export class FoldingRangeProvider implements vscode.FoldingRangeProvider {
 
     if (!cancellationToken.isCancellationRequested) {
       const assemblyDocument = this.workspaceManager
-        .getAssemblyDocument(document, cancellationToken);
+        .getDocument(document, cancellationToken);
 
       if (assemblyDocument) {
         const foldingRanges = Array

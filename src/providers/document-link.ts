@@ -13,7 +13,7 @@ export class DocumentLinkProvider implements vscode.DocumentLinkProvider {
 
     if (!canellationToken.isCancellationRequested) {
       const assemblyDocument = this.workspaceManager
-        .getAssemblyDocument(document, canellationToken);
+        .getDocument(document, canellationToken);
 
       if (assemblyDocument) {
         return assemblyDocument.referencedDocuments

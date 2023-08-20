@@ -32,7 +32,7 @@ export class HoverProvider implements vscode.HoverProvider {
 
     if (this.helpVerbosity !== HelpLevel.none && !cancellationToken.isCancellationRequested) {
       const assemblyDocument = this.workspaceManager
-        .getAssemblyDocument(document, cancellationToken);
+        .getDocument(document, cancellationToken);
 
       const symbolManager = this.workspaceManager.getSymbolManager(document);
 

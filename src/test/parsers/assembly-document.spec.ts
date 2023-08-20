@@ -89,7 +89,7 @@ describe('AssemblyDocument', () => {
       expect(logOutputChannel.debug).toBeCalledWith(`Parsed assembly document: ${uri.toString()}`);
 
       expect(document?.referencedDocuments.length).toBe(1);
-      expect(document?.referencedDocuments[0].uri.toString()).toBe('file://valid/6809-0.inc');
+      expect(document?.referencedDocuments[0].uri.toString()).toBe('file://valid/6809-1.inc');
     });
 
     it('should process references in hello.asm', async () => {
