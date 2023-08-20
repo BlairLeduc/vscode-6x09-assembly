@@ -12,7 +12,7 @@ export class ChangeCaseOpcodeCommand {
   constructor(private workspaceManager: WorkspaceManager, private casing: OpcodeCase) { }
 
   public handler(textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit): void {
-    const assemblyDocument = this.workspaceManager.getDocument(textEditor.document);
+    const assemblyDocument = this.workspaceManager.getAssemblyDocument(textEditor.document);
 
     if (assemblyDocument) {
       assemblyDocument.lines.forEach((line: AssemblyLine) => {

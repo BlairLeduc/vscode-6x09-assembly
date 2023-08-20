@@ -1,6 +1,35 @@
 import * as path from 'path';
 import { ASM6X09_LANGUAGE } from '../constants';
 
+export class Disposable {
+  dispose(): any { }
+};
+
+export interface Event<T> {
+  (listener: (e: T) => any, thisArgs?: any, disposables?: Disposable[]): Disposable;
+}
+
+export class EventEmitter<T> extends Disposable {
+  private handler: (e: T) => any = () => { };
+
+  event: Event<T> = (listener: (e: T) => any, _thisArgs?: any, _disposables?: Disposable[]) => {
+    this.handler = listener;
+    return this;
+  };
+
+  async fire(data: T): Promise<void> {
+    const result = this.handler(data);
+
+    if(result && this.isPromise(result)) {
+      await result;
+    }
+  }
+
+  private isPromise<T>(obj: Promise<T>): obj is Promise<T> {
+    return (obj as Promise<T>).then !== undefined;
+  }
+}
+
 export class TextContent {
   private static readonly files: Map<string, string> = new Map([
     ['valid-docs-opcodes.tsv',
@@ -56,8 +85,22 @@ export class TextContent {
   }
 }
 
+export interface TextDocumentRenameEvent {
+  oldUri: Uri;
+  newUri: Uri;
+}
+
 export class TextDocument {
+  private onDidChangeEmitter = new EventEmitter<TextDocument>();
+  private onDidCloseEmitter = new EventEmitter<TextDocument>();
+  private onDidDeleteEmitter = new EventEmitter<Uri>();
+  private onDidRenameEmitter = new EventEmitter<TextDocumentRenameEvent>();
   private content: string[] = [];
+
+  onDidChange: Event<TextDocument> = this.onDidChangeEmitter.event;
+  onDidClose: Event<TextDocument> = this.onDidCloseEmitter.event;
+  onDidDelete: Event<Uri> = this.onDidDeleteEmitter.event;
+  onDidRename: Event<TextDocumentRenameEvent> = this.onDidRenameEmitter.event;
 
   constructor(
     public readonly uri: Uri,
@@ -71,7 +114,7 @@ export class TextDocument {
     public readonly lineCount: number) {
   }
 
-  static async create(filename: string): Promise<TextDocument> {
+  static create(filename: string): TextDocument {
     const uri = Uri.file(filename);
     const text = TextContent.getFile(filename);
     const lines = text.toString().split(/\r?\n/);
@@ -92,13 +135,27 @@ export class TextDocument {
     return document;
   }
 
-  private putText(lines: string[]) {
+  putText(lines: string[]) {
     this.content = lines;
+    this.onDidChangeEmitter.fire(this);
   }
 
-  // getText(_range?: Range): string {
-  //   return this.content.join('\n');
-  // }
+  getText(): string {
+    return this.content.join('\n');
+  }
+
+  close(): void {
+    this.onDidCloseEmitter.fire(this);
+  }
+
+  delete(): void {
+    this.onDidDeleteEmitter.fire(this.uri);
+  }
+
+  async rename(newUri: Uri): Promise<void> {
+    const oldUri = this.uri;
+    await this.onDidRenameEmitter.fire({oldUri, newUri});
+  }
 }
 
 export class Uri {

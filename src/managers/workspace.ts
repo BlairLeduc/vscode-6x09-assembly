@@ -1,73 +1,75 @@
 import * as vscode from 'vscode';
 
-import { isTextDocument  } from '../common';
+import { isTextDocument } from '../common';
 import { ASM6X09_FILE_GLOB_PATTERN, ASM6X09_LANGUAGE } from '../constants';
 import { Folder } from './folder';
 import { AssemblyDocument, Docs } from '../parsers';
 import { SymbolManager } from './symbol';
 
 export class WorkspaceManager implements vscode.Disposable {
-
-  private static readonly noWorkspaceUri = 'wsf:none';
-  public isDisposed: boolean = false;
-  public readonly docs: Docs;
-
+  private defaultFolder: Folder = new Folder();
   private folders: Map<string, Folder> = new Map<string, Folder>();
   private disposables: vscode.Disposable[] = [];
+
+  isDisposed: boolean = false;
+  readonly docs: Docs;
 
   constructor(extensionPath: string) {
     this.docs = new Docs(extensionPath);
   }
 
-  public async init(): Promise<void> {
+  async init(): Promise<void> {
     // Load the docs from the extension path
     await this.docs.init();
 
-    // Add the workspace folders if there are any
-    vscode.workspace.workspaceFolders?.forEach(wf => this.addFolder(wf));
-    vscode.workspace.findFiles(ASM6X09_FILE_GLOB_PATTERN).then(files => {
-      files.forEach(async file => {
-        await this.addDocument(file);
-      });
+    // Add the workspace folders, if there are any
+    vscode.workspace.workspaceFolders?.forEach(wf => this.setFolder(wf));
+
+    // Add the open documents that are assembly files
+    const files = await vscode.workspace.findFiles(ASM6X09_FILE_GLOB_PATTERN);
+    files.forEach(async file => {
+      await this.loadDocument(file);
     });
 
     // Add the workspace folder listeners
     this.disposables.push(
       vscode.workspace.onDidChangeWorkspaceFolders(change => {
-        change.added.forEach(folder => this.addFolder(folder));
-        change.removed.forEach(folder => this.removeFolder(folder));
+        change.added.forEach(folder => this.setFolder(folder));
+        change.removed.forEach(folder => this.deleteFolder(folder));
       }));
     this.disposables.push(
-      vscode.workspace.onDidOpenTextDocument(document => {
-        this.addDocument(document);
+      vscode.workspace.onDidOpenTextDocument(async document => {
+        await this.setDocument(document);
       }));
     this.disposables.push(
-      vscode.workspace.onDidChangeTextDocument(change => {
+      vscode.workspace.onDidChangeTextDocument(async change => {
         if (change.contentChanges.length > 0) {
-          this.updateDocument(change);
+          await this.updateDocument(change);
         }
       }));
     this.disposables.push(
       vscode.workspace.onDidCloseTextDocument(document => {
-        this.removeDocument(document);
+        this.deleteDocument(document);
       }));
     this.disposables.push(
-      vscode.workspace.onDidCreateFiles(event => {
-        event.files.forEach(file => {
+      vscode.workspace.onDidCreateFiles(async event => {
+        event.files.forEach(async uri => {
           const document = vscode.workspace.textDocuments
-            .find(d => d.uri.toString() === file.toString());
+            .find(d => d.uri.toString() === uri.toString());
           if (document) {
-            this.addDocument(document);
+            await this.setDocument(document);
+          } else {
+            await this.loadDocument(uri);
           }
         });
       }));
     this.disposables.push(
       vscode.workspace.onDidDeleteFiles(event => {
-        event.files.forEach(file => {
+        event.files.forEach(uri => {
           const document = vscode.workspace.textDocuments
-            .find(d => d.uri.toString() === file.toString());
+            .find(d => d.uri.toString() === uri.toString());
           if (document) {
-            this.removeDocument(document);
+            this.deleteDocument(document);
           }
         });
       }));
@@ -77,20 +79,16 @@ export class WorkspaceManager implements vscode.Disposable {
           const document = vscode.workspace.textDocuments
             .find(d => d.uri.toString() === file.oldUri.toString());
           if (document) {
-            this.removeDocument(document);
+            this.deleteDocument(document);
           }
         });
-        event.files.forEach(file => {
-          const document = vscode.workspace.textDocuments
-            .find(d => d.uri.toString() === file.newUri.toString());
-          if (document) {
-            this.addDocument(document);
-          }
+        event.files.forEach(async file => {
+          await this.loadDocument(file.newUri);
         });
       }));
   }
 
-  public dispose(): void {
+  dispose(): void {
     if (!this.isDisposed) {
       this.folders.forEach(f => f.dispose());
       this.folders.clear();
@@ -100,96 +98,64 @@ export class WorkspaceManager implements vscode.Disposable {
     }
   }
 
-  public async addDocument(
-    document: vscode.TextDocument | vscode.Uri,
-    token?: vscode.CancellationToken): Promise<void> {
+  // Loads an assembly document from the URI assuming it's an assembly file
+  async loadDocument(uri: vscode.Uri): Promise<void> {
+    await this.getFolder(uri).set(uri);
+  }
 
-    if (isTextDocument(document) && document.languageId !== ASM6X09_LANGUAGE) {
-      return;
+  async setDocument(document: vscode.TextDocument): Promise<void> {
+    if (document.languageId === ASM6X09_LANGUAGE) {
+      await this.getFolder(document).set(document);
     }
-
-    const folder = this.getOrCreateFolder(document);
-    await folder.add(document, token);
   }
 
-  public getDocument(
-    document: vscode.TextDocument | vscode.Uri,
-    token?: vscode.CancellationToken): AssemblyDocument | undefined {
+  hasDocument(documentOrUri: vscode.TextDocument | vscode.Uri): boolean {
+    return this.getFolder(documentOrUri).has(documentOrUri);
+  }
 
-    const uri = isTextDocument(document) ? document.uri : document;
-    const folder = this.getOrCreateFolder(uri);
-    
-    if (folder.contains(uri)) {
-      return folder.get(uri);
+  getAssemblyDocument(document: vscode.TextDocument): AssemblyDocument | undefined {
+    return this.getFolder(document).get(document.uri);
+  }
+
+  deleteDocument(document: vscode.TextDocument): void {
+    if (document.languageId === ASM6X09_LANGUAGE) {
+      this.getFolder(document).delete(document);
     }
-
-    folder.add(document, token);
-    return folder.get(uri);
   }
 
-  public updateDocument(change: vscode.TextDocumentChangeEvent): void {
-    const document = change.document;
-    
-    if (isTextDocument(document) && document.languageId !== ASM6X09_LANGUAGE) {
-      return;
-    }
-
-    const uri = document.uri;
-    const folder = this.getOrCreateFolder(uri);
-    folder.update(document);
+  setFolder(workspaceFolder: vscode.WorkspaceFolder): void {
+    this.folders.set(workspaceFolder.uri.toString(), new Folder(workspaceFolder));
   }
 
-  public removeDocument(document: vscode.TextDocument |  vscode.Uri): void {
-    if (isTextDocument(document) && document.languageId !== ASM6X09_LANGUAGE) {
-      return;
-    }
-
-    const folder = this.getOrCreateFolder(document);
-    folder.remove(document);
-  }
-
-  public addFolder(workspaceFolder: vscode.WorkspaceFolder): Folder {
-    const folder = new Folder(workspaceFolder);
-    this.folders.set(workspaceFolder.uri.toString(), folder);
-    return folder;
-  }
-
-  public removeFolder(workspaceFolder: vscode.WorkspaceFolder): void {
-    const folder = this.folders.get(workspaceFolder.uri.toString());
+  deleteFolder(workspaceFolder: vscode.WorkspaceFolder): void {
+    const uri = workspaceFolder.uri.toString();
+    const folder = this.folders.get(uri);
 
     if (folder) {
       folder.dispose();
-      this.folders.delete(workspaceFolder.uri.toString());
+      this.folders.delete(uri);
     }
   }
 
-  public getSymbolManager(document: vscode.TextDocument | vscode.Uri): SymbolManager {
-    const folder = this.getOrCreateFolder(document);
-
-    if (!folder.contains(document)) {
-      folder.add(document);
-    }
-
-    return folder.symbolManager;
+  getSymbolManager(document: vscode.TextDocument): SymbolManager | undefined {
+    return this.getFolder(document)?.symbolManager;
   }
 
-  public getAllSymbolManagers(): SymbolManager[] {
-    return [...this.folders.values()].map(f => f.symbolManager);
+  getAllSymbolManagers(): SymbolManager[] {
+    return [this.defaultFolder, ...this.folders.values()].map(f => f.symbolManager);
   }
 
-  private getOrCreateFolder(document: vscode.TextDocument | vscode.Uri): Folder {
+  private async updateDocument(change: vscode.TextDocumentChangeEvent): Promise<void> {
+    await this.setDocument(change.document);
+  }
+
+  private getFolder(document: vscode.TextDocument | vscode.Uri): Folder {
     const uri = isTextDocument(document) ? document.uri : document;
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
-    const folderUri = workspaceFolder
-      ? workspaceFolder.uri
-      : vscode.Uri.parse(WorkspaceManager.noWorkspaceUri);
+    const folder = workspaceFolder
+      ? this.folders.get(workspaceFolder.uri.toString())
+      : this.defaultFolder;
 
-    if (!this.folders.has(folderUri.toString())) {
-      const folder = new Folder(workspaceFolder);
-      this.folders.set(folderUri.toString(), folder);
-      return folder; 
-    }
-
-    return this.folders.get(folderUri.toString())!;
+    return folder ?? this.defaultFolder;
   }
 }

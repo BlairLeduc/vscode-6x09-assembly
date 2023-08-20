@@ -12,8 +12,7 @@ export class DocumentLinkProvider implements vscode.DocumentLinkProvider {
     canellationToken: vscode.CancellationToken): Promise<vscode.DocumentLink[] | undefined> {
 
     if (!canellationToken.isCancellationRequested) {
-      const assemblyDocument = this.workspaceManager
-        .getDocument(document, canellationToken);
+      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document);
 
       if (assemblyDocument) {
         return assemblyDocument.referencedDocuments

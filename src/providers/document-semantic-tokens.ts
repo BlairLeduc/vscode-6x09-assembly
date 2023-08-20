@@ -17,8 +17,7 @@ export class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTo
     cancellationToken: vscode.CancellationToken): Promise<vscode.SemanticTokens | undefined> {
 
     if (!cancellationToken.isCancellationRequested) {
-      const assemblyDocument = this.workspaceManager
-        .getDocument(document, cancellationToken);
+      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document);
 
       if (assemblyDocument) {
         const tokensBuilder = new vscode.SemanticTokensBuilder(documentSemanticTokensLegend);

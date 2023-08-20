@@ -20,7 +20,7 @@ describe('Folder', () => {
       const folder = new Folder(workspaceFolder);
       expect(folder.workspaceFolder).toBe(workspaceFolder);
       expect(folder.symbolManager).toBeTruthy();
-      expect(logOutputChannel.info).toBeCalledWith(`Watching folder \"${workspaceFolder.name}\"`);
+      expect(logOutputChannel.info).toBeCalledWith(`Found workspace folder \"${workspaceFolder.name}\"`);
     });
 
     it('should dispose', () => {
@@ -31,7 +31,7 @@ describe('Folder', () => {
     it('should not contain a document', () => {
       const folder = new Folder(workspaceFolder);
       const uri = vscode.Uri.file('foo');
-      const result = folder.contains(uri);
+      const result = folder.has(uri);
 
       expect(result).toBeFalsy();
     });
@@ -42,8 +42,8 @@ describe('Folder', () => {
       const uri = vscode.Uri.file('valid/struct.asm');
       const document = await vscode.workspace.openTextDocument(uri);
 
-      await folder.add(document);
-      const exists = folder.contains(document);
+      await folder.set(document);
+      const exists = folder.has(document);
 
       expect(logOutputChannel.debug).toBeCalledWith(`Parsed assembly document: ${uri.toString()}`);
       expect(exists).toBeTruthy();
@@ -56,8 +56,8 @@ describe('Folder', () => {
       const document = await vscode.workspace.openTextDocument(uri);
       const updatedDocument = await vscode.workspace.openTextDocument(uri);
 
-      await folder.add(document);
-      await folder.update(updatedDocument);
+      await folder.set(document);
+      await folder.set(updatedDocument);
 
       expect(logOutputChannel.debug).toBeCalledWith(`Parsed assembly document: ${uri.toString()}`);
       expect(logOutputChannel.debug).toBeCalledWith(`Scanning referenced document file://valid/6809-1.inc`);
@@ -69,8 +69,8 @@ describe('Folder', () => {
       const uri = vscode.Uri.file('valid/refs.asm');
       const document = await vscode.workspace.openTextDocument(uri);
 
-      await folder.add(document);
-      await folder.update(document);
+      await folder.set(document);
+      await folder.set(document);
 
       expect(logOutputChannel.debug).toBeCalledWith(`Parsed assembly document: ${uri.toString()}`);
       expect(logOutputChannel.debug).toBeCalledWith(`Not updating references because they haven't changed`);
@@ -82,7 +82,7 @@ describe('Folder', () => {
       const uri = vscode.Uri.file('valid/struct.asm');
       const document = await vscode.workspace.openTextDocument(uri);
 
-      await folder.add(document);
+      await folder.set(document);
       const result = folder.get(uri);
 
       expect(result).toBeTruthy();
@@ -104,10 +104,10 @@ describe('Folder', () => {
       const uri = vscode.Uri.file('valid/struct.asm');
       const document = await vscode.workspace.openTextDocument(uri);
 
-      await folder.add(document);
-      await folder.remove(document);
+      await folder.set(document);
+      await folder.delete(document);
 
-      expect(folder.contains(document)).toBeFalsy();
+      expect(folder.has(document)).toBeFalsy();
     });
 
     it('should remove a document by uri', async () => {
@@ -116,10 +116,10 @@ describe('Folder', () => {
       const uri = vscode.Uri.file('valid/struct.asm');
       const document = await vscode.workspace.openTextDocument(uri);
 
-      await folder.add(document);
-      await folder.remove(uri);
+      await folder.set(document);
+      await folder.delete(uri);
 
-      expect(folder.contains(document)).toBeFalsy();
+      expect(folder.has(document)).toBeFalsy();
     });
   });
 
@@ -142,8 +142,8 @@ describe('Folder', () => {
       const uri = vscode.Uri.file('valid/struct.asm');
       const document = await vscode.workspace.openTextDocument(uri);
 
-      await folder.add(document);
-      const exists = folder.contains(document);
+      await folder.set(document);
+      const exists = folder.has(document);
 
       expect(logOutputChannel.debug).toBeCalledWith(`Parsed assembly document: ${uri.toString()}`);
       expect(exists).toBeTruthy();
@@ -156,8 +156,8 @@ describe('Folder', () => {
       const document = await vscode.workspace.openTextDocument(uri);
       const updatedDocument = await vscode.workspace.openTextDocument(uri);
 
-      await folder.add(document);
-      await folder.update(updatedDocument);
+      await folder.set(document);
+      await folder.set(updatedDocument);
 
       expect(logOutputChannel.debug).toBeCalledWith(`Parsed assembly document: ${uri.toString()}`);
       expect(logOutputChannel.debug).toBeCalledWith(`Scanning referenced document file://valid/6809-1.inc`);
@@ -169,8 +169,8 @@ describe('Folder', () => {
       const uri = vscode.Uri.file('valid/refs.asm');
       const document = await vscode.workspace.openTextDocument(uri);
 
-      await folder.add(document);
-      await folder.update(document);
+      await folder.set(document);
+      await folder.set(document);
 
       expect(logOutputChannel.debug).toBeCalledWith(`Parsed assembly document: ${uri.toString()}`);
       expect(logOutputChannel.debug).toBeCalledWith(`Not updating references because they haven't changed`);
@@ -182,7 +182,7 @@ describe('Folder', () => {
       const uri = vscode.Uri.file('valid/struct.asm');
       const document = await vscode.workspace.openTextDocument(uri);
 
-      await folder.add(document);
+      await folder.set(document);
       const result = folder.get(uri);
 
       expect(result).toBeTruthy();
@@ -204,10 +204,10 @@ describe('Folder', () => {
       const uri = vscode.Uri.file('valid/struct.asm');
       const document = await vscode.workspace.openTextDocument(uri);
 
-      await folder.add(document);
-      await folder.remove(document);
+      await folder.set(document);
+      await folder.delete(document);
 
-      expect(folder.contains(document)).toBeFalsy();
+      expect(folder.has(document)).toBeFalsy();
     });
 
     it('should remove a document by uri', async () => {
@@ -216,10 +216,10 @@ describe('Folder', () => {
       const uri = vscode.Uri.file('valid/struct.asm');
       const document = await vscode.workspace.openTextDocument(uri);
 
-      await folder.add(document);
-      await folder.remove(uri);
+      await folder.set(document);
+      await folder.delete(uri);
 
-      expect(folder.contains(document)).toBeFalsy();
+      expect(folder.has(document)).toBeFalsy();
     });
   });
 });

@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
 import { LogOutputChannel } from "vscode";
-import { ASM6X09_LANGUAGE } from "../../constants";
-import { TextContent, Uri } from "../scaffold";
+import { Disposable, Event, EventEmitter, TextContent, TextDocument, Uri } from "../scaffold";
 
 /**
  * Completion item kinds.
@@ -69,37 +68,6 @@ enum SymbolKind {
   TypeParameter = 25
 }
 
-class Disposable {
-  dispose(): any { }
-};
-
-interface Event<T> {
-
-  /**
-   * A function that represents an event to which you subscribe by calling it with
-   * a listener function as argument.
-   *
-   * @param listener The listener function will be called when the event happens.
-   * @param thisArgs The `this`-argument which will be used when calling the event listener.
-   * @param disposables An array to which a {@link Disposable} will be added.
-   * @return A disposable which unsubscribes the event listener.
-   */
-  (listener: (e: T) => any, thisArgs?: any, disposables?: Disposable[]): Disposable;
-}
-
-class EventEmitter<T> extends Disposable {
-  private handler: (e: T) => any = () => { };
-
-  event: Event<T> = (listener: (e: T) => any, _thisArgs?: any, _disposables?: Disposable[]) => {
-    this.handler = listener;
-    return this;
-  };
-
-  fire(data: T) {
-    this.handler(data);
-  }
-}
-
 const languages = {
   createDiagnosticCollection: jest.fn()
 };
@@ -149,10 +117,6 @@ class FileSystem {
     }
     return Promise.reject(new Error(`Unknown file: ${fileName}`));
   }
-
-  private filename(path: string) {
-    return path.substring(path.lastIndexOf('/') + 1);
-  }
 }
 
 const testConfig = {
@@ -189,19 +153,42 @@ class WorkspaceFoldersChangeEvent {
   readonly removed: readonly WorkspaceFolder[];
 }
 
+class TextDocumentChangeEvent {
+  readonly document: TextDocument;
+  readonly contentChanges: readonly string[];
+  readonly reason: string | undefined;
+}
+
+class FileCreateEvent {
+  readonly files: readonly Uri[];
+}
+
+class FileDeleteEvent {
+  readonly files: readonly Uri[];
+}
+
+class FileRenameEvent {
+  readonly files: ReadonlyArray<{ readonly oldUri: Uri; readonly newUri: Uri }>;
+}
+
 class Workspace {
   private onDidChangeWorkspaceFoldersEmitter = new EventEmitter<WorkspaceFoldersChangeEvent>();
   private onDidOpenTextDocumentEmitter = new EventEmitter<TextDocument>();
+  private onDidChangeTextDocumentEmitter = new EventEmitter<TextDocumentChangeEvent>();
+  private onDidCloseTextDocumentEmitter = new EventEmitter<TextDocument>();
+  private onDidCreateFilesEmitter = new EventEmitter<FileCreateEvent>();
+  private onDidDeleteFilesEmitter = new EventEmitter<FileDeleteEvent>();
+  private onDidRenameFilesEmitter = new EventEmitter<FileRenameEvent>();
 
   fs: FileSystem = new FileSystem();
-  onDidSaveTextDocument: Event<any> = new EventEmitter<any>().event;
   onDidChangeWorkspaceFolders: Event<WorkspaceFoldersChangeEvent> = this.onDidChangeWorkspaceFoldersEmitter.event;
   onDidOpenTextDocument: Event<TextDocument> = this.onDidOpenTextDocumentEmitter.event;
-  onDidChangeTextDocument: Event<any> = new EventEmitter<any>().event;
-  onDidCloseTextDocument: Event<any> = new EventEmitter<TextDocument>().event;
-  onDidCreateFiles: Event<any> = new EventEmitter<any>().event;
-  onDidRenameFiles: Event<any> = new EventEmitter<any>().event;
-  onDidDeleteFiles: Event<any> = new EventEmitter<any>().event;
+  onDidChangeTextDocument: Event<TextDocumentChangeEvent> = this.onDidChangeTextDocumentEmitter.event;
+  onDidCloseTextDocument: Event<TextDocument> = this.onDidCloseTextDocumentEmitter.event;
+  onDidCreateFiles: Event<FileCreateEvent> = this.onDidCreateFilesEmitter.event;
+  onDidDeleteFiles: Event<FileDeleteEvent> = this.onDidDeleteFilesEmitter.event;
+  onDidRenameFiles: Event<FileRenameEvent> = this.onDidRenameFilesEmitter.event;
+  textDocuments: TextDocument[] = [];
   workspaceFolders: WorkspaceFolder[] | undefined = undefined;
 
   findFiles(_globPattern: string, _ignore?: string, _maxResults?: number, _token?: CancellationToken): Promise<Uri[]> {
@@ -235,10 +222,27 @@ class Workspace {
   }
 
   async openTextDocument(uri: Uri): Promise<TextDocument> {
-    const textDocument = await TextDocument.create(uri.fsPath);
-    this.onDidOpenTextDocumentEmitter.fire(textDocument);
+    const textDocument = TextDocument.create(uri.fsPath);
+    this.textDocuments.push(textDocument);
+    textDocument.onDidChange(d => {
+      this.onDidChangeTextDocumentEmitter.fire({document: d, contentChanges: ['test'], reason: undefined});
+    });
+    textDocument.onDidClose(d => {
+      this.onDidCloseTextDocumentEmitter.fire(d);
+    });
+    textDocument.onDidDelete(uri => {
+      this.onDidDeleteFilesEmitter.fire({ files: [uri] });
+    });
+    textDocument.onDidRename(async e => {
+      const textDocument = TextDocument.create(uri.fsPath);
+      this.textDocuments.push(textDocument);
+      await this.onDidRenameFilesEmitter.fire({ files: [{ oldUri: e.oldUri, newUri: e.newUri }] });
+    });
+
+    await this.onDidOpenTextDocumentEmitter.fire(textDocument);
     return textDocument;
   }
+  
 };
 
 const workspace = new Workspace();
@@ -347,51 +351,6 @@ class CancellationTokenSource {
   };
   cancel() {
     this.token.isCancellationRequested = true;
-  }
-}
-
-class TextDocument {
-  private content: string[] = [];
-
-  constructor(
-    public readonly uri: Uri,
-    public readonly fileName: string,
-    public readonly languageId: string,
-    public readonly version: number,
-    public readonly isDirty: boolean,
-    public readonly isUntitled: boolean,
-    public readonly isClosed: boolean,
-    public readonly eol: string,
-    public readonly lineCount: number) {
-  }
-
-  static async create(filename: string): Promise<TextDocument> {
-    const uri = Uri.file(filename);
-    const text = await workspace.fs.readFile(uri);
-    const lines = text.toString().split(/\r?\n/);
-
-    const document = new TextDocument(
-      uri,
-      filename,
-      filename.endsWith('.asm') ? ASM6X09_LANGUAGE : 'plaintext',
-      1,
-      false,
-      false,
-      false,
-      '\n',
-      lines.length);
-
-    document.putText(lines);
-
-    return document;
-  }
-
-  private putText(lines: string[]) {
-    this.content = lines;
-  }
-
-  getText(_range?: Range): string {
-    return this.content.join('\n');
   }
 }
 

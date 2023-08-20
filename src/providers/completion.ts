@@ -19,8 +19,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
     _: vscode.CompletionContext): Promise<vscode.CompletionList | undefined> {
 
     if (!cancellationToken.isCancellationRequested) {
-      const assemblyDocument = this.workspaceManager
-        .getDocument(document, cancellationToken);
+      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document);
 
       const symbolManager = this.workspaceManager.getSymbolManager(document);
 
