@@ -224,8 +224,8 @@
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext .ts",
-		"test": "jest --",
-		"coverage": "jest --collectCoverage --",
+		"test": "jest",
+		"coverage": "jest --collectCoverage",
 		"convert": "npx js-yaml syntaxes/6x09.tmLanguage.yaml > syntaxes/6x09.tmLanguage.json",
 		"update": "npm run convert"
 	},
