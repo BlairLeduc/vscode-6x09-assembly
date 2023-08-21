@@ -1,10 +1,14 @@
+.github/**
 .vscode/**
 .vscode-test/**
+coverage/**
 out/test/**
+scripts/**
 src/**
 .gitignore
-.yarnrc
 **/tsconfig.json
+**/jest.config.js
+**/babel.config.js
 **/.eslintrc.json
 **/*.map
 **/*.ts
