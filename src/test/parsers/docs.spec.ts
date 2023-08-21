@@ -6,8 +6,11 @@ describe('Docs', () => {
   describe('single doc', () => {
     const docs = new Docs('valid');
 
-    it('should get pseudo-op EQU', async () => {
+    beforeEach(async () => {
       await docs.init();
+    });
+
+    it('should get pseudo-op EQU', () => {
       const pseudoOp = docs.getOpcode('EQU');
       expect(pseudoOp).toBeTruthy();
       expect(pseudoOp?.name).toBe('EQU');

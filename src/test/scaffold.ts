@@ -81,7 +81,7 @@ export class TextContent {
       'BAD']
   ]);
   static getFile(filename: string): string {
-    return TextContent.files.get(filename.replace(/[\/]/g, '-')) || '';
+    return TextContent.files.get(filename.replace(/[\\/]/g, '-')) || '';
   }
 }
 
