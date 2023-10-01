@@ -1,6 +1,7 @@
 # texmate language for 6x09 assembly
+name: asm6x09
 scopeName: source.asm.6x09
-filetypes: [a, asm]
+filetypes: [s, asm, d, defs]
 
 patterns:
   # Only comment on line

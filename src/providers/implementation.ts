@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import { WorkspaceManager } from '../managers';
 
+// The implementation provider supplies the inormation required for go to implementation feature.
 export class ImplementationProvider implements vscode.ImplementationProvider {
 
   constructor(private workspaceManager: WorkspaceManager) {

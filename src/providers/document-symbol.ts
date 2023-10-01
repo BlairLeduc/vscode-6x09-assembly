@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { convertToSymbolKind } from '../common';
 import { WorkspaceManager } from '../managers';
 
+// The document symbol provider supplies the information required for go to symbol feature.
 export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 
   constructor(private workspaceManager: WorkspaceManager) {
@@ -27,7 +28,7 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
               symbol.text,
               symbol.documentation,
               convertToSymbolKind(symbol.kind.toString()),
-              symbol.lineRange,
+              symbol.range,
               symbol.range
             );
 
@@ -40,7 +41,7 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
                     property.text,
                     property.documentation,
                     convertToSymbolKind(property.kind.toString()),
-                    property.lineRange,
+                    property.range,
                     property.range
                   );
                 });

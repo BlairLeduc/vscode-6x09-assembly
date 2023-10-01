@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 export function pathJoin(...paths: string[]): string {
-  return paths.map(p => p.replace(/[\/\s]+$/, '')).join('/');
+  return paths.map(p => p.replace(/([\/\s]+$)/, '')).join('/');
 }
 
 export function basePath(uri: vscode.Uri): string {

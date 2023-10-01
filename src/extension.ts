@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 import { ChangeCaseOpcodeCommand } from './commands';
-import { ASM6X09_CONFIG_SECTION, ASM6X09_LANGUAGE, ASM6X09_MODE } from './common';
-import { OpcodeCase } from './constants';
+import { ASM6X09_CONFIG_SECTION, ASM6X09_LANGUAGE, ASM6X09_MODE, OpcodeCase } from './constants';
+import { ConfigurationManager, WorkspaceManager } from './managers';
 import {
   CodeLensProvider,
   CompletionItemProvider,
@@ -20,7 +21,6 @@ import {
   TaskProvider,
   WorkspaceSymbolProvider
 } from './providers';
-import { State } from './state';
 import { Logger } from './logger';
 
 // import { DebugAdapterDescriptorFactory } from './debug/debug-adapter-descriptor-factory';
@@ -29,17 +29,17 @@ import { Logger } from './logger';
 
 const disposables: vscode.Disposable[] = [];
 
-export let extensionState: State;
-
-export function activate(context: vscode.ExtensionContext): void {
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
 
   Logger.init();
   Logger.info(`Language Extension ${ASM6X09_LANGUAGE} started`);
 
-  extensionState = new State(ASM6X09_CONFIG_SECTION);
+  const configurationManager = new ConfigurationManager(ASM6X09_CONFIG_SECTION);
+  disposables.push(configurationManager);
 
-  const configurationManager = extensionState.configurationManager;
-  const workspaceManager = extensionState.workspaceManager;
+  const workspaceManager = new WorkspaceManager(path.join(__dirname, '..'));
+  await workspaceManager.init();
+  disposables.push(workspaceManager);
 
   // Languages
 

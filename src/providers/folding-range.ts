@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import { WorkspaceManager } from '../managers';
 
+// The folding range provider supplies the information required for folding in the editor.
 export class FoldingRangeProvider implements vscode.FoldingRangeProvider {
 
   constructor(private workspaceManager: WorkspaceManager) {
@@ -15,8 +16,7 @@ export class FoldingRangeProvider implements vscode.FoldingRangeProvider {
     cancellationToken: vscode.CancellationToken): Promise<vscode.FoldingRange[] | undefined> {
 
     if (!cancellationToken.isCancellationRequested) {
-      const assemblyDocument = this.workspaceManager
-        .getAssemblyDocument(document, cancellationToken);
+      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document);
 
       if (assemblyDocument) {
         const foldingRanges = Array

@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 
 import { WorkspaceManager } from '../managers';
 
+// The definition provider supplies the information required for go to definition and peek
+// definition feature.
 export class DefinitionProvider implements vscode.DefinitionProvider {
 
   constructor(private workspaceManager: WorkspaceManager) {

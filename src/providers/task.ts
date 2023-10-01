@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
-import { ASM6X09_FILE_EXTENSIONS, getOSPlatform } from '../common';
-import { Command, OSPlatform } from '../constants';
+import { getOSPlatform } from '../common';
+import { ASM6X09_FILE_EXTENSIONS, Command, OSPlatform } from '../constants';
 import { ConfigurationManager, CommandConfiguration } from '../managers';
 
 interface TaskDefinition extends vscode.TaskDefinition {

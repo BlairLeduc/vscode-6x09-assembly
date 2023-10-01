@@ -5,6 +5,7 @@ import { registers, HelpLevel, OpcodeCase } from '../constants';
 import { ConfigurationManager, WorkspaceManager } from '../managers';
 import { AssemblySymbol, DocOpcode } from '../parsers';
 
+// The completion provider supplies the information needed for IntelliSense.
 export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
   constructor(
@@ -19,8 +20,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
     _: vscode.CompletionContext): Promise<vscode.CompletionList | undefined> {
 
     if (!cancellationToken.isCancellationRequested) {
-      const assemblyDocument = this.workspaceManager
-        .getAssemblyDocument(document, cancellationToken);
+      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document);
 
       const symbolManager = this.workspaceManager.getSymbolManager(document);
 
@@ -31,7 +31,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         if ((assemblyLine.opCodeRange && assemblyLine.opCodeRange.contains(position))
           || (assemblyLine.typeRange && assemblyLine.typeRange.contains(position))) {
           const text = assemblyLine.opCode?.text ?? assemblyLine.type?.text ?? '';
-          const opcodes = this.workspaceManager.opcodeDocs.findOpcode(text.toUpperCase())
+          const opcodes = this.workspaceManager.docs.findOpcode(text.toUpperCase())
             .map(opcode => this.createOpcodeCompletionItem(opcode, casing));
 
           const types = symbolManager.implementations
@@ -120,7 +120,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
       item.detail += ' (6309)';
     }
 
-    if (this.configurationManager.helpVerbosity === HelpLevel.full && opcode.documentation) {
+    if (this.configurationManager.helpLevel === HelpLevel.full && opcode.documentation) {
       item.documentation = new vscode.MarkdownString(opcode.documentation);
     }
 

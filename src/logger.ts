@@ -3,8 +3,8 @@ import { LogOutputChannel, window } from 'vscode';
 export class Logger {
   private static channel: LogOutputChannel;
   
-  public static init(): void {
-    Logger.channel = window.createOutputChannel('6x09 Assembly', { log: true });
+  public static init(channel?: LogOutputChannel): void {
+    Logger.channel = channel ?? window.createOutputChannel('6x09 Assembly', { log: true });
   }
 
   public static trace(msg: string): void {
@@ -25,5 +25,9 @@ export class Logger {
 
   public static error(msg: string): void {
     Logger.channel.error(msg);
+  }
+
+  public static get isInitialized(): boolean {
+    return Logger.channel !== undefined;
   }
 }

@@ -11,10 +11,10 @@ export class Folder implements vscode.Disposable {
   public readonly symbolManager: SymbolManager;
   public readonly documents: Map<string, AssemblyDocument> = new Map<string, AssemblyDocument>();
 
-  constructor(public workspaceFolder?: vscode.WorkspaceFolder) {
+  constructor(public workspaceFolder?: vscode.WorkspaceFolder | undefined) {
     this.symbolManager = new SymbolManager();
     if (this.workspaceFolder) {
-      Logger.info(`Watching folder "${this.workspaceFolder?.name ?? "{}"}"`);
+      Logger.info(`Found workspace folder "${this.workspaceFolder.name}"`);
     }
   }
 
@@ -25,31 +25,24 @@ export class Folder implements vscode.Disposable {
     }
   }
 
-  public containsAssemblyDocument(document: vscode.TextDocument | vscode.Uri): boolean {
-    const uri = isTextDocument(document) ? document.uri : document;
+  public has(documentOrUri: vscode.TextDocument | vscode.Uri): boolean {
+    const uri = isTextDocument(documentOrUri) ? documentOrUri.uri : documentOrUri;
     return this.documents.has(uri.toString());
   }
 
-  public async addAssemblyDocument(
-    document: vscode.TextDocument | vscode.Uri,
+  public async set(
+    documentOrUri: vscode.TextDocument | vscode.Uri,
     token?: vscode.CancellationToken): Promise<void> {
 
-    if (!this.containsAssemblyDocument(document)) {
-      await this.updateAssemblyDocument(document, token);
-    }
-  }
+    const uri = isTextDocument(documentOrUri)
+      ? documentOrUri.uri.toString()
+      : documentOrUri.toString();
 
-  public async updateAssemblyDocument(
-    document: vscode.TextDocument | vscode.Uri,
-    token?: vscode.CancellationToken): Promise<void> {
-
-    const uri = isTextDocument(document) ? document.uri : document;
-
-    const assemblyDocument = await AssemblyDocument.create(document, this.symbolManager, token);
+    const assemblyDocument = await AssemblyDocument.create(documentOrUri, this.symbolManager, token);
     if (assemblyDocument) {
-      let updateReferences = true; // By default, update references
+      let updateReferences = assemblyDocument.referencedDocuments.length > 0;
       
-      const original = this.documents.get(uri.toString());
+      const original = this.documents.get(uri);
       if (original) {
         // If the document already exists, check if the references have changed
         const oldReferences = original
@@ -69,33 +62,34 @@ export class Folder implements vscode.Disposable {
       } else {
         // Log that we're watching the document
         const workspace = this.workspaceFolder
-          ? ` in workspace "${this.workspaceFolder.name}"`
+          ? ` in "${this.workspaceFolder.name}"`
           : '';
-        Logger.info(`Watching ${uri.toString()}${workspace}`);
+        Logger.info(`Started watching ${uri}${workspace}`);
       }
 
-      this.documents.set(uri.toString(), assemblyDocument);
+      this.documents.set(uri, assemblyDocument);
 
       if (updateReferences) {
         for (const referencedDocument of assemblyDocument.referencedDocuments) {
           if (!this.documents.has(referencedDocument.uri.toString())) {
             Logger.debug(`Scanning referenced document ${referencedDocument.uri.toString()}`);
-            await this.addAssemblyDocument(referencedDocument.uri, token);
+            await this.set(referencedDocument.uri, token);
           }
         }
       }
     }
+    return;
   }
 
-  public getAssemblyDocument(uri: vscode.Uri): AssemblyDocument | undefined {
-    return this.containsAssemblyDocument(uri) ? this.documents.get(uri.toString()) : undefined;
+  public get(uri: vscode.Uri): AssemblyDocument | undefined {
+    return this.has(uri) ? this.documents.get(uri.toString()) : undefined;
   }
 
-  public removeAssemblyDocument(document: vscode.TextDocument | vscode.Uri): void {
+  public delete(document: vscode.TextDocument | vscode.Uri): void {
     const uri = isTextDocument(document) ? document.uri : document;
     this.documents.delete(uri.toString());
 
     const workspace = this.workspaceFolder ? ` in workspace "${this.workspaceFolder.name}"` : '';
-    Logger.info(`Stopped monitoring ${uri.toString()}${workspace}`);
+    Logger.info(`Stopped watching ${uri.toString()}${workspace}`);
   }
 }

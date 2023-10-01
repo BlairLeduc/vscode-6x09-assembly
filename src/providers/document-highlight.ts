@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 
 import { WorkspaceManager } from '../managers';
 
+// The document highlight provider supplies the information required for the word highlight
+// feature.
 export class DocumentHighlightProvider implements vscode.DocumentHighlightProvider {
 
   constructor(private workspaceManager: WorkspaceManager) {

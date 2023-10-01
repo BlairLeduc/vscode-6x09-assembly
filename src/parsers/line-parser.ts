@@ -1,11 +1,8 @@
 import {
   delimitedStringPseudoOps,
   filePseudoOps,
-  inherentOpcodes,
-  inherentPseudoOps,
   operandOpcodes,
   pragmaPseudoOps,
-  pseudoOps,
   registers,
   stringPseudoOps,
   Token,
@@ -15,7 +12,7 @@ import {
 } from '../constants';
 
 interface FoundInfo { 
-  match: RegExpMatchArray | null;
+  match: RegExpMatchArray;
   kind: TokenKind;
   type: TokenType;
   modifiers: TokenModifier;
@@ -132,16 +129,12 @@ export class LineParser {
     if (opcodeMatch) {
       const space = opcodeMatch[1].length;
       opcode = opcodeMatch[2].toLowerCase();
-      const isOpcode = inherentOpcodes.has(opcode)
-        || operandOpcodes.has(opcode)
-        || inherentPseudoOps.has(opcode)
-        || pseudoOps.has(opcode);
       tokens.push(new Token(
         opcode,
         pos + space,
         opcode.length, 
-        isOpcode ? TokenKind.opCode : TokenKind.macroOrStruct, 
-        isOpcode ? TokenType.keyword : TokenType.type));
+        TokenKind.opCode,
+        TokenType.keyword));
 
       pos += opcodeMatch[0].length;
       text = line.substring(pos);
@@ -169,7 +162,7 @@ export class LineParser {
           }
         }
       }
-      // if pragma operaand, pragma can be separated by commas
+      // if pragma operand, pragma can be separated by commas
       else if (pragmaPseudoOps.has(opcode)) {
         const operandMatch = /^(\s+)([^\s]+)/.exec(text); // match everything until a space
         if (operandMatch) {
@@ -258,10 +251,6 @@ export class LineParser {
           let isProperty = false;
           while (expression.length > 0) {
             const found = this.findMatch(expression, isProperty);
-            if (!found.match) {
-              break;
-            }
-
             const length = found.match[0].length;
             
             const token = new Token(
@@ -340,6 +329,7 @@ export class LineParser {
         }
       }
     }
+
     if (!match) {
       tokenType = TokenType.operator;
       match = /^((&&)|(\|\|)|(\+\+)|(--))/.exec(s); // two character operator
@@ -349,7 +339,7 @@ export class LineParser {
     }
     
     return {
-      match: match,
+      match: match!, // match is guaranteed to be set
       kind: tokenKind,
       type: tokenType,
       modifiers: tokenModifiers,

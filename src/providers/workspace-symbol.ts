@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { convertToSymbolKind } from '../common';
 import { WorkspaceManager } from '../managers';
 
+// The workspace symbol provider supplies the information required for symbol search feature.
 export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 
   constructor(private workspaceManager: WorkspaceManager) {

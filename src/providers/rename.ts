@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import { WorkspaceManager } from '../managers';
 
+// The rename provider supplies the information required for rename feature.
 export class RenameProvider implements vscode.RenameProvider {
 
   constructor(private workspaceManager: WorkspaceManager) { }

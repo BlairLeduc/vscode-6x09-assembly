@@ -4,7 +4,7 @@
 	"description": "Language support for 6x09 Assembly language.",
 	"author": "Blair Leduc",
 	"license": "MIT",
-	"version": "0.7.0",
+	"version": "0.8.0",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/BlairLeduc/vscode-6x09-assembly"
@@ -24,7 +24,6 @@
 	],
 	"icon": "media/6x09-Assembly.png",
 	"galleryBanner": {
-		"color": "#00FF00",
 		"theme": "light"
 	},
 	"engines": {
@@ -225,14 +224,18 @@
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext .ts",
-		"test": "node ./out/test/runTest.js",
+		"test": "jest",
+		"coverage": "jest --collectCoverage",
 		"convert": "npx js-yaml syntaxes/6x09.tmLanguage.yaml > syntaxes/6x09.tmLanguage.json",
 		"update": "npm run convert"
 	},
 	"devDependencies": {
+		"@babel/core": "7",
+		"@babel/preset-env": "7",
+		"@babel/preset-typescript": "7",
 		"@types/glob": "8",
+		"@types/jest": "29",
 		"@types/line-reader": "0",
-		"@types/mocha": "10",
 		"@types/node": "20",
 		"@types/vscode": "1",
 		"@typescript-eslint/eslint-plugin": "6",
@@ -240,9 +243,10 @@
 		"@typescript-eslint/scope-manager": "6",
 		"@vscode/test-electron": "2",
 		"@vscode/vsce": "2",
+		"babel-jest": "^29.6.2",
 		"eslint": "8",
 		"glob": "10",
-		"mocha": "10",
+		"jest": "29",
 		"typescript": "5"
 	},
 	"dependencies": {

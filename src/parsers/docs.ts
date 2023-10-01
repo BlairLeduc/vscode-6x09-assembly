@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as vscode from 'vscode';
+import { Logger } from '../logger';
 
 export enum DocOpcodeType { unknown, opcode, pseudo }
 
@@ -14,23 +14,26 @@ export class DocOpcode {
 
   public static parse(line: string, type: DocOpcodeType): DocOpcode | null {
     const columns = line.replace(/\!/g, '\n').split('\t');
-    
-    if (columns.length > 1) {
+
+    if (type === DocOpcodeType.opcode && columns.length > 5) {
       const opcode = new DocOpcode();
       
-      if (type === DocOpcodeType.opcode) {
-        opcode.name = columns[0];
-        opcode.processor = columns[1];
-        opcode.conditionCodes = columns[2];
-        opcode.summary = columns[3];
-        opcode.notation = columns[4];
-        opcode.documentation = columns[5];
-      } else {
-        opcode.name = columns[0];
-        opcode.summary = columns[1];
-        opcode.documentation = columns[2];
-      }
-      
+      opcode.name = columns[0];
+      opcode.processor = columns[1];
+      opcode.conditionCodes = columns[2];
+      opcode.summary = columns[3];
+      opcode.notation = columns[4];
+      opcode.documentation = columns[5];
+
+      return opcode;
+    }
+    
+    if (type === DocOpcodeType.pseudo && columns.length > 1) {
+      const opcode = new DocOpcode();
+
+      opcode.name = columns[0];
+      opcode.summary = columns[1];
+
       return opcode;
     }
 
@@ -44,12 +47,16 @@ export class Docs {
   private readonly pseudoOpsFile = 'pseudo-ops.tsv';
   private opcodes = new Map<string, DocOpcode>();
 
-  constructor(extensionPath: string) {
-    const opcodesFilePath = path.join(extensionPath, this.docsPath, this.opcodesFile);
-    this.parse(opcodesFilePath, DocOpcodeType.opcode);
+  constructor(private extensionPath: string) {
+  }
 
-    const pseudoOpsFilePath = path.join(extensionPath, this.docsPath, this.pseudoOpsFile);
-    this.parse(pseudoOpsFilePath, DocOpcodeType.pseudo);
+  public async init(): Promise<void> {
+    const extensionUri = vscode.Uri.file(this.extensionPath);
+    const opcodesUri = vscode.Uri.joinPath(extensionUri, this.docsPath, this.opcodesFile);
+    await this.parse(opcodesUri, DocOpcodeType.opcode);
+
+    const pseudoOpsUri = vscode.Uri.joinPath(extensionUri, this.docsPath, this.pseudoOpsFile);
+    await this.parse(pseudoOpsUri, DocOpcodeType.pseudo);
   }
 
   public findOpcode(startsWith: string): DocOpcode[] {
@@ -58,13 +65,14 @@ export class Docs {
   }
 
   public getOpcode(name: string | undefined): DocOpcode | undefined {
-    return name 
+    return name
       ? this.opcodes.get(name.toUpperCase())
       : undefined;
   }
 
-  private parse(filePath: string, type: DocOpcodeType): void {
-    const lines = fs.readFileSync(filePath, 'utf8').split(/\r\n|\r|\n/g);
+  private async parse(uri: vscode.Uri, type: DocOpcodeType): Promise<void> {
+    const content = (await vscode.workspace.fs.readFile(uri)).toString();
+    const lines = content.split(/\r\n|\r|\n/g);
 
     let lineNumber = 0;
     for (const line of lines) {
@@ -81,8 +89,7 @@ export class Docs {
           const key = opcode.name.toUpperCase();
           this.opcodes.set(key, opcode);
         } else {
-          // tslint:disable-next-line: no-console
-          console.error(`\'${this.opcodesFile}\':${lineNumber} Cannot parse line.`);
+          Logger.error(`Internal: \'${this.opcodesFile}\':${lineNumber} Cannot parse line.`);
         }
       }
 

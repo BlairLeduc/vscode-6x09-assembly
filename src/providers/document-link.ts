@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import { WorkspaceManager } from '../managers';
 
+// The document link provider supplies the information required for showing links in the editor.
 export class DocumentLinkProvider implements vscode.DocumentLinkProvider {
 
   constructor(private workspaceManager: WorkspaceManager) {
@@ -12,8 +13,7 @@ export class DocumentLinkProvider implements vscode.DocumentLinkProvider {
     canellationToken: vscode.CancellationToken): Promise<vscode.DocumentLink[] | undefined> {
 
     if (!canellationToken.isCancellationRequested) {
-      const assemblyDocument = this.workspaceManager
-        .getAssemblyDocument(document, canellationToken);
+      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document);
 
       if (assemblyDocument) {
         return assemblyDocument.referencedDocuments

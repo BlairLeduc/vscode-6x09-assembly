@@ -20,15 +20,15 @@ export class AssemblySymbol {
   constructor(
     token: Token,
     public uri: vscode.Uri,
-    public lineRange: vscode.Range,
+    public lineNumber: number,
     blockNumber: number) {
 
     this.semanticToken = token;
     this.text = token.text;
     this.range = new vscode.Range(
-      lineRange.start.line,
+      lineNumber,
       token.char,
-      lineRange.start.line,
+      lineNumber,
       token.char + token.length);
     this.kind = convertTokenKindToComplitionItemKind(token.kind);
     this.type = token.type;

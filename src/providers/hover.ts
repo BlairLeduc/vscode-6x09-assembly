@@ -5,6 +5,7 @@ import { HelpLevel, TokenType } from '../constants';
 import { ConfigurationManager, WorkspaceManager } from '../managers';
 import { DocOpcodeType } from '../parsers';
 
+// The hover provider supplies the information required for hover feature.
 export class HoverProvider implements vscode.HoverProvider {
   private helpVerbosity = HelpLevel.full;
   private onDidChangeHelpVerbosityEmitter = new vscode.EventEmitter<void>();
@@ -13,10 +14,10 @@ export class HoverProvider implements vscode.HoverProvider {
     private workspaceManager: WorkspaceManager,
     private configurationManager: ConfigurationManager) {
 
-    this.helpVerbosity = configurationManager.helpVerbosity;
+    this.helpVerbosity = configurationManager.helpLevel;
 
     configurationManager.onDidChangeConfiguration(() => {
-      const helpVerbosity = this.configurationManager.helpVerbosity;
+      const helpVerbosity = this.configurationManager.helpLevel;
 
       if (this.helpVerbosity !== helpVerbosity) {
         this.helpVerbosity = helpVerbosity;
@@ -31,8 +32,7 @@ export class HoverProvider implements vscode.HoverProvider {
     cancellationToken: vscode.CancellationToken): Promise<vscode.Hover | undefined> {
 
     if (this.helpVerbosity !== HelpLevel.none && !cancellationToken.isCancellationRequested) {
-      const assemblyDocument = this.workspaceManager
-        .getAssemblyDocument(document, cancellationToken);
+      const assemblyDocument = this.workspaceManager.getAssemblyDocument(document);
 
       const symbolManager = this.workspaceManager.getSymbolManager(document);
 
@@ -41,7 +41,7 @@ export class HoverProvider implements vscode.HoverProvider {
 
         if (assemblyLine.opCodeRange && assemblyLine.opCodeRange.contains(position)) {
           const opCode = assemblyLine.opCode;
-          const opCodeDocs = this.workspaceManager.opcodeDocs.getOpcode(opCode?.text);
+          const opCodeDocs = this.workspaceManager.docs.getOpcode(opCode?.text);
 
           if (opCodeDocs) {
             const help = new vscode.MarkdownString();
@@ -59,7 +59,7 @@ export class HoverProvider implements vscode.HoverProvider {
               ? `${opCodeDocs.notation}　⸺　${opCodeDocs.conditionCodes}`
               : '';
 
-            if (this.configurationManager.helpVerbosity === HelpLevel.full
+            if (this.configurationManager.helpLevel === HelpLevel.full
               && opCodeDocs.documentation) {
 
               documentation += `  \n  \n${opCodeDocs.documentation}`;
@@ -105,7 +105,7 @@ export class HoverProvider implements vscode.HoverProvider {
             let header = `(${convertTokenToName(symbol.semanticToken)}) ${parentName}${symbol.text}`;
             
             if (value) {
-              header += ` ${value}`;
+              header += ` = ${value}`;
             }
             const help = new vscode.MarkdownString();
 
