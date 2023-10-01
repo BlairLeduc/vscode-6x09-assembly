@@ -39,7 +39,6 @@ export enum TokenKind {
   file = 6,
   parameter = 7,
   property = 8,
-  macroOrStruct = 9,
 }
 
 export enum TokenType {

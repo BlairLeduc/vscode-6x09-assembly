@@ -88,16 +88,6 @@ export class AssemblyLine {
           this.label = new AssemblySymbol(token, this.uri, this.lineNumber, this.state.blockNumber);
           this.state.lonelyLabels.push(this.label);
           break;
-        case TokenKind.macroOrStruct:
-          clearLonelyLabels = true;
-          this.typeRange = this.getRangeFromToken(token);
-          this.type = new AssemblySymbol(token, this.uri, this.lineNumber, 0);
-          this.updateLabels(label => {
-            label.semanticToken.type = TokenType.variable;
-            label.kind = vscode.CompletionItemKind.Variable;
-            label.value = token.text;
-          });
-          break;
         case TokenKind.opCode:
           clearLonelyLabels = true;
           if (!AssemblyLine.knownOpcodes.has(token.text)) {
