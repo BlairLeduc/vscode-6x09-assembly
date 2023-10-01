@@ -30,34 +30,34 @@
 //
 
 export enum TokenKind {
-  ignore,
-  label,
-  opCode,
-  operand,
-  reference,
-  comment,
-  file,
-  parameter,
-  property,
-  macroOrStruct,
+  ignore = 0,
+  label = 1,
+  opCode = 2,
+  operand = 3,
+  reference = 4,
+  comment = 5,
+  file = 6,
+  parameter = 7,
+  property = 8,
+  macroOrStruct = 9,
 }
 
 export enum TokenType {
-  class,
-  function,
-  struct,
-  variable,
-  label,
-  property,
-  macro,
-  string,
-  comment,
-  keyword,
-  number,
-  operator,
-  type,
-  parameter,
-  namespace, // Tells the semantic syntax highlight to ignore
+  namespace = 0, // Tells the semantic syntax highlight to ignore
+  class = 1,
+  function = 2,
+  struct = 3,
+  variable = 4,
+  label = 5,
+  property = 6,
+  macro = 7,
+  string = 8,
+  comment = 9,
+  keyword = 10,
+  number = 11,
+  operator = 12,
+  type = 13,
+  parameter = 14,
 }
 
 export enum TokenModifier {
@@ -85,6 +85,7 @@ export class Token {
 }
 
 export const tokenTypeToString = [
+  'namespace', // Tells the semantic syntax highlight to ignore
   'global label',
   'local label',
   'struct',
@@ -99,7 +100,6 @@ export const tokenTypeToString = [
   'operator',
   'type',
   'pragma',
-  'namespace', // Tells the semantic syntax highlight to ignore
 ];
 
 export const tokenTypeTranslation = [

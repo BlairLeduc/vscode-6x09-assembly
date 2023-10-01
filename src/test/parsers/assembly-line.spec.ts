@@ -256,7 +256,7 @@ describe('AssemblyLine', () => {
     expect(line.label?.semanticToken.modifiers).toBe(0);
     expect(line.type).toBeTruthy();
     expect(line.type?.text).toBe('teststruct');
-    expect(line.type?.kind).toBe(vscode.CompletionItemKind.Method);
+    expect(line.type?.kind).toBe(vscode.CompletionItemKind.Function);
     expect(line.type?.semanticToken.type).toBe(TokenType.function);
     expect(state.macro).toBeFalsy();
     expect(state.struct).toBeFalsy();

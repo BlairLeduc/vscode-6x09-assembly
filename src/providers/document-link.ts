@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import { WorkspaceManager } from '../managers';
 
+// The document link provider supplies the information required for showing links in the editor.
 export class DocumentLinkProvider implements vscode.DocumentLinkProvider {
 
   constructor(private workspaceManager: WorkspaceManager) {

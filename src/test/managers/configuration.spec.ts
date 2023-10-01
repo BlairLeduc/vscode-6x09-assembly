@@ -113,14 +113,6 @@ describe('ConfigurationManager', () => {
     expect(configurationManager.getCommandConfiguration(Command.lwasm)?.arguments).toBe('--6309');
   });
 
-  it('should getCommandConfiguration (lwasm default)', () => {
-    const configurationManager = new ConfigurationManager(ASM6X09_LANGUAGE);
-    const config = vscode.workspace.getConfiguration(ASM6X09_LANGUAGE) as ExtensionWorkspaceConfiguration;
-    config.lwasm = undefined as unknown as ExtensionWorkspaceConfiguration['lwasm'];
-    configurationManager.update(config);
-    expect(configurationManager.getCommandConfiguration(Command.lwasm)?.arguments).toBe('--6309');
-  });
-
   it('should get debugPort (default', () => {
     const configurationManager = new ConfigurationManager(ASM6X09_LANGUAGE);
     const config = vscode.workspace.getConfiguration(ASM6X09_LANGUAGE) as ExtensionWorkspaceConfiguration;

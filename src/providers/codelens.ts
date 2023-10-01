@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import { ConfigurationManager, WorkspaceManager } from '../managers';
 
+// The code lens provider supplies the information required for showing code lenses in the editor.
 export class CodeLensProvider implements vscode.CodeLensProvider {
   private enabled = true;
   private onDidChangeCodeLensesEmitter = new vscode.EventEmitter<void>();

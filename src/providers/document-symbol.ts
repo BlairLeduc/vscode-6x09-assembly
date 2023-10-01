@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { convertToSymbolKind } from '../common';
 import { WorkspaceManager } from '../managers';
 
+// The document symbol provider supplies the information required for go to symbol feature.
 export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 
   constructor(private workspaceManager: WorkspaceManager) {

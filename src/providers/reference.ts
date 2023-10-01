@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import { WorkspaceManager } from '../managers';
 
+// The reference provider supplies the information required for find references feature.
 export class ReferenceProvider implements vscode.ReferenceProvider {
 
   constructor(private workspaceManager: WorkspaceManager) {

@@ -11,20 +11,16 @@ import {
 } from '../constants';
 
 export const completionItemKindTranslation = [
-  vscode.CompletionItemKind.Constant,
-  vscode.CompletionItemKind.Variable,
-  vscode.CompletionItemKind.Method,
-  vscode.CompletionItemKind.Struct,
-  vscode.CompletionItemKind.Class,
-  vscode.CompletionItemKind.Function,
-  vscode.CompletionItemKind.Keyword,
   vscode.CompletionItemKind.Text,
-  vscode.CompletionItemKind.Value,
-  vscode.CompletionItemKind.Operator,
+  vscode.CompletionItemKind.Variable,
+  vscode.CompletionItemKind.Function,
+  vscode.CompletionItemKind.Variable,
   vscode.CompletionItemKind.Reference,
   vscode.CompletionItemKind.Text,
   vscode.CompletionItemKind.File,
+  vscode.CompletionItemKind.Variable,
   vscode.CompletionItemKind.Property,
+  vscode.CompletionItemKind.Class,
 ];
 
 export const symbolKindTranslation = [

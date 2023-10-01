@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import { WorkspaceManager } from '../managers';
 
+// The folding range provider supplies the information required for folding in the editor.
 export class FoldingRangeProvider implements vscode.FoldingRangeProvider {
 
   constructor(private workspaceManager: WorkspaceManager) {

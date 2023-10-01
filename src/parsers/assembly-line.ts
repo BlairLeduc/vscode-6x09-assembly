@@ -94,7 +94,7 @@ export class AssemblyLine {
           this.type = new AssemblySymbol(token, this.uri, this.lineNumber, 0);
           this.updateLabels(label => {
             label.semanticToken.type = TokenType.variable;
-            label.kind === vscode.CompletionItemKind.Variable;
+            label.kind = vscode.CompletionItemKind.Variable;
             label.value = token.text;
           });
           break;
@@ -106,7 +106,7 @@ export class AssemblyLine {
             this.type.semanticToken.type = TokenType.function;
             this.updateLabels(label => {
               label.semanticToken.type = TokenType.variable;
-              label.kind === vscode.CompletionItemKind.Variable;
+              label.kind = vscode.CompletionItemKind.Variable;
               label.value = token.text;
             });
           } else {
@@ -155,7 +155,7 @@ export class AssemblyLine {
         lastReference = undefined;
       }
     });
-
+    
     if (clearLonelyLabels) {
       this.state.lonelyLabels = [];
     }

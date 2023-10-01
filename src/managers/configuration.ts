@@ -114,12 +114,9 @@ export class ConfigurationManager implements vscode.Disposable {
     if (command === Command.lwasm) {
       return this.defaultConfiguration.lwasm;
     }
-    
-    if (command === Command.xroar) {
-      return this.defaultConfiguration.xroar;
-    }
 
-    return undefined;
+    // Default to XRoar
+    return this.defaultConfiguration.xroar;
   }
 
   public get debugPort(): number {

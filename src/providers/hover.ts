@@ -5,6 +5,7 @@ import { HelpLevel, TokenType } from '../constants';
 import { ConfigurationManager, WorkspaceManager } from '../managers';
 import { DocOpcodeType } from '../parsers';
 
+// The hover provider supplies the information required for hover feature.
 export class HoverProvider implements vscode.HoverProvider {
   private helpVerbosity = HelpLevel.full;
   private onDidChangeHelpVerbosityEmitter = new vscode.EventEmitter<void>();

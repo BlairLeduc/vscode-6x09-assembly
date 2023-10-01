@@ -5,6 +5,7 @@ import { registers, HelpLevel, OpcodeCase } from '../constants';
 import { ConfigurationManager, WorkspaceManager } from '../managers';
 import { AssemblySymbol, DocOpcode } from '../parsers';
 
+// The completion provider supplies the information needed for IntelliSense.
 export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
   constructor(
