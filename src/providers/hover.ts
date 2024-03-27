@@ -89,6 +89,19 @@ export class HoverProvider implements vscode.HoverProvider {
 
             return new vscode.Hover(help, assemblyLine.opCodeRange);
           }
+
+          const func = this.workspaceManager.docs.getFunction(type?.text);
+          if (type && func) {
+            const help = new vscode.MarkdownString();
+
+            help.appendCodeblock(`(function) ${type.text}`);
+
+            if (func.summary) {
+              help.appendMarkdown('---\n' + func.summary);
+            }
+
+            return new vscode.Hover(help, assemblyLine.typeRange);
+          }
           return;
         }
 

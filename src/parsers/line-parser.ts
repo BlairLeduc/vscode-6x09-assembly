@@ -1,6 +1,7 @@
 import {
   delimitedStringPseudoOps,
   filePseudoOps,
+  operandFunctions,
   operandOpcodes,
   pragmaPseudoOps,
   registers,
@@ -317,7 +318,11 @@ export class LineParser {
       if (match) {
         isLocal = /.*[$@?].*/.test(s);
         
-        if (isProperty) {
+        if (operandFunctions.has(match[0].toLowerCase())) {
+          tokenKind = TokenKind.opCode;
+          tokenType = TokenType.keyword;
+          tokenModifiers = TokenModifier.static;
+        } else if (isProperty) {
           tokenKind = TokenKind.property;
           tokenType = TokenType.property;
         } else if (registers.has(match[0].toLowerCase())) {

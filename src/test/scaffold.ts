@@ -40,6 +40,9 @@ export class TextContent {
       'Name\tSummary\n' +
       'EQU\tSet a Symbol to a Value\n' +
       'FCB\tDefine Byte(s)\n'],
+    ['valid-docs-functions.tsv',
+      'Name\tSummary\n' +
+      'SIZEOF\tSet a Symbol to a Value\n'],
     ['valid-hello.asm',
       '  org $1000\n' +
       'start\n' +

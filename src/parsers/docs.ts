@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { Logger } from '../logger';
 
-export enum DocOpcodeType { unknown, opcode, pseudo }
+export enum DocOpcodeType { unknown, functions, opcode, pseudo }
 
 export class DocOpcode {
   public name = '';
@@ -28,7 +28,7 @@ export class DocOpcode {
       return opcode;
     }
     
-    if (type === DocOpcodeType.pseudo && columns.length > 1) {
+    if ((type === DocOpcodeType.pseudo || type === DocOpcodeType.functions) && columns.length > 1) {
       const opcode = new DocOpcode();
 
       opcode.name = columns[0];
@@ -43,20 +43,26 @@ export class DocOpcode {
 
 export class Docs {
   private readonly docsPath = 'docs';
+  private readonly functionsFile = 'functions.tsv';
   private readonly opcodesFile = 'opcodes.tsv';
   private readonly pseudoOpsFile = 'pseudo-ops.tsv';
   private opcodes = new Map<string, DocOpcode>();
+  private functions = new Map<string, DocOpcode>();
 
   constructor(private extensionPath: string) {
   }
 
   public async init(): Promise<void> {
     const extensionUri = vscode.Uri.file(this.extensionPath);
+
     const opcodesUri = vscode.Uri.joinPath(extensionUri, this.docsPath, this.opcodesFile);
     await this.parse(opcodesUri, DocOpcodeType.opcode);
 
     const pseudoOpsUri = vscode.Uri.joinPath(extensionUri, this.docsPath, this.pseudoOpsFile);
     await this.parse(pseudoOpsUri, DocOpcodeType.pseudo);
+
+    const functionsUri = vscode.Uri.joinPath(extensionUri, this.docsPath, this.functionsFile);
+    await this.parse(functionsUri, DocOpcodeType.functions);
   }
 
   public findOpcode(startsWith: string): DocOpcode[] {
@@ -67,6 +73,17 @@ export class Docs {
   public getOpcode(name: string | undefined): DocOpcode | undefined {
     return name
       ? this.opcodes.get(name.toUpperCase())
+      : undefined;
+  }
+
+  public findFunction(startsWith: string): DocOpcode[] {
+    return [...this.functions]
+      .filter(symbol => symbol[1].name.startsWith(startsWith)).map(symbol => symbol[1]);
+  }
+
+  public getFunction(name: string | undefined): DocOpcode | undefined {
+    return name
+      ? this.functions.get(name.toUpperCase())
       : undefined;
   }
 
@@ -82,12 +99,16 @@ export class Docs {
       }
 
       if (line.length > 0) {
-        const opcode = DocOpcode.parse(line, type);
+        const symbol = DocOpcode.parse(line, type);
 
-        if (opcode) {
-          opcode.type = type;
-          const key = opcode.name.toUpperCase();
-          this.opcodes.set(key, opcode);
+        if (symbol) {
+          symbol.type = type;
+          const key = symbol.name.toUpperCase();
+          if (type === DocOpcodeType.functions) {
+            this.functions.set(key, symbol);
+          } else {
+            this.opcodes.set(key, symbol);
+          }
         } else {
           Logger.error(`Internal: \'${this.opcodesFile}\':${lineNumber} Cannot parse line.`);
         }
