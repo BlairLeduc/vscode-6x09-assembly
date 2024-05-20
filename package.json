@@ -240,7 +240,7 @@
 		"@types/vscode": "1",
 		"@typescript-eslint/eslint-plugin": "6",
 		"@typescript-eslint/parser": "6",
-		"@typescript-eslint/scope-manager": "6",
+		"@typescript-eslint/scope-manager": "7",
 		"@vscode/test-electron": "2",
 		"@vscode/vsce": "2",
 		"babel-jest": "^29.6.2",
