@@ -238,7 +238,7 @@
 		"@types/line-reader": "0",
 		"@types/node": "20",
 		"@types/vscode": "1",
-		"@typescript-eslint/eslint-plugin": "6",
+		"@typescript-eslint/eslint-plugin": "7",
 		"@typescript-eslint/parser": "7",
 		"@typescript-eslint/scope-manager": "7",
 		"@vscode/test-electron": "2",
