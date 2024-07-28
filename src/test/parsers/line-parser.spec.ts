@@ -1365,6 +1365,62 @@ describe('LineParser', () => {
       expect(tokens[1]).toEqual(expectedAllOperandToken);
       expect(tokens[2]).toEqual(expectedOperandToken);
     });
+    
+    it(`sizeof operand returns opcode, operand tokens`, () => {
+      const expectedOpcode = opcode;
+      const expectedFunction = 'sizeof';
+      const expectedVariable = 'this';
+      const expectedOperand = `${expectedFunction}{${expectedVariable}}`;
+      const line = ` ${expectedOpcode} ${expectedOperand}`;
+      const expectedOpcodeToken = new Token(
+        expectedOpcode,
+        line.indexOf(expectedOpcode),
+        expectedOpcode.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      const expectedAllOperandToken = new Token(
+        expectedOperand,
+        line.indexOf(expectedOperand),
+        expectedOperand.length,
+        TokenKind.operand,
+        TokenType.namespace);
+      const expectedFunctionToken = new Token(
+        expectedFunction,
+        line.indexOf(expectedFunction),
+        expectedFunction.length,
+        TokenKind.opCode,
+        TokenType.keyword);
+      expectedFunctionToken.modifiers = TokenModifier.static;
+      const expectedOpenOperator = new Token(
+        '{',
+        line.indexOf('{'),
+        1,
+        TokenKind.ignore,
+        TokenType.operator);
+      const expectedVariableToken = new Token(
+        expectedVariable,
+        line.indexOf(expectedVariable),
+        expectedVariable.length,
+        TokenKind.reference,
+        TokenType.variable);
+      const expectedCloseOperator = new Token(
+        '}',
+        line.indexOf('}'),
+        1,
+        TokenKind.ignore,
+        TokenType.operator);
+
+      const tokens = LineParser.parse(line);
+
+      expect(tokens.length).toBe(6);
+      expect(tokens[0]).toEqual(expectedOpcodeToken);
+      expect(tokens[1]).toEqual(expectedAllOperandToken);
+      expect(tokens[2]).toEqual(expectedFunctionToken);
+      expect(tokens[3]).toEqual(expectedOpenOperator);
+      expect(tokens[4]).toEqual(expectedVariableToken);
+      expect(tokens[5]).toEqual(expectedCloseOperator);
+    });
+
   });
 
   ['fcc', 'fcn', 'fcs'].forEach(pseudo => {
