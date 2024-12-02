@@ -107,3 +107,6 @@ export const constantPseudoOps = new Set([
   '.str', '.strz', '.strs',
 ]);
 
+export const operandFunctions = new Set([
+  'sizeof',
+]);

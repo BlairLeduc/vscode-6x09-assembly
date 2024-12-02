@@ -37,6 +37,23 @@ describe('Docs', () => {
       const opcode = docs.getOpcode(undefined);
       expect(opcode).toBeFalsy();
     });
+
+    it("should not get a function that doesn't exist", () => {
+      const func = docs.getFunction('SIZE');
+      expect(func).toBeFalsy();
+    });
+
+    it("should not get a function from undefined", () => {
+      const func = docs.getFunction(undefined);
+      expect(func).toBeFalsy();
+    });
+
+    it("should get a function that does exist", () => {
+      const func = docs.getFunction('SIZEOF');
+      expect(func).toBeTruthy();
+      expect(func?.name).toBe('SIZEOF');
+      expect(func?.summary).toBe('Set a Symbol to a Value');
+    });
   });
 
   describe('find docs', () => {
@@ -62,6 +79,12 @@ describe('Docs', () => {
     it('should not find opcodes starting with L', () => {
       const opcodes = docs.findOpcode('L');
       expect(opcodes.length).toBe(0);
+    });
+
+    it('should find functions that start with S', () => {
+      const functions = docs.findFunction('S');
+      expect(functions.length).toBe(1);
+      expect(functions[0].name).toBe('SIZEOF');
     });
   });
 
